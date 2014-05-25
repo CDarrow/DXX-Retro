@@ -352,19 +352,13 @@ int properties_init()
 		case D1_10_PIGSIZE:
 			Pigdata_start = 0;
 			break;
-		default:
-			PCSharePig = 1;
-			Pigdata_start = 0;
-			break;
-			//Warning("Unknown size for " DEFAULT_PIGFILE_REGISTERED);
-			//Int3();
-			// fall through
 		case D1_MAC_PIGSIZE:
 		case D1_MAC_SHARE_PIGSIZE:
 			MacPig = 1;
 		case D1_PIGSIZE:
 		case D1_OEM_PIGSIZE:
-			Pigdata_start = PHYSFSX_readInt(Piggy_fp );
+		default:
+			Pigdata_start = PHYSFSX_readInt( Piggy_fp );
 			break;
 	}
 	
