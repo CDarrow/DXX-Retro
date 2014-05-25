@@ -112,11 +112,22 @@ void show_framerate()
 	gr_printf(SWIDTH-(GameArg.SysMaxFPS>999?FSPACX(43):FSPACX(37)),y,"FPS: %i",fps_rate);
 }
 
+void set_font_present() { gr_set_fontcolor(BM_XRGB(25,25,25),-1); }
+void set_font_absent() { gr_set_fontcolor(BM_XRGB(12,12,12),-1); }
+void set_font_newline() { gr_set_fontcolor(255,-1); }
+void draw_flag(char* string, int present, int x, int y) {
+	if(present) { set_font_present(); }
+	else        { set_font_absent();  }
+
+	gr_printf(x,y,string); 
+}
+void set_font_presence(int i) { if(i) set_font_present(); else set_font_absent(); }
+
 #ifdef NETWORK
 void show_netplayerinfo()
 {
 	int x=0, y=0, i=0, color=0, eff=0;
-	static const char *const eff_strings[]={"trashing","really hurting","seriously effecting","hurting","effecting","tarnishing"};
+	static const char *const eff_strings[]={"trashing","really hurting","seriously affecting","hurting","affecting","tarnishing"};
 
 	gr_set_current_canvas(NULL);
 	gr_set_curfont(GAME_FONT);
@@ -142,18 +153,90 @@ void show_netplayerinfo()
 	y+=LINE_SPACING*2;
 	unsigned gamemode = Netgame.gamemode;
 	gr_printf(x,y,"game mode: %s",gamemode < (sizeof(GMNames) / sizeof(GMNames[0])) ? GMNames[gamemode] : "INVALID");
+
+	
+	int base_flags_left = SWIDTH/2 - FSPACX(15);
+	int flags_x = base_flags_left + FSPACX(30);
+	int letter_spacing = FSPACX(7); 
+	int word_spacing = FSPACX(46); 
+
+
+	if(Netgame.RetroProtocol) {
+		draw_flag("RetroP2P", 1,                         						 base_flags_left + word_spacing*0, y); 
+	} else if(Netgame.ShortPackets) {
+		draw_flag("ShortPkt", 1,                         						 base_flags_left + word_spacing*0, y); 
+	} else {
+		draw_flag("LongPkt", 1,                         						 base_flags_left + word_spacing*0, y); 
+	}
+
+	char pps_string[16];
+	sprintf(pps_string, "PPS %d", Netgame.PacketsPerSec); 
+	draw_flag(pps_string, 1,                         						 base_flags_left + word_spacing*1, y);
+
+	if(Netgame.InvulAppear & Netgame.ShortSpawnInvuln) {
+		draw_flag("ShortInv", Netgame.InvulAppear & Netgame.ShortSpawnInvuln, base_flags_left + word_spacing*2, y); 
+	} else if (Netgame.InvulAppear) {
+		draw_flag("LongInv", Netgame.InvulAppear,                            base_flags_left + word_spacing*2, y); 
+	} else {
+		draw_flag("NoInvul", Netgame.InvulAppear,                            base_flags_left + word_spacing*2, y); 
+	}
+	
+
+	set_font_newline(); 
+
 	y+=LINE_SPACING;
 	gr_printf(x,y,"difficulty: %s",MENU_DIFFICULTY_TEXT(Netgame.difficulty));
+
+	draw_flag("ColorLgt", Netgame.AllowColoredLighting,                            base_flags_left + word_spacing*0, y); 
+	draw_flag("BrtShips", Netgame.BrightPlayers,                                   base_flags_left + word_spacing*1, y); 	
+	draw_flag("ConcResp", Netgame.RespawnConcs,                                    base_flags_left + word_spacing*2, y); 
+
+	set_font_newline(); 
 	y+=LINE_SPACING;
 	gr_printf(x,y,"level time: %i:%02i:%02i",Players[Player_num].hours_level,f2i(Players[Player_num].time_level) / 60 % 60,f2i(Players[Player_num].time_level) % 60);
+
+	char disp_string[16];
+	sprintf(disp_string, "Guns x%d", Netgame.PrimaryDupFactor == 0 ? 1 : Netgame.PrimaryDupFactor);
+	draw_flag(disp_string, Netgame.PrimaryDupFactor > 1,                           base_flags_left + word_spacing*0, y); 
+
+	sprintf(disp_string, "Msls x%d", Netgame.SecondaryDupFactor == 0 ? 1 : Netgame.SecondaryDupFactor);
+	draw_flag(disp_string, Netgame.SecondaryDupFactor > 1,                         base_flags_left + word_spacing*1, y); 	
+
+	sprintf(disp_string, "Mcap %s", Netgame.SecondaryCapFactor == 0 ? "ALL" : (Netgame.SecondaryCapFactor == 1 ? "6" : "2"));
+	draw_flag(disp_string, Netgame.SecondaryCapFactor > 0,                         base_flags_left + word_spacing*2, y); 	
+
+
+	set_font_newline(); 
 	y+=LINE_SPACING;
 	gr_printf(x,y,"total time: %i:%02i:%02i",Players[Player_num].hours_total,f2i(Players[Player_num].time_total) / 60 % 60,f2i(Players[Player_num].time_total) % 60);
+
+
+
+
+	set_font_newline(); 
 	y+=LINE_SPACING;
 	if (Netgame.KillGoal)
 		gr_printf(x,y,"Kill goal: %d",Netgame.KillGoal*5);
 
+	gr_printf(base_flags_left, y, "Items: "); 
+	draw_flag("L", Netgame.AllowedItems & NETFLAG_DOLASER,     flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("Q", Netgame.AllowedItems & NETFLAG_DOQUAD,      flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("V", Netgame.AllowedItems & NETFLAG_DOVULCAN,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("A", Netgame.AllowedItems & NETFLAG_DOVULCANAMMO,flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("S", Netgame.AllowedItems & NETFLAG_DOSPREAD,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("P", Netgame.AllowedItems & NETFLAG_DOPLASMA,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("F", Netgame.AllowedItems & NETFLAG_DOFUSION,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("C", 1,                                          flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("H", Netgame.AllowedItems & NETFLAG_DOHOMING,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("P", Netgame.AllowedItems & NETFLAG_DOPROXIM,    flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("S", Netgame.AllowedItems & NETFLAG_DOSMART,     flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("M", Netgame.AllowedItems & NETFLAG_DOMEGA,      flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("C", Netgame.AllowedItems & NETFLAG_DOCLOAK,     flags_x, y);  flags_x += letter_spacing; 
+	draw_flag("I", Netgame.AllowedItems & NETFLAG_DOINVUL,     flags_x, y);  flags_x += letter_spacing; 
+
 	// player information (name, kills, ping, game efficiency)
-	y+=LINE_SPACING*2;
+	set_font_newline(); 	
+	y+=LINE_SPACING*3;
 	gr_printf(x,y,"player");
 	if (Game_mode & GM_MULTI_COOP)
 		gr_printf(x+FSPACX(8)*7,y,"score");
@@ -164,6 +247,13 @@ void show_netplayerinfo()
 	}
 	gr_printf(x+FSPACX(8)*18,y,"ping");
 	gr_printf(x+FSPACX(8)*23,y,"efficiency");
+
+	if(Netgame.FairColors)
+		selected_player_rgb = player_rgb_all_blue; 
+	else if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
+	else
+		selected_player_rgb = player_rgb;
 
 	// process players table
 	for (i=0; i<MAX_PLAYERS; i++)
@@ -177,7 +267,7 @@ void show_netplayerinfo()
 			color=get_team(i);
 		else
 			color=i;
-		gr_set_fontcolor( BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b),-1 );
+		gr_set_fontcolor( BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 		gr_printf(x,y,"%s\n",Players[i].callsign);
 		if (Game_mode & GM_MULTI_COOP)
 			gr_printf(x+FSPACX(8)*7,y,"%-6d",Players[i].score);
@@ -187,7 +277,7 @@ void show_netplayerinfo()
 			gr_printf(x+FSPACX(8)*12,y,"%-6d",Players[i].net_killed_total);
 		}
 
-		gr_printf(x+FSPACX(8)*18,y,"%-6d",Netgame.players[i].ping);
+		gr_printf(x+FSPACX(8)*18,y,"%-6d",Netgame.players[i].ping + Netgame.players[Player_num].ping);
 		if (i != Player_num)
 			gr_printf(x+FSPACX(8)*23,y,"%d/%d",kill_matrix[Player_num][i],kill_matrix[i][Player_num]);
 	}
@@ -201,11 +291,11 @@ void show_netplayerinfo()
 		gr_printf(x,y,"team");
 		gr_printf(x+FSPACX(8)*8,y,"score");
 		y+=LINE_SPACING;
-		gr_set_fontcolor(BM_XRGB(player_rgb[0].r,player_rgb[0].g,player_rgb[0].b),-1 );
+		gr_set_fontcolor(BM_XRGB(selected_player_rgb[0].r,selected_player_rgb[0].g,selected_player_rgb[0].b),-1 );
 		gr_printf(x,y,"%s:",Netgame.team_name[0]);
 		gr_printf(x+FSPACX(8)*8,y,"%i",team_kills[0]);
 		y+=LINE_SPACING;
-		gr_set_fontcolor(BM_XRGB(player_rgb[1].r,player_rgb[1].g,player_rgb[1].b),-1 );
+		gr_set_fontcolor(BM_XRGB(selected_player_rgb[1].r,selected_player_rgb[1].g,selected_player_rgb[1].b),-1 );
 		gr_printf(x,y,"%s:",Netgame.team_name[1]);
 		gr_printf(x+FSPACX(8)*8,y,"%i",team_kills[1]);
 		y+=LINE_SPACING*2;

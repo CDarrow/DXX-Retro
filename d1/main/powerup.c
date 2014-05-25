@@ -209,13 +209,16 @@ int do_powerup(object *obj)
 	if ((Player_is_dead) || (ConsoleObject->type == OBJ_GHOST) || (Players[Player_num].shields < 0))
 		return 0;
 
-	if (Game_mode & GM_MULTI)
-	{
+	//if (Game_mode & GM_MULTI)
+	//{
 		/*
 		 * The fact: Collecting a powerup is decided Client-side and due to PING it takes time for other players to know if one collected a powerup actually. This may lead to the case two players collect the same powerup!
 		 * The solution: Let us check if someone else is closer to a powerup and if so, do not collect it.
 		 * NOTE: Player positions computed by 'shortpos' and PING can still cause a small margin of error.
 		 */
+
+		 // CED -- causes more problems than it solves.  
+		 /*
 		int i = 0;
 		vms_vector tvec;
 		fix mydist = vm_vec_normalized_dir(&tvec, &obj->pos, &ConsoleObject->pos);
@@ -229,7 +232,8 @@ int do_powerup(object *obj)
 			if (mydist > vm_vec_normalized_dir(&tvec, &obj->pos, &Objects[Players[i].objnum].pos))
 				return 0;
 		}
-	}
+		*/
+	//}
 
 	switch (obj->id) {
 		case POW_EXTRA_LIFE:
@@ -320,6 +324,7 @@ int do_powerup(object *obj)
 				Players[Player_num].flags |= PLAYER_FLAGS_QUAD_LASERS;
 				powerup_basic(15, 15, 7, QUAD_FIRE_SCORE, "%s!",TXT_QUAD_LASERS);
 				update_laser_weapon_info();
+				pick_up_quads();
 				used=1;
 			} else
 				HUD_init_message(HM_DEFAULT|HM_REDUNDANT|HM_MAYDUPL, "%s %s!",TXT_ALREADY_HAVE,TXT_QUAD_LASERS);

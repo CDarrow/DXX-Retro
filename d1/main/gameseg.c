@@ -1142,6 +1142,37 @@ void extract_quaternionpos(object *objp, quaternionpos *qpp, int swap_bytes)
 	update_object_seg(objp);
 }
 
+void extract_uncompressedpos(object *objp, uncompressed_pos *upp, int swap_bytes)
+{
+	if (swap_bytes)
+	{
+		upp->orient.rvec.x = INTEL_INT(upp->orient.rvec.x); 
+		upp->orient.rvec.y = INTEL_INT(upp->orient.rvec.y); 
+		upp->orient.rvec.z = INTEL_INT(upp->orient.rvec.z); 
+		upp->orient.uvec.x = INTEL_INT(upp->orient.uvec.x); 
+		upp->orient.uvec.y = INTEL_INT(upp->orient.uvec.y); 
+		upp->orient.uvec.z = INTEL_INT(upp->orient.uvec.z);		
+		upp->orient.fvec.x = INTEL_INT(upp->orient.fvec.x); 
+		upp->orient.fvec.y = INTEL_INT(upp->orient.fvec.y); 
+		upp->orient.fvec.z = INTEL_INT(upp->orient.fvec.z);		
+		upp->pos.x = INTEL_INT(upp->pos.x);
+		upp->pos.y = INTEL_INT(upp->pos.y);
+		upp->pos.z = INTEL_INT(upp->pos.z);
+		upp->vel.x = INTEL_INT(upp->vel.x);
+		upp->vel.y = INTEL_INT(upp->vel.y);
+		upp->vel.z = INTEL_INT(upp->vel.z);
+		upp->rotvel.x = INTEL_INT(upp->rotvel.x);
+		upp->rotvel.y = INTEL_INT(upp->rotvel.y);
+		upp->rotvel.z = INTEL_INT(upp->rotvel.z);
+	}
+
+	objp->orient = upp->orient;
+	objp->pos = upp->pos;
+	objp->mtype.phys_info.velocity = upp->vel;
+	objp->mtype.phys_info.rotvel = upp->rotvel;
+	
+	update_object_seg(objp);
+}
 
 //	-----------------------------------------------------------------------------
 //	Segment validation functions.

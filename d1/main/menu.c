@@ -1246,10 +1246,10 @@ int graphics_config_menuset(newmenu *menu, d_event *event, void *userdata)
 void graphics_config()
 {
 #ifdef OGL
-	newmenu_item m[14];
+	newmenu_item m[16];
 	int i = 0;
 #else
-	newmenu_item m[3];
+	newmenu_item m[5];
 #endif
 	int nitems = 0;
 
@@ -1285,6 +1285,12 @@ void graphics_config()
 	m[opt_gr_texfilt+GameCfg.TexFilt].value=1;
 #endif
 
+	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Framerate"; nitems++; 
+
+	char framerate_string[5];
+	snprintf(framerate_string,sizeof(char)*4,"%d",PlayerCfg.maxFps);
+	m[nitems].type = NM_TYPE_INPUT; m[nitems].text=framerate_string; m[nitems].text_len=5;  nitems++;
+
 	newmenu_do1( NULL, "Graphics Options", nitems, m, graphics_config_menuset, NULL, 1 );
 
 #ifdef OGL
@@ -1303,6 +1309,15 @@ void graphics_config()
 	GameCfg.FPSIndicator = m[opt_gr_fpsindi].value;
 	PlayerCfg.DisableCockpit = m[opt_gr_disablecockpit].value; 
 #ifdef OGL
+
+	PlayerCfg.maxFps=atoi(framerate_string);
+
+	if(PlayerCfg.maxFps < 25) {
+		PlayerCfg.maxFps = 25;
+	} else if (PlayerCfg.maxFps > 200) {
+		PlayerCfg.maxFps = 200; 
+	}
+
 	gr_set_attributes();
 	gr_set_mode(Game_screen_mode);
 #endif
@@ -1893,7 +1908,7 @@ void do_sound_menu()
 
 void do_misc_menu()
 {
-	newmenu_item m[11];
+	newmenu_item m[13];
 	int i = 0;
 
 	do {
@@ -1907,7 +1922,11 @@ void do_misc_menu()
 		ADD_CHECK(7, "Free Flight controls in Automap",PlayerCfg.AutomapFreeFlight);
 		ADD_CHECK(8, "No Weapon Autoselect when firing",PlayerCfg.NoFireAutoselect);		
 		ADD_CHECK(9, "Autoselect after firing",PlayerCfg.SelectAfterFire);
-		ADD_CHECK(10, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);
+		ADD_CHECK(10, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);		
+		ADD_CHECK(11, "Ammo Warnings",PlayerCfg.VulcanAmmoWarnings);
+		ADD_CHECK(12, "Shield Warnings",PlayerCfg.ShieldWarnings);
+
+
 
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, NULL, NULL, i );
 
@@ -1922,6 +1941,10 @@ void do_misc_menu()
 		PlayerCfg.NoFireAutoselect		= m[8].value;
 		PlayerCfg.SelectAfterFire       = m[9].value;  if(PlayerCfg.SelectAfterFire) { PlayerCfg.NoFireAutoselect = 1; }
 		PlayerCfg.CycleAutoselectOnly		= m[10].value;
+		PlayerCfg.VulcanAmmoWarnings = m[11].value; 
+		PlayerCfg.ShieldWarnings = m[12].value; 
+
+
 
 	} while( i>-1 );
 

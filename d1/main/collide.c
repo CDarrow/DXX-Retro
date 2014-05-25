@@ -26,6 +26,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "game.h"
 #include "gr.h"
 #include "stdlib.h"
+#include "timer.h"
 #include "bm.h"
 #include "3d.h"
 #include "segment.h"
@@ -1088,21 +1089,34 @@ void maybe_drop_secondary_weapon_egg(object *playerobj, int weapon_index, int co
 	}
 }
 
-void drop_missile_1_or_4(object *playerobj,int missile_index)
+void drop_missile_1_or_4(object *playerobj,int missile_index, ubyte force)
 {
 	int num_missiles,powerup_id;
 
 	num_missiles = Players[playerobj->id].secondary_ammo[missile_index];
 	powerup_id = Secondary_weapon_to_powerup[missile_index];
 
-	if (num_missiles > 10)
-		num_missiles = 10;
+
+	if(! force) {
+		if(missile_index == CONCUSSION_INDEX && Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+			num_missiles = RespawningConcussions[playerobj->id];
+		} 
+	}
+	
+	//	if (num_missiles > 10)
+	//		num_missiles = 10;
+	
 
 	call_object_create_egg(playerobj, num_missiles/4, OBJ_POWERUP, powerup_id+1);
 	call_object_create_egg(playerobj, num_missiles%4, OBJ_POWERUP, powerup_id);
 }
 
-void drop_player_eggs(object *playerobj)
+void drop_player_eggs_remote(object *playerobj, ubyte remote);
+void drop_player_eggs(object *playerobj) {
+	drop_player_eggs_remote(playerobj, 0); 
+}
+
+void drop_player_eggs_remote(object *playerobj, ubyte remote)
 {
 	if ((playerobj->type == OBJ_PLAYER) || (playerobj->type == OBJ_GHOST)) {
 		int	pnum = playerobj->id;
@@ -1153,8 +1167,8 @@ void drop_player_eggs(object *playerobj)
 		maybe_drop_secondary_weapon_egg(playerobj, MEGA_INDEX, Players[playerobj->id].secondary_ammo[MEGA_INDEX]);
 
 		//	Drop the player's missiles in packs of 1 and/or 4
-		drop_missile_1_or_4(playerobj,HOMING_INDEX);
-		drop_missile_1_or_4(playerobj,CONCUSSION_INDEX);
+		drop_missile_1_or_4(playerobj,HOMING_INDEX, remote);
+		drop_missile_1_or_4(playerobj,CONCUSSION_INDEX, remote);
 
 		//	If player has vulcan ammo, but no vulcan cannon, drop the ammo.
 		if (!(Players[playerobj->id].primary_weapon_flags & HAS_VULCAN_FLAG)) {
@@ -1176,6 +1190,48 @@ void drop_player_eggs(object *playerobj)
 	}
 }
 
+
+fix total_ouch = 0;
+fix64 last_damage_time = 0; 
+void shield_warning_damage(fix ouch) {
+	total_ouch += ouch; 
+	last_damage_time = timer_query(); 
+}
+
+void reset_shield_warning_damage() {
+	total_ouch = 0;
+	last_damage_time = 0; 
+}
+
+void do_shield_warnings() {
+	if(total_ouch > 0 && timer_query() - last_damage_time > F1_0/12) {
+		int pre_shields = (Players[Player_num].shields + total_ouch) / F1_0; 
+		int post_shields = Players[Player_num].shields / F1_0; 
+
+		int warning_increment = 10; 
+		
+		if(PlayerCfg.ShieldWarnings) {
+			
+			if(pre_shields > warning_increment*1 && post_shields <= warning_increment*1) {
+				HUD_init_message_literal(HM_MULTI, "Shield critical!"); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			} else if(pre_shields > warning_increment*2 && post_shields <= warning_increment*2) {
+				HUD_init_message_literal(HM_MULTI, "Shields low."); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			} else if(pre_shields > warning_increment*4 && post_shields <= warning_increment*4) {
+				HUD_init_message_literal(HM_MULTI, "Shield warning."); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			}		
+
+
+		}
+	}
+}
+
+
 void apply_damage_to_player(object *player, object *killer, fix damage, ubyte possibly_friendly)
 {
 	if (Player_is_dead)
@@ -1195,6 +1251,8 @@ void apply_damage_to_player(object *player, object *killer, fix damage, ubyte po
 	//used anywhere.  This routine, however, sets the objects shields to
 	//be a mirror of the value in the Player structure.
 
+
+
 	if (player->id == Player_num) {		//is this the local player?
 		Players[Player_num].shields -= damage;
 		PALETTE_FLASH_ADD(f2i(damage)*4,-f2i(damage/2),-f2i(damage/2));	//flash red
@@ -1207,12 +1265,18 @@ void apply_damage_to_player(object *player, object *killer, fix damage, ubyte po
 //				Players[Player_num].killer_objnum = killer-Objects;
 
 			player->flags |= OF_SHOULD_BE_DEAD;
+
+			reset_shield_warning_damage(); 
+		} else {
+			shield_warning_damage(damage);
 		}
 
 		player->shields = Players[Player_num].shields;		//mirror
 
+
 	}
 }
+
 
 void collide_player_and_weapon( object * player, object * weapon, vms_vector *collision_point )
 {

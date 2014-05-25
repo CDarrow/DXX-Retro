@@ -64,7 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2127 // Retromod 1.2
+#define MULTI_PROTO_VERSION 2936 // Retromod 1.3 Experimental 4
 
 //#define MULTI_PROTO_VERSION 5555 // Experimental
 
@@ -163,6 +163,7 @@ for_each_multiplayer_command(enum {, define_multiplayer_command, });
 	VALUE(NETFLAG_DOLASER, "Laser upgrade")	\
 	VALUE(NETFLAG_DOQUAD, "Quad lasers")	\
 	VALUE(NETFLAG_DOVULCAN, "Vulcan cannon")	\
+	VALUE(NETFLAG_DOVULCANAMMO, "Vulcan ammo")	\
 	VALUE(NETFLAG_DOSPREAD, "Spreadfire cannon")	\
 	VALUE(NETFLAG_DOPLASMA, "Plasma cannon")	\
 	VALUE(NETFLAG_DOFUSION, "Fusion cannon")	\
@@ -183,7 +184,7 @@ enum { NETFLAG_DOPOWERUP = 0 for_each_netflag_value(define_netflag_powerup_mask)
 
 #define MULTI_GAME_TYPE_COUNT	8
 #define MULTI_GAME_NAME_LENGTH	13
-#define MULTI_ALLOW_POWERUP_MAX 12
+#define MULTI_ALLOW_POWERUP_MAX 13
 int multi_allow_powerup_mask[MAX_POWERUP_TYPES];
 extern char *multi_allow_powerup_text[MULTI_ALLOW_POWERUP_MAX];
 extern const char GMNames[MULTI_GAME_TYPE_COUNT][MULTI_GAME_NAME_LENGTH];
@@ -291,6 +292,7 @@ extern ushort my_segments_checksum;
 
 //do we draw the kill list on the HUD?
 extern int Show_kill_list;
+extern int Show_network_stats; 
 extern int Show_reticle_name;
 extern fix Show_kill_list_timer;
 
@@ -347,6 +349,8 @@ extern fix64 RefuseTimeLimit;
 
 extern struct netgame_info Netgame;
 
+extern int multi_received_objects; 
+
 /*
  * The Network Players structure
  * Contains protocol-specific data with designated prefixes and general player-related data.
@@ -370,6 +374,8 @@ typedef struct netplayer_info
 	sbyte						connected;
 	ubyte						rank;
 	fix							ping;
+	ubyte						loss; 
+	ubyte						rx_loss; 
 	fix64							LastPacketTime;
 } __pack__ netplayer_info;
 
@@ -435,5 +441,14 @@ typedef struct netgame_info
 #ifdef USE_TRACKER
 	ubyte						Tracker;
 #endif
+	ubyte						RetroProtocol;
+	ubyte						RespawnConcs; 
+	ubyte						AllowColoredLighting;
+	ubyte						FairColors;	
+	ubyte						BlackAndWhitePyros;
+	ubyte						ShortSpawnInvuln; 
+	ubyte						PrimaryDupFactor;
+	ubyte						SecondaryDupFactor;
+	ubyte						SecondaryCapFactor;
 } __pack__ netgame_info;
 #endif /* _MULTI_H */

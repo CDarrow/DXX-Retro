@@ -467,7 +467,7 @@ int choose_drop_segment()
 			continue;
 		}
 		if (Segments[segnum].special == SEGMENT_IS_CONTROLCEN)
-			{segnum = -1;  con_printf(CON_NORMAL, "   Unacceptable: Rector segment\n");  }
+			{segnum = -1;    }
 		else {	//don't drop in any children of control centers
 			int i;
 			for (i=0;i<6;i++) {
@@ -528,14 +528,16 @@ extern char PowerupsInMine[],MaxPowerupsAllowed[];
 //	Drop cloak powerup if in a network game.
 void maybe_drop_net_powerup(int powerup_type)
 {
-	if ((Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP)) {
+	if ((Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) ) {
 		int	segnum, objnum;
 		vms_vector	new_pos;
 
 		if (Game_mode & GM_NETWORK)
 		{
-			if (PowerupsInMine[powerup_type]>=MaxPowerupsAllowed[powerup_type])
-				return;
+			if(Netgame.PrimaryDupFactor < 2 && Netgame.SecondaryDupFactor < 2 ) {
+				if (PowerupsInMine[powerup_type]>=MaxPowerupsAllowed[powerup_type]) 
+					return;
+			}
 		}
 
 		if (Control_center_destroyed || Endlevel_sequence)
@@ -568,6 +570,7 @@ void maybe_drop_net_powerup(int powerup_type)
 		obj_relink(objnum, segnum);
 
 		object_create_explosion(segnum, &new_pos, i2f(5), VCLIP_POWERUP_DISAPPEARANCE );
+
 	}
 }
 
@@ -761,6 +764,9 @@ int drop_powerup(int type, int id, int num, vms_vector *init_vel, vms_vector *po
 				switch (obj->id) {
 					case POW_MISSILE_1:
 					case POW_MISSILE_4:
+						if(Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+							break;
+						}
 					case POW_SHIELD_BOOST:
 					case POW_ENERGY:
 						obj->lifeleft = (d_rand() + F1_0*3) * 64;		//	Lives for 3 to 3.5 binary minutes (a binary minute is 64 seconds)

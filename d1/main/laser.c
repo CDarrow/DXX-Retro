@@ -46,6 +46,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "multi.h"
 #include "physics.h"
 #include "hudmsg.h"
+#include "playsave.h"
 
 #define NEWHOMER
 
@@ -327,8 +328,16 @@ int Laser_create_new( vms_vector * direction, vms_vector * position, int segnum,
 			if ( parent == (Viewer-Objects) )	{
 				if (weapon_type == VULCAN_ID)	// Make your own vulcan gun  1/2 as loud.
 					volume = F1_0 / 2;
+				if(weapon_type == PLASMA_ID)  // Plasma's a bit loud, too
+					volume = F1_0  * 3 / 4; 
 				digi_play_sample( Weapon_info[obj->id].flash_sound, volume );
 			} else {
+				if(weapon_type == PLASMA_ID)  // Plasma's a bit loud, too
+					volume = F1_0  * 3 / 4; 
+
+				if(Weapon_info[obj->id].flash_sound == 22)  // Reactor ball
+					volume = F1_0  * 3 / 4; 		
+
 				digi_link_sound_to_pos( Weapon_info[obj->id].flash_sound, obj->segnum, 0, &obj->pos, 0, volume );
 			}
 		}
@@ -1139,6 +1148,65 @@ int do_laser_firing_player(void)
 			/* CED sniperpackets */ 
 			rval += do_laser_firing(Players[Player_num].objnum, Primary_weapon, laser_level, flags, nfires, Objects[Players[Player_num].objnum].orient.fvec);
 
+			int warning_increment = 250/12;
+			int pre_ammo = plp->primary_ammo[VULCAN_INDEX];
+			int post_ammo = plp->primary_ammo[VULCAN_INDEX] - ammo_used; 
+
+			//int bump = 1; 
+			if(Primary_weapon == VULCAN_INDEX && PlayerCfg.VulcanAmmoWarnings) {
+				//if(pre_ammo > warning_increment*4 + bump && post_ammo <= warning_increment*4 + bump) {
+				//	digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				//}
+
+				if(pre_ammo > warning_increment*4 && post_ammo <= warning_increment*4) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo warning."); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}
+
+				//if(pre_ammo > warning_increment*2 + bump && post_ammo <= warning_increment*2 + bump) {
+				//	digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				//}		
+
+
+				if(pre_ammo > warning_increment*2 && post_ammo <= warning_increment*2) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo low."); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}		
+
+				//if(pre_ammo > warning_increment*1 + bump && post_ammo <= warning_increment*1 + bump) {
+				//	digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				//}		
+
+
+				if(pre_ammo > warning_increment*1 && post_ammo <= warning_increment*1) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo critical!"); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}							
+			}
+
+			pre_ammo = (Players[Player_num].energy)/F1_0; 
+			post_ammo = (Players[Player_num].energy - (energy_used * rval) / Weapon_info[weapon_index].fire_count)/F1_0; 
+			warning_increment = 5; 
+			if(Primary_weapon != VULCAN_INDEX && PlayerCfg.VulcanAmmoWarnings) {
+			
+				if(pre_ammo > warning_increment*4 && post_ammo <= warning_increment*4) {
+					HUD_init_message_literal(HM_MULTI, "Energy warning."); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}
+
+
+				if(pre_ammo > warning_increment*2 && post_ammo <= warning_increment*2) {
+					HUD_init_message_literal(HM_MULTI, "Energy low."); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}		
+
+
+				if(pre_ammo > warning_increment*1 && post_ammo <= warning_increment*1) {
+					HUD_init_message_literal(HM_MULTI, "Energy critical!"); 
+					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				}					
+			}
+
 			plp->energy -= (energy_used * rval) / Weapon_info[weapon_index].fire_count;
 			if (plp->energy < 0)
 				plp->energy = 0;
@@ -1419,6 +1487,14 @@ void do_missile_firing(int drop_bomb)
 			case CONCUSSION_INDEX:
 				Laser_player_fire( ConsoleObject, CONCUSSION_ID, CONCUSSION_GUN+(Missile_gun & 1), 1, 0 , orient);
 				Missile_gun++;
+
+				#ifdef NETWORK
+					if(Game_mode & GM_MULTI && Netgame.RespawnConcs && RespawningConcussions[Player_num] > 0 ) {
+						maybe_drop_net_powerup(POW_MISSILE_1);
+						RespawningConcussions[Player_num]--; 
+					}
+				#endif				
+
 				break;
 
 			case PROXIMITY_INDEX:

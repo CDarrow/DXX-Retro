@@ -75,6 +75,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 void reset_player_object(void); // In object.c but not in object.h
 void multi_reset_object_texture(object *objp);
 void drop_player_eggs(object *playerobj); // from collide.c
+void drop_player_eggs_remote(object *playerobj, ubyte remote); // from collide.c
 void multi_do_heartbeat(const ubyte *buf);
 void multi_send_heartbeat();
 void multi_do_kill_goal_counts(const ubyte *buf);
@@ -103,6 +104,7 @@ int who_killed_controlcen = -1;  // -1 = noone
 
 //do we draw the kill list on the HUD?
 int Show_kill_list = 1;
+int Show_network_stats = 1; 
 int Show_reticle_name = 1;
 fix Show_kill_list_timer = 0;
 
@@ -194,7 +196,7 @@ int multi_allow_powerup_mask[MAX_POWERUP_TYPES] =
 { NETFLAG_DOINVUL, 0, 0, NETFLAG_DOLASER, 0, 0, 0, 0, 0, 0, 0, 0, NETFLAG_DOQUAD,
   NETFLAG_DOVULCAN, NETFLAG_DOSPREAD, NETFLAG_DOPLASMA, NETFLAG_DOFUSION,
   NETFLAG_DOPROXIM, NETFLAG_DOHOMING, NETFLAG_DOHOMING, NETFLAG_DOSMART,
-  NETFLAG_DOMEGA, NETFLAG_DOVULCAN, NETFLAG_DOCLOAK, 0, NETFLAG_DOINVUL, 0, 0, 0 };
+  NETFLAG_DOMEGA, NETFLAG_DOVULCANAMMO, NETFLAG_DOCLOAK, 0, NETFLAG_DOINVUL, 0, 0, 0 };
 
 char *multi_allow_powerup_text[MULTI_ALLOW_POWERUP_MAX] =
 {
@@ -470,6 +472,7 @@ multi_new_game(void)
 	multi_quit_game = 0;
 	Show_kill_list = 1;
 	game_disable_cheats();
+	multi_received_objects = 0; 
 }
 
 void
@@ -855,10 +858,15 @@ void multi_do_frame(void)
 void
 multi_send_data(unsigned char *buf, int len, int priority)
 {
-	if (len != message_length[(int)buf[0]])
-		Error("multi_send_data: Packet type %i length: %i, expected: %i\n", buf[0], len, message_length[(int)buf[0]]);
-	if (buf[0] >= sizeof(message_length) / sizeof(message_length[0]))
-		Error("multi_send_data: Illegal packet type %i\n", buf[0]);
+	if (len != message_length[(int)buf[0]]) {
+		//Error("multi_send_data: Packet type %i length: %i, expected: %i\n", buf[0], len, message_length[(int)buf[0]]);
+		con_printf(CON_NORMAL, "multi_send_data: Packet type %i length: %i, expected: %i\n", buf[0], len, message_length[(int)buf[0]]);
+		return;
+	}
+	if (buf[0] >= sizeof(message_length) / sizeof(message_length[0])) {
+		con_printf(CON_NORMAL, "multi_send_data: Illegal packet type %i\n", buf[0]);
+		return;
+	}
 
 	if (Game_mode & GM_NETWORK)
 	{
@@ -1502,6 +1510,13 @@ multi_do_message(const ubyte *cbuf)
 
 	int loc = 2;
 
+	if(Netgame.FairColors)
+		selected_player_rgb = player_rgb_all_blue; 
+	else if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
+	else
+		selected_player_rgb = player_rgb;
+
 	if (((colon = strstr(buf+loc, ": ")) == NULL) || (colon-(buf+loc) < 1) || (colon-(buf+loc) > CALLSIGN_LEN))
 	{
 		int color = 0;
@@ -1510,7 +1525,7 @@ multi_do_message(const ubyte *cbuf)
 			color = get_team((int)buf[1]);
 		else
 			color = (int)buf[1];
-		mesbuf[1] = BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b);
+		mesbuf[1] = BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b);
 		strcpy(&mesbuf[2], Players[(int)buf[1]].callsign);
 		t = strlen(mesbuf);
 		mesbuf[t] = ':';
@@ -1531,7 +1546,7 @@ multi_do_message(const ubyte *cbuf)
 			color = get_team((int)buf[1]);
 		else
 			color = (int)buf[1];
-		mesbuf[1] = BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b);
+		mesbuf[1] = BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b);
 		strcpy(&mesbuf[2], Players[(int)buf[1]].callsign);
 		t = strlen(mesbuf);
 		mesbuf[t] = ':';
@@ -1646,7 +1661,7 @@ multi_do_player_explode(const ubyte *buf)
 
 	Net_create_loc = 0;
 
-	drop_player_eggs(objp);
+	drop_player_eggs_remote(objp, 1);
 
 	// Create mapping from remote to local numbering system
 
@@ -2224,10 +2239,12 @@ multi_reset_player_object(object *objp)
 	objp->mtype.phys_info.brakes = objp->mtype.phys_info.turnroll = 0;
 	objp->mtype.phys_info.mass = Player_ship->mass;
 	objp->mtype.phys_info.drag = Player_ship->drag;
-	if (objp->type == OBJ_PLAYER)
-		objp->mtype.phys_info.flags |= PF_TURNROLL | PF_WIGGLE;
-	else
+	//if (objp->type == OBJ_PLAYER) {
+	//	objp->mtype.phys_info.flags |= PF_TURNROLL | PF_WIGGLE;
+	//	objp->mtype.phys_info.flags &= ~PF_LEVELLING;
+	//} else {
 		objp->mtype.phys_info.flags &= ~(PF_TURNROLL | PF_LEVELLING | PF_WIGGLE);
+	//}
 
 	//Init render info
 
@@ -2258,6 +2275,10 @@ void multi_reset_object_texture (object *objp)
 		id = get_team(objp->id);
 	else
 		id = objp->id;
+
+	if(Game_mode & GM_MULTI && Netgame.FairColors) {
+		id = 0;
+	}
 
 	if (id == 0)
 		objp->rtype.pobj_info.alt_textures=0;
@@ -2401,7 +2422,11 @@ multi_send_player_explode(char type)
 	multibuf[count++] = (char)Players[Player_num].secondary_weapon_flags;
 	multibuf[count++] = (char)Players[Player_num].laser_level;
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[HOMING_INDEX];
-	multibuf[count++] = (char)Players[Player_num].secondary_ammo[CONCUSSION_INDEX];
+	if(Netgame.RespawnConcs) {
+		multibuf[count++] = (char)RespawningConcussions[Player_num];
+	} else {
+		multibuf[count++] = (char)Players[Player_num].secondary_ammo[CONCUSSION_INDEX];
+	}
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[SMART_INDEX];
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[MEGA_INDEX];
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[PROXIMITY_INDEX];
@@ -2482,6 +2507,11 @@ void multi_powcap_cap_objects()
 
 	// Bad interaction with savegames -- CED -- coopfix
 	if(Game_mode & GM_MULTI_COOP) {
+		return;
+	}
+
+	// Don't even try.
+	if(Netgame.PrimaryDupFactor > 1 || Netgame.SecondaryDupFactor > 1 || Netgame.SecondaryCapFactor > 1 ) {
 		return;
 	}
 
@@ -2624,6 +2654,7 @@ multi_send_reappear()
 void
 multi_send_position(int objnum)
 {
+
 #ifdef WORDS_BIGENDIAN
 	shortpos sp;
 #endif
@@ -2641,9 +2672,13 @@ multi_send_position(int objnum)
 	memcpy(&(multibuf[count]), (ubyte *)&(sp.xo), 14);
 	count += 14;
 #endif
-	// send twice while first has priority so the next one will be attached to the next bigdata packet
-	multi_send_data(multibuf, count, 2);
-	multi_send_data(multibuf, count, 0);
+	if(Netgame.RetroProtocol) {
+		multi_send_data(multibuf, count, 0);
+	} else {
+		// send twice while first has priority so the next one will be attached to the next bigdata packet
+		multi_send_data(multibuf, count, 2);
+		multi_send_data(multibuf, count, 0);
+	}
 }
 
 /* 
@@ -2732,6 +2767,9 @@ multi_send_remobj(int objnum)
 
 	multibuf[3] = obj_owner;
 
+	if(Netgame.RetroProtocol) {
+		multi_send_data(multibuf, 4, 1); // Send it twice, once direct for speed
+	}
 	multi_send_data(multibuf, 4, 2);
 
 	if (Network_send_objects && multi_objnum_is_past(objnum))
@@ -2760,6 +2798,9 @@ multi_send_cloak(void)
 	multibuf[0] = MULTI_CLOAK;
 	multibuf[1] = (char)Player_num;
 
+	if(Netgame.RetroProtocol) {
+		multi_send_data(multibuf, 2, 1);
+	}
 	multi_send_data(multibuf, 2, 2);
 
 	if (Game_mode & GM_MULTI_ROBOTS)
@@ -2774,6 +2815,9 @@ multi_send_decloak(void)
 	multibuf[0] = MULTI_DECLOAK;
 	multibuf[1] = (char)Player_num;
 
+	if(Netgame.RetroProtocol) {
+		multi_send_data(multibuf, 2, 1);
+	}
 	multi_send_data(multibuf, 2, 2);
 }
 
@@ -2783,7 +2827,11 @@ void multi_send_door_open(int segnum, int side, ubyte flag)
 	multibuf[0] = MULTI_DOOR_OPEN;
 	PUT_INTEL_SHORT(multibuf+1, segnum );
 	multibuf[3] = (sbyte)side;
-	multi_send_data(multibuf, 4, 2);
+	if(Netgame.RetroProtocol) {
+		multi_send_data(multibuf, 4, 1);
+	} else {
+		multi_send_data(multibuf, 4, 2);
+	}
 }
 
 //
@@ -2843,7 +2891,8 @@ multi_send_create_powerup(int powerup_type, int segnum, int objnum, vms_vector *
 #endif
 	int count = 0;
 
-	multi_send_position(Players[Player_num].objnum);
+	// CED -- this makes no sense
+	//multi_send_position(Players[Player_num].objnum);
 
 	if (Game_mode & GM_NETWORK)
 	{
@@ -2981,6 +3030,38 @@ void multi_consistency_error(int reset)
 	game_leave_menus();
 	multi_reset_stuff();
 }
+
+int is_dupable_primary(int id) {
+	switch(id) {
+		case POW_LASER:
+		case POW_QUAD_FIRE:
+		case POW_VULCAN_WEAPON: 
+		case POW_VULCAN_AMMO: 
+		case POW_SPREADFIRE_WEAPON: 
+		case POW_PLASMA_WEAPON:
+		case POW_FUSION_WEAPON:
+			return 1;
+	}
+
+	return 0; 
+
+}
+
+int is_dupable_secondary(int id) {
+	switch(id) {
+		case POW_MISSILE_1:
+		case POW_MISSILE_4:
+		case POW_HOMING_AMMO_1:
+		case POW_HOMING_AMMO_4:
+		case POW_PROXIMITY_WEAPON:
+		case POW_SMARTBOMB_WEAPON:
+		case POW_MEGA_WEAPON: 
+			return 1;
+	}
+	return 0;
+}
+
+int multi_received_objects = 0; 
 
 void
 multi_prep_level(void)
@@ -3126,7 +3207,7 @@ multi_prep_level(void)
 				bash_to_shield (i,"plasma");
 			if (Objects[i].id == POW_PROXIMITY_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOPROXIM))
 				bash_to_shield (i,"proximity");
-			if (Objects[i].id==POW_VULCAN_AMMO && (!(Netgame.AllowedItems & NETFLAG_DOVULCAN)))
+			if (Objects[i].id==POW_VULCAN_AMMO && (!(Netgame.AllowedItems & NETFLAG_DOVULCANAMMO)))
 				bash_to_shield(i,"vulcan ammo");
 			if (Objects[i].id == POW_SPREADFIRE_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOSPREAD))
 				bash_to_shield (i,"spread");
@@ -3138,6 +3219,111 @@ multi_prep_level(void)
 				bash_to_shield (i,"Homing");
 			if (Objects[i].id == POW_QUAD_FIRE && !(Netgame.AllowedItems & NETFLAG_DOQUAD))
 				bash_to_shield (i,"Quad Lasers");
+		}
+	}
+
+	if(! multi_received_objects ) {
+		int old_highest_object = Highest_object_index;
+		for (i=0; i<=old_highest_object; i++)
+		{
+			int objnum;
+
+			if ((Objects[i].type == OBJ_HOSTAGE) && !(Game_mode & GM_MULTI_COOP))
+			{
+				objnum = obj_create(OBJ_POWERUP, POW_SHIELD_BOOST, Objects[i].segnum, &Objects[i].pos, &vmd_identity_matrix, Powerup_info[POW_SHIELD_BOOST].size, CT_POWERUP, MT_PHYSICS, RT_POWERUP);
+				obj_delete(i);
+				if (objnum != -1)
+				{
+					Objects[objnum].rtype.vclip_info.vclip_num = Powerup_info[POW_SHIELD_BOOST].vclip_num;
+					Objects[objnum].rtype.vclip_info.frametime = Vclip[Objects[objnum].rtype.vclip_info.vclip_num].frame_time;
+					Objects[objnum].rtype.vclip_info.framenum = 0;
+					Objects[objnum].mtype.phys_info.drag = 512;     //1024;
+					Objects[objnum].mtype.phys_info.mass = F1_0;
+					vm_vec_zero(&Objects[objnum].mtype.phys_info.velocity);
+				}
+				continue;
+			}
+
+			if (Objects[i].type == OBJ_POWERUP)
+			{
+				if(Netgame.PrimaryDupFactor > 1) {
+					if(is_dupable_primary(Objects[i].id)) {
+						for(int dup = 0; dup < Netgame.PrimaryDupFactor - 1; dup++) {
+							objnum = obj_create(OBJ_POWERUP, Objects[i].id, Objects[i].segnum, &Objects[i].pos, &vmd_identity_matrix, Powerup_info[Objects[i].id].size, CT_POWERUP, MT_PHYSICS, RT_POWERUP);
+							if (objnum != -1)
+							{
+								Objects[objnum].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+								Objects[objnum].rtype.vclip_info.frametime = Vclip[Objects[objnum].rtype.vclip_info.vclip_num].frame_time;
+								Objects[objnum].rtype.vclip_info.framenum = 0;
+								Objects[objnum].mtype.phys_info.drag = 512;     //1024;
+								Objects[objnum].mtype.phys_info.mass = F1_0;
+								vm_vec_zero(&Objects[objnum].mtype.phys_info.velocity);
+							}
+						}
+					
+					}
+				}
+
+				if(Netgame.SecondaryDupFactor > 1) {
+					if(is_dupable_secondary(Objects[i].id)) {					
+						for(int dup = 0; dup < Netgame.SecondaryDupFactor - 1; dup++) {
+							objnum = obj_create(OBJ_POWERUP, Objects[i].id, Objects[i].segnum, &Objects[i].pos, &vmd_identity_matrix, Powerup_info[Objects[i].id].size, CT_POWERUP, MT_PHYSICS, RT_POWERUP);
+
+							if (objnum != -1)
+							{
+								Objects[objnum].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+								Objects[objnum].rtype.vclip_info.frametime = Vclip[Objects[objnum].rtype.vclip_info.vclip_num].frame_time;
+								Objects[objnum].rtype.vclip_info.framenum = 0;
+								Objects[objnum].mtype.phys_info.drag = 512;     //1024;
+								Objects[objnum].mtype.phys_info.mass = F1_0;
+								vm_vec_zero(&Objects[objnum].mtype.phys_info.velocity);
+							}
+						}
+					
+					}
+				}			
+				
+			}
+		}
+
+		if(Netgame.SecondaryCapFactor > 0) {
+			int max_homers = Netgame.SecondaryCapFactor == 1 ? 6 : 2; 
+			int max_smarts = Netgame.SecondaryCapFactor == 1 ? 6 : 2; 
+
+			int num_homers = 0;
+			int num_smarts = 0; 
+			for (i=0; i<=Highest_object_index; i++)
+			{
+				if(Objects[i].id == POW_HOMING_AMMO_1) {
+					if(num_homers < max_homers) {
+						num_homers++;
+					} else {
+						bash_to_shield (i,"Homing");
+					}
+				}
+
+				if(Objects[i].id == POW_HOMING_AMMO_4) {
+					if(num_homers + 4 <= max_homers) {
+						num_homers += 4;
+					} else if(num_homers + 1 <= max_homers) {
+						Objects[i].id = POW_HOMING_AMMO_1;
+						Objects[i].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+						Objects[i].rtype.vclip_info.frametime = Vclip[Objects[i].rtype.vclip_info.vclip_num].frame_time;
+
+						num_homers += 1; 
+					} else {
+						bash_to_shield (i,"Homing");
+					}
+				}
+
+				if(Objects[i].id == POW_SMARTBOMB_WEAPON) {
+					if(num_smarts < max_smarts) {
+						num_smarts++;
+					} else {
+						bash_to_shield (i,"smartmissile");
+					}
+				}
+			}
 		}
 	}
 
@@ -3497,9 +3683,16 @@ void multi_new_bounty_target( int pnum )
 	/* Set the target */
 	Bounty_target = pnum;
 	
+	if(Netgame.FairColors)
+		selected_player_rgb = player_rgb_all_blue; 
+	else if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
+	else
+		selected_player_rgb = player_rgb;
+
 	/* Send a message */
 	HUD_init_message( HM_MULTI, "%c%c%s is the new target!", CC_COLOR,
-		BM_XRGB( player_rgb[Bounty_target].r, player_rgb[Bounty_target].g, player_rgb[Bounty_target].b ),
+		BM_XRGB( selected_player_rgb[Bounty_target].r, selected_player_rgb[Bounty_target].g, selected_player_rgb[Bounty_target].b ),
 		Players[Bounty_target].callsign );
 
 	digi_play_sample( SOUND_CONTROL_CENTER_WARNING_SIREN, F1_0 * 3 );

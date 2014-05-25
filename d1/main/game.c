@@ -385,10 +385,10 @@ void calc_frame_time()
 	timer_value = timer_query();
 	FrameTime = timer_value - last_timer_value;
 
-	while (FrameTime < f1_0 / (GameCfg.VSync?MAXIMUM_FPS:GameArg.SysMaxFPS))
+	while (FrameTime < f1_0 / (GameCfg.VSync?MAXIMUM_FPS:PlayerCfg.maxFps))
 	{
 		if (GameArg.SysUseNiceFPS && !GameCfg.VSync)
-			timer_delay(f1_0 / GameArg.SysMaxFPS - FrameTime);
+			timer_delay(f1_0 / PlayerCfg.maxFps - FrameTime);
 		timer_update();
 		timer_value = timer_query();
 		FrameTime = timer_value - last_timer_value;
@@ -720,7 +720,7 @@ void show_netgame_help()
 	int nitems = 0;
 	newmenu_item *m;
 
-	MALLOC(m, newmenu_item, 16);
+	MALLOC(m, newmenu_item, 17);
 	if (!m)
 		return;
 
@@ -731,6 +731,7 @@ void show_netgame_help()
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "Alt-F2/F3 (\x85-SHIFT-s/\x85-o)\t  SAVE/LOAD COOP GAME";
 #endif
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "ALT-F4\t  SHOW PLAYER NAMES ON HUD";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F6\t  TOGGLE CONNECTION STATS";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F7\t  TOGGLE KILL LIST";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F8\t  SEND MESSAGE";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "(SHIFT-)F9 to F12\t  (DEFINE)SEND MACRO";
@@ -1140,6 +1141,7 @@ void GameProcessFrame(void)
 			FireLaser();				// Fire Laser!
 
 		delayed_autoselect(); /* SelectAfterFire */ 
+		do_shield_warnings(); 
 
 		if (Auto_fire_fusion_cannon_time) {
 			if (Primary_weapon != FUSION_INDEX)
@@ -1185,7 +1187,11 @@ void GameProcessFrame(void)
 		if ((Game_mode & GM_MULTI) && Netgame.InvulAppear)
 		{
 			Players[Player_num].flags |= PLAYER_FLAGS_INVULNERABLE;
-			Players[Player_num].invulnerable_time = GameTime64-i2f(27);
+			if(Netgame.ShortSpawnInvuln) {
+				Players[Player_num].invulnerable_time = GameTime64 - F1_0*30 + F1_0/2; // 500 ms invuln
+			} else {
+				Players[Player_num].invulnerable_time = GameTime64-i2f(27);
+			}
 			FakingInvul=1;
 		}
 #endif

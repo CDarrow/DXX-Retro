@@ -52,6 +52,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #ifdef OGL
 #include "ogl_init.h"
 #endif
+#include "net_udp.h"
 
 //bitmap numbers for gauges
 #define GAUGE_SHIELDS			0		//0..9, in decreasing order (100%,90%...0%)
@@ -1052,7 +1053,7 @@ void hud_show_weapons_mode(int type,int vertical,int x,int y){
 				if (PlayerCfg.CockpitMode[1]==CM_FULL_SCREEN)
 					sprintf(weapon_str,"V%i", f2i(Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
 				else
-					sprintf(weapon_str,"V");
+					sprintf(weapon_str,"V%i", f2i(Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
 					break;
 				case 2:
 					sprintf(weapon_str,"S");break;
@@ -1990,6 +1991,31 @@ const rgb player_rgb[] = {	//{0,0,0}, // black
 							{14,21,12},    // 0x70A860 ---> light green (PROBLEM)
 			                {29,29,0}, };  // 0xE8E800 ---> YELLOW
 
+const rgb player_rgb_alt[] = {
+	
+							{15,15,23},    // 0x7878B8 ---> blue
+							{27,0,0},      // 0xD80000 ---> red
+							{0,23,0},      // 0x00B800 ---> green
+							{30,11,31},    // 0xF058F8 ---> PINK
+							{31,16,0},     // 0xF88000 ---> orange
+							//{4,4,12}, 		// indigo													
+							{12,4,20}, 		// purple
+							{23, 23, 23}, 	// white
+							{29,29,0}, };  // 0xE8E800 ---> YELLOW		
+
+const rgb player_rgb_all_blue[] = {
+	
+							{15,15,23},    // 0x7878B8 ---> blue
+							{15,15,23},     
+							{15,15,23},    
+							{15,15,23},   
+							{15,15,23},     												
+							{15,15,23}, 	
+							{15,15,23}, 	
+							{15,15,23}, };  							                
+
+const rgb* selected_player_rgb;
+
 typedef struct {
 	sbyte x, y;
 } xy;
@@ -2089,6 +2115,9 @@ void show_reticle(int reticle_type, int secondary_display)
 				gr_uline(i2f(x), i2f(y+(size/2)+(size/5)), i2f(x), i2f(y+(size/5)+(size/5)));
 			break;
 		case RET_TYPE_CIRCLE:
+			// Hack!  Something is going wrong in OGL-land with these numbers (???)
+			if(size == 33 && x == 960 && y == 540) { size = 24; }
+				
 			gr_ucircle(i2f(x),i2f(y),i2f(size/4));
 			if (secondary_display && secondary_bm_num == 1)
 				gr_uline(i2f(x-(size/2)-(size/5)), i2f(y-(size/2)), i2f(x-(size/5)-(size/5)), i2f(y-(size/5)));
@@ -2151,6 +2180,16 @@ void show_mousefs_indicator(int mx, int my, int mz, int x, int y, int size)
 	gr_settransblend(GR_FADE_OFF, GR_BLEND_NORMAL);
 }
 
+extern struct connection_status connection_statuses[]; 
+
+void fontcolor_bad() {
+	gr_set_fontcolor(BM_XRGB(25, 0, 0), -1);
+}
+
+void fontcolor_good() {
+	gr_set_fontcolor(BM_XRGB(0, 18, 0), -1);
+}
+
 #ifdef NETWORK
 void hud_show_kill_list()
 {
@@ -2176,7 +2215,14 @@ void hud_show_kill_list()
 	else
 		n_left = (n_players+1)/2;
 
-	x0 = FSPACX(1); x1 = FSPACX(43);
+	if(Netgame.FairColors)
+		selected_player_rgb = player_rgb_all_blue; 
+	else if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
+	else
+		selected_player_rgb = player_rgb;
+
+	x0 = FSPACX(1); x1 = FSPACX(43); 
 
 	if (Game_mode & GM_MULTI_COOP)
 		x1 = FSPACX(31);
@@ -2210,12 +2256,41 @@ void hud_show_kill_list()
 
 			if (Netgame.KillGoal || Netgame.PlayTimeAllowed)
 				x1-=FSPACX(18);
+
+			if(! (Game_mode & GM_MULTI_COOP) ) {
+				x1 -= FSPACX(18);
+				x0 -= FSPACX(18); 
+			}
+
+			if(Show_network_stats) {
+				x1 -= FSPACX(45);
+				x0 -= FSPACX(45); 
+
+				if(Netgame.RetroProtocol) {
+					x1 -= FSPACX(25);
+					x0 -= FSPACX(25); 					
+				}
+			}
 		}
 		else  if (Netgame.KillGoal || Netgame.PlayTimeAllowed)
 		{
 			x1 = FSPACX(43);
-			x1 -=FSPACX(18);
 		}
+
+		int lagx, loss_upx, loss_downx, cnxx; 
+
+		lagx = x1 + FSPACX(15);
+		if (Netgame.KillGoal || Netgame.PlayTimeAllowed)
+				lagx+=FSPACX(18);
+
+		loss_upx = lagx + FSPACX(15);
+		if(Netgame.RetroProtocol) {
+			loss_downx = loss_upx + FSPACX(25);
+		} else {
+			loss_downx = loss_upx; 
+		}
+		
+		cnxx = loss_downx + FSPACX(25); 
 
 		if (Show_kill_list == 3)
 			player_num = i;
@@ -2230,16 +2305,16 @@ void hud_show_kill_list()
 				gr_set_fontcolor(BM_XRGB(12, 12, 12), -1);
 			else if (Game_mode & GM_TEAM) {
 				color = get_team(player_num);
-				gr_set_fontcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b),-1 );
+				gr_set_fontcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 			}
 			else {
 				color = player_num;
-				gr_set_fontcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b),-1 );
+				gr_set_fontcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 			}
 		}
 		else
 		{
-			gr_set_fontcolor(BM_XRGB(player_rgb[player_num].r,player_rgb[player_num].g,player_rgb[player_num].b),-1 );
+			gr_set_fontcolor(BM_XRGB(selected_player_rgb[player_num].r,selected_player_rgb[player_num].g,selected_player_rgb[player_num].b),-1 );
 		}
 
 		if (Show_kill_list == 3)
@@ -2259,17 +2334,95 @@ void hud_show_kill_list()
 		{
 			if (Players[player_num].net_killed_total+Players[player_num].net_kills_total==0)
 				gr_string (x1,y,"NA");
-		else
-			gr_printf (x1,y,"%d%%",(int)((float)((float)Players[player_num].net_kills_total/((float)Players[player_num].net_killed_total+(float)Players[player_num].net_kills_total))*100.0));
+			else
+				gr_printf (x1,y,"%d%%",(int)((float)((float)Players[player_num].net_kills_total/((float)Players[player_num].net_killed_total+(float)Players[player_num].net_kills_total))*100.0));
 		}
 		else if (Show_kill_list == 3)
 			gr_printf(x1,y,"%3d",team_kills[i]);
 		else if (Game_mode & GM_MULTI_COOP)
 			gr_printf(x1,y,"%-6d",Players[player_num].score);
-		else if (Netgame.PlayTimeAllowed || Netgame.KillGoal)
-			gr_printf(x1,y,"%3d(%d)",Players[player_num].net_kills_total,Players[player_num].KillGoalCount);
-		else
-			gr_printf(x1,y,"%3d",Players[player_num].net_kills_total);
+		
+		else {
+
+
+			if (Netgame.PlayTimeAllowed || Netgame.KillGoal)
+				gr_printf(x1,y,"%3d(%d)",Players[player_num].net_kills_total,Players[player_num].KillGoalCount);
+			else
+				gr_printf(x1,y,"%3d",Players[player_num].net_kills_total);
+
+		}
+
+		if(Show_network_stats && player_num != Player_num && Players[player_num].connected ) {
+			int lag = -1; 
+			
+			if(Netgame.RetroProtocol) {
+				lag = Netgame.players[player_num].ping; 
+			} else {
+				if(multi_i_am_master()) {
+					lag = Netgame.players[player_num].ping; 
+				} else if (player_num == multi_who_is_master()) {
+					lag = Netgame.players[Player_num].ping;
+				} else {
+					lag = Netgame.players[Player_num].ping + Netgame.players[player_num].ping;
+				}
+			}
+
+			if(lag != -1) {
+				if(lag > 100) {
+					fontcolor_bad();
+				} else {
+					fontcolor_good();
+				}
+
+				gr_printf(lagx,y,"% 3d", lag);
+			}
+
+			int loss_down = Netgame.players[i].loss; 
+			int loss_up = Netgame.players[i].rx_loss;
+
+			if(Netgame.RetroProtocol) {			
+				if(loss_up) {
+					fontcolor_bad();
+				} else {
+					fontcolor_good();
+				}
+
+				if(loss_up > 0 || loss_down > 0) {
+					gr_printf(loss_upx,y,"% 3d%%", loss_up);
+				}
+			}
+
+
+
+			if(loss_down) {
+				fontcolor_bad();
+			} else {
+				fontcolor_good();
+			}
+
+			if(loss_up > 0 || loss_down > 0) {
+				gr_printf(loss_downx,y,"% 3d%%", loss_down);
+			}
+
+
+			
+
+
+
+
+
+			if(connection_statuses[player_num].type == PROXY) {
+				fontcolor_bad();
+
+				if(loss_up > 0 || loss_down > 0) {
+					gr_printf(cnxx,y,"P");
+				} else {
+					gr_printf(loss_upx,y,"P");
+				}
+			}
+
+			
+		}
 
 		y += LINE_SPACING;
 	}
@@ -2302,6 +2455,13 @@ void show_HUD_names()
 {
 	int is_friend = 0, show_friend_name = 0, show_enemy_name = 0, show_name = 0, show_typing = 0, show_indi = 0, pnum = 0, objnum = 0;
 	
+	if(Netgame.FairColors)
+		selected_player_rgb = player_rgb_all_blue; 
+	else if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
+	else
+		selected_player_rgb = player_rgb;
+
 	for (pnum=0;pnum<N_players;pnum++)
 	{
 		if (pnum == Player_num || Players[pnum].connected != CONNECT_PLAYING)
@@ -2361,7 +2521,7 @@ void show_HUD_names()
 					if (s[0])
 					{
 						gr_get_string_size(s, &w, &h, &aw);
-						gr_set_fontcolor(BM_XRGB(player_rgb[color_num].r,player_rgb[color_num].g,player_rgb[color_num].b),-1 );
+						gr_set_fontcolor(BM_XRGB(selected_player_rgb[color_num].r,selected_player_rgb[color_num].g,selected_player_rgb[color_num].b),-1 );
 						x1 = f2i(x)-w/2;
 						y1 = f2i(y-dy)+FSPACY(1);
 						gr_string (x1, y1, s);
@@ -2385,7 +2545,7 @@ void show_HUD_names()
 // 								gr_setcolor(BM_XRGB(0,31,0));
 // 						}
 // 						else if( Game_mode & GM_BOUNTY )
-							gr_setcolor( BM_XRGB( player_rgb[pnum].r, player_rgb[pnum].g, player_rgb[pnum].b ) );
+							gr_setcolor( BM_XRGB( selected_player_rgb[pnum].r, selected_player_rgb[pnum].g, selected_player_rgb[pnum].b ) );
 
 						gr_line(x+dx-w,y-dy,x+dx,y-dy);
 						gr_line(x+dx,y-dy,x+dx,y-dy+h);

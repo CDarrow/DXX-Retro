@@ -353,8 +353,11 @@ int properties_init()
 			Pigdata_start = 0;
 			break;
 		default:
-			Warning("Unknown size for " DEFAULT_PIGFILE_REGISTERED);
-			Int3();
+			PCSharePig = 1;
+			Pigdata_start = 0;
+			break;
+			//Warning("Unknown size for " DEFAULT_PIGFILE_REGISTERED);
+			//Int3();
 			// fall through
 		case D1_MAC_PIGSIZE:
 		case D1_MAC_SHARE_PIGSIZE:

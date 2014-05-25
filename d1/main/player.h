@@ -181,6 +181,9 @@ extern int Player_num;  // The player number who is on the console.
 extern player Players[MAX_PLAYERS];				// Misc player info
 extern player_ship *Player_ship;
 
+// Probably should go in player struct, but I don't want to break savegames for this
+extern int RespawningConcussions[MAX_PLAYERS]; 
+
 /*
  * reads a player_ship structure from a PHYSFS_file
  */

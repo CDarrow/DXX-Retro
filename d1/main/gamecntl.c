@@ -349,7 +349,9 @@ int HandleDeathInput(d_event *event)
 
 	if (Death_sequence_aborted)
 	{
-		game_flush_inputs();
+		// Causes problems with joystick throttle -- joy_axis data is cleared, and will only
+		// be updated when joystick moves (could be long enough for player to notice)
+		//game_flush_inputs();
 		return 1;
 	}
 
@@ -367,6 +369,9 @@ int HandleDemoKey(int key)
 		case KEY_F3:	toggle_cockpit();	break;
 		KEY_MAC(case KEY_COMMAND+KEY_4:)
 		case KEY_F4:	Newdemo_show_percentage = !Newdemo_show_percentage; break;
+
+		case KEY_F6:    Show_network_stats = ! Show_network_stats; break;
+
 		KEY_MAC(case KEY_COMMAND+KEY_7:)
 		case KEY_F7:
 #ifdef NETWORK
@@ -420,8 +425,8 @@ int HandleDemoKey(int key)
 			{
 				gr_set_current_canvas(NULL);
 				render_frame(0);
-				gr_set_curfont(MEDIUM2_FONT);
-				gr_printf(SWIDTH-FSPACX(92),SHEIGHT-LINE_SPACING,"DXX-Rebirth\n");
+				//gr_set_curfont(MEDIUM2_FONT);
+				//gr_printf(SWIDTH-FSPACX(92),SHEIGHT-LINE_SPACING,"DXX-Rebirth\n");
 				gr_flip();
 				save_screen_shot(0);
 			}
@@ -511,8 +516,8 @@ int HandleSystemKey(int key)
 			{
 				gr_set_current_canvas(NULL);
 				render_frame(0);
-				gr_set_curfont(MEDIUM2_FONT);
-				gr_printf(SWIDTH-FSPACX(92),SHEIGHT-LINE_SPACING,"DXX-Rebirth\n");
+				//gr_set_curfont(MEDIUM2_FONT);
+				//gr_printf(SWIDTH-FSPACX(92),SHEIGHT-LINE_SPACING,"DXX-Rebirth\n");
 				gr_flip();
 				save_screen_shot(0);
 			}
@@ -695,6 +700,8 @@ int HandleGameKey(int key)
 			{
 				RefuseThisPlayer=1;
 				HUD_init_message_literal(HM_MULTI, "Player accepted!");
+			} else {
+				Show_network_stats = ! Show_network_stats; 
 			}
 			break;
 		case KEY_ALTED + KEY_1:

@@ -159,6 +159,14 @@ typedef struct quaternionpos {
 	vms_vector rotvel;
 } __pack__ quaternionpos;
 
+// An uncompressed form
+typedef struct uncompressed_pos {
+	vms_matrix orient;
+	vms_vector pos;
+	vms_vector vel;
+	vms_vector rotvel;
+} __pack__ uncompressed_pos;
+
 
 // This is specific to the shortpos extraction routines in gameseg.c.
 #define RELPOS_PRECISION    10
@@ -493,6 +501,8 @@ extern void extract_shortpos(object *objp, shortpos *spp, int swap_bytes);
 // create and extract quaternion structure from object data which greatly saves bytes by using quaternion instead or orientation matrix
 void create_quaternionpos(quaternionpos * qpp, object * objp, int swap_bytes);
 void extract_quaternionpos(object *objp, quaternionpos *qpp, int swap_bytes);
+
+extern void extract_uncompressedpos(object *objp, uncompressed_pos *upp, int swap_bytes);
 
 // delete objects, such as weapons & explosions, that shouldn't stay
 // between levels if clear_all is set, clear even proximity bombs

@@ -297,15 +297,18 @@ void draw_automap(automap *am)
 
 	draw_all_edges(am);
 
+	selected_player_rgb = player_rgb; 
 	// Draw player...
 #ifdef NETWORK
+	if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
 	if (Game_mode & GM_TEAM)
 		color = get_team(Player_num);
 	else
 #endif	
 		color = Player_num;	// Note link to above if!
 
-	gr_setcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b));
+	gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
 	draw_player(&Objects[Players[Player_num].objnum]);
 
 	// Draw player(s)...
@@ -318,7 +321,7 @@ void draw_automap(automap *am)
 						color = get_team(i);
 					else
 						color = i;
-					gr_setcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b));
+					gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
 					draw_player(&Objects[Players[i].objnum]);
 				}
 			}
@@ -543,12 +546,6 @@ int automap_process_input(window *wind, d_event *event, automap *am)
 	}
 	
 
-
-	// CED
-	//if(PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL) {
-	//	Controls.pitch_time = Controls.vertical_thrust_time = Controls.heading_time = Controls.sideways_thrust_time = Controls.bank_time = Controls.forward_thrust_time = 0;
-	//}
-	
 	return 0;
 }
 

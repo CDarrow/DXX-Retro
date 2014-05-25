@@ -55,7 +55,7 @@ typedef struct hli {
 typedef struct player_config
 {
 	ubyte ControlType;
-	ubyte PrimaryOrder[MAX_PRIMARY_WEAPONS+1];
+	ubyte PrimaryOrder[MAX_PRIMARY_WEAPONS+2];
 	ubyte SecondaryOrder[MAX_SECONDARY_WEAPONS+1];
 	ubyte KeySettings[3][MAX_CONTROLS];
 	ubyte KeySettingsD1X[MAX_D1X_CONTROLS];
@@ -89,11 +89,14 @@ typedef struct player_config
 	ubyte AutomapFreeFlight;
 	ubyte NoFireAutoselect;
 	ubyte CycleAutoselectOnly;
+	ubyte VulcanAmmoWarnings;
+	ubyte ShieldWarnings; 
 	int AlphaEffects;
 	int DynLightColor;
 	ubyte DisableCockpit;  /* DisableCockpit */ 
 	ubyte StickyRearview; /* StickyRearview */ 
 	ubyte SelectAfterFire; /* SelectAfterFire */ 
+	int maxFps;
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;

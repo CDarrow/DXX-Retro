@@ -3,7 +3,6 @@
 *.com
 *.class
 *.dll
-*.exe
 *.app
 *.o
 *.so

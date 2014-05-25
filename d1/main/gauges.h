@@ -58,6 +58,9 @@ typedef struct {
 } rgb;
 
 extern const rgb player_rgb[];
+extern const rgb player_rgb_alt[];
+extern const rgb player_rgb_all_blue[];
+extern const rgb* selected_player_rgb; 
 
 #define GAUGE_HUD_NUMMODES 4
 

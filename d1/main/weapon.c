@@ -30,6 +30,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "multi.h"
 #include "newmenu.h"
 #include "playsave.h"
+#include "fireball.h"
 
 //	Convert primary weapons to indices in Weapon_info array.
 const ubyte Primary_weapon_to_weapon_info[MAX_PRIMARY_WEAPONS] = {0, VULCAN_ID, 12, PLASMA_ID, FUSION_ID};
@@ -45,9 +46,25 @@ int	N_weapon_types=0;
 sbyte   Primary_weapon, Secondary_weapon;
 int POrderList (int num);
 int SOrderList (int num);
-static const ubyte DefaultPrimaryOrder[] = { 4, 3, 2, 1, 0, 255 };
+static const ubyte DefaultPrimaryOrder[] = { 4, 3, 2, 1, 0, 255, 16 };
 static const ubyte DefaultSecondaryOrder[] = { 4, 3, 1, 0, 255, 2 };
 extern ubyte MenuReordering;
+
+int player_has_weapon_lasers_not_quads(int weapon_num, int secondary_flag) {
+	if(weapon_num == 16) {
+		if(Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS)
+			return player_has_weapon(LASER_INDEX, 0); 
+		else
+			return 0;  	
+	} else if(weapon_num == LASER_INDEX) {
+		if(! (Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS))
+			return player_has_weapon(LASER_INDEX, 0); 
+		else
+			return 0; 
+	} else {
+		return player_has_weapon(weapon_num, secondary_flag); 
+	}
+}
 
 //	------------------------------------------------------------------------------------
 //	Return:
@@ -139,7 +156,7 @@ void InitWeaponOrdering ()
 
   int i;
 
-  for (i=0;i<MAX_PRIMARY_WEAPONS+1;i++)
+  for (i=0;i<MAX_PRIMARY_WEAPONS+2;i++)
 	PlayerCfg.PrimaryOrder[i]=DefaultPrimaryOrder[i];
   for (i=0;i<MAX_SECONDARY_WEAPONS+1;i++)
 	PlayerCfg.SecondaryOrder[i]=DefaultSecondaryOrder[i];
@@ -147,15 +164,20 @@ void InitWeaponOrdering ()
 
 void CyclePrimary ()
 {
-	int cur_order_slot = POrderList(Primary_weapon), desired_weapon = Primary_weapon, loop=0;
+	int cur_order_slot = POrderList(Primary_weapon);
+	if(Primary_weapon == LASER_INDEX && Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS) {
+		cur_order_slot = POrderList(16); 
+	}
+
+	int desired_weapon = Primary_weapon, loop=0;
 	const int autoselect_order_slot = POrderList(255);
 	const int use_restricted_autoselect = (cur_order_slot < autoselect_order_slot) && (1 < autoselect_order_slot) && (PlayerCfg.CycleAutoselectOnly);
 	
-	while (loop<(MAX_PRIMARY_WEAPONS+1))
+	while (loop<(MAX_PRIMARY_WEAPONS+2))
 	{
 		loop++;
 		cur_order_slot++; // next slot
-		if (cur_order_slot >= MAX_PRIMARY_WEAPONS+1) // loop if necessary
+		if (cur_order_slot >= MAX_PRIMARY_WEAPONS+2) // loop if necessary
 			cur_order_slot = 0;
 		if (cur_order_slot == autoselect_order_slot) // what to to with non-autoselect weapons?
 		{
@@ -170,8 +192,11 @@ void CyclePrimary ()
 		}
 		desired_weapon = PlayerCfg.PrimaryOrder[cur_order_slot]; // now that is the weapon next to our current one
 		// select the weapon if we have it
-		if (player_has_weapon(desired_weapon, 0) == HAS_ALL)
+		if (player_has_weapon_lasers_not_quads(desired_weapon, 0) == HAS_ALL)
 		{
+			if(desired_weapon == 16) { // Quads
+				desired_weapon = LASER_INDEX; 
+			}
 			select_weapon(desired_weapon, 0, 1, 1);
 			return;
 		}
@@ -215,6 +240,13 @@ void CycleSecondary ()
 //if message flag set, print message saying selected
 void select_weapon(int weapon_num, int secondary_flag, int print_message, int wait_for_rearm)
 {
+	if(! secondary_flag && weapon_num == 16) {
+		weapon_num = LASER_INDEX; 
+
+		if(Primary_weapon == LASER_INDEX)
+			return;
+	}
+
 	char	*weapon_name;
 
 #ifndef SHAREWARE
@@ -230,6 +262,16 @@ void select_weapon(int weapon_num, int secondary_flag, int print_message, int wa
 			//end edit - Victor Rachels
 #endif
 			if (wait_for_rearm) digi_play_sample_once( SOUND_GOOD_SELECTION_PRIMARY, F1_0 );
+
+			if(weapon_num == VULCAN_INDEX && PlayerCfg.VulcanAmmoWarnings && Players[Player_num].primary_ammo[VULCAN_INDEX] != 0) {
+				if(Players[Player_num].primary_ammo[VULCAN_INDEX] < 500/12) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo critical!"); 
+					digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				} else if(Players[Player_num].primary_ammo[VULCAN_INDEX] < 1000/12) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo low."); 
+					digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				}
+			}
 #ifdef NETWORK
 			if (Game_mode & GM_MULTI)	{
 				if (wait_for_rearm) multi_send_play_sound(SOUND_GOOD_SELECTION_PRIMARY, F1_0);
@@ -335,7 +377,12 @@ void auto_select_weapon(int weapon_type)
 			int	cur_weapon;
 			int	try_again = 1;
 
-			cur_weapon = POrderList(Primary_weapon);
+			if(Primary_weapon == LASER_INDEX && Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS) {
+				cur_weapon = POrderList(16);
+			} else {
+				cur_weapon = POrderList(Primary_weapon);
+			}
+
 			cutpoint = POrderList (255);
 
 			while (try_again) {
@@ -368,7 +415,7 @@ void auto_select_weapon(int weapon_type)
 					select_weapon(0, 0, 0, 1);
 					try_again = 0;			// Tried all weapons!
 
-				} else if (PlayerCfg.PrimaryOrder[cur_weapon]!=255 && player_has_weapon(PlayerCfg.PrimaryOrder[cur_weapon], 0) == HAS_ALL) {
+				} else if (PlayerCfg.PrimaryOrder[cur_weapon]!=255 && player_has_weapon_lasers_not_quads(PlayerCfg.PrimaryOrder[cur_weapon], 0) == HAS_ALL) {
 					select_weapon(PlayerCfg.PrimaryOrder[cur_weapon], 0, 1, 1 );
 					try_again = 0;
 				}
@@ -442,6 +489,23 @@ int pick_up_secondary(int weapon_index,int count)
 	if (Players[Player_num].secondary_ammo[weapon_index] > max) {
 		num_picked_up = count - (Players[Player_num].secondary_ammo[weapon_index] - max);
 		Players[Player_num].secondary_ammo[weapon_index] = max;
+
+		// Respawn extras
+		if(weapon_index == HOMING_INDEX) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_HOMING_AMMO_1); 
+			}
+		}
+
+		if(weapon_index == CONCUSSION_INDEX && (Game_mode & GM_MULTI) && Netgame.RespawnConcs) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_MISSILE_1); 
+			}
+		}
+	}
+
+	if(weapon_index == CONCUSSION_INDEX && (Game_mode & GM_MULTI) && Netgame.RespawnConcs) {
+		RespawningConcussions[Player_num] += num_picked_up; 
 	}
 
 	if (Players[Player_num].secondary_ammo[weapon_index] == count)	// only autoselect if player didn't have any
@@ -496,20 +560,22 @@ int pick_up_secondary(int weapon_index,int count)
 
 void ReorderPrimary ()
 {
-	newmenu_item m[MAX_PRIMARY_WEAPONS+1];
+	newmenu_item m[MAX_PRIMARY_WEAPONS+2];
 	int i;
 
-	for (i=0;i<MAX_PRIMARY_WEAPONS+1;i++)
+	for (i=0;i<MAX_PRIMARY_WEAPONS+2;i++)
 	{
 		m[i].type=NM_TYPE_MENU;
 		if (PlayerCfg.PrimaryOrder[i]==255)
 			m[i].text="--- Never Autoselect below ---";
+		else if (PlayerCfg.PrimaryOrder[i]==16)
+			m[i].text="Quad Lasers";
 		else
 			m[i].text=(char *)PRIMARY_WEAPON_NAMES(PlayerCfg.PrimaryOrder[i]);
 		m[i].value=PlayerCfg.PrimaryOrder[i];
 	}
 	i = newmenu_doreorder("Reorder Primary","Shift+Up/Down arrow to move item", i, m, NULL, NULL);
-	for (i=0;i<MAX_PRIMARY_WEAPONS+1;i++)
+	for (i=0;i<MAX_PRIMARY_WEAPONS+2;i++)
 		PlayerCfg.PrimaryOrder[i]=m[i].value;
 }
 
@@ -536,8 +602,15 @@ int POrderList (int num)
 {
 	int i;
 
-	for (i=0;i<MAX_PRIMARY_WEAPONS+1;i++)
+	for (i=0;i<MAX_PRIMARY_WEAPONS+2;i++)
 	if (PlayerCfg.PrimaryOrder[i]==num)
+	{
+		return (i);
+	}
+	//Error ("Primary Weapon is not in order list!!!");
+	InitWeaponOrdering();
+	for (i=0;i<MAX_PRIMARY_WEAPONS+2;i++)
+	if (DefaultPrimaryOrder[i]==num)
 	{
 		return (i);
 	}
@@ -556,12 +629,22 @@ int SOrderList (int num)
 	Error ("Secondary Weapon is not in order list!!!");
 }
 
-int delayed_primary_autoselect_weapon_index = -1; 
+int pick_up_primary_helper(int weapon_index, int is_quads);
+int pick_up_quads()
+{
+	return pick_up_primary_helper(LASER_INDEX, 1); 
+}
 
 //called when a primary weapon is picked up
 //returns true if actually picked up
-int pick_up_primary(int weapon_index)
+int pick_up_primary(int weapon_index) {
+	return pick_up_primary_helper(weapon_index, 0); 
+}
+
+int delayed_primary_autoselect_weapon_index = -1; 
+int pick_up_primary_helper(int weapon_index, int is_quads)
 {
+
 	int cutpoint;
 	ubyte flag = 1<<weapon_index;
 
@@ -574,8 +657,17 @@ int pick_up_primary(int weapon_index)
 
 	cutpoint=POrderList (255);
 
+	if(is_quads) {
+		weapon_index = 16; 
+	}
+
+	int primary_weapon_index = Primary_weapon;
+	if(Primary_weapon == LASER_INDEX && (Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS)) {
+		primary_weapon_index = 16; 
+	}
+
 	// Picked up something better than you have
-	if(POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(Primary_weapon)) {
+	if(POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(primary_weapon_index)) {
 
 		// Are you firing? 
 		if(Controls.fire_primary_state) {
@@ -649,9 +741,38 @@ int pick_up_ammo(int class_flag,int weapon_index,int ammo_count)
 	}
 	cutpoint=POrderList (255);
 
-	if (((Controls.fire_primary_state && PlayerCfg.NoFireAutoselect)?0:1) && Players[Player_num].primary_weapon_flags&(1<<weapon_index) && weapon_index>Primary_weapon && old_ammo==0 &&
-		POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(Primary_weapon))
-		select_weapon(weapon_index,0,0,1);
+	int primary_weapon_index = Primary_weapon;
+	if(Primary_weapon == LASER_INDEX && (Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS)) {
+		primary_weapon_index = 16; 
+	}
+
+	if ( Players[Player_num].primary_weapon_flags&(1<<weapon_index)  && old_ammo==0 &&
+		POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(primary_weapon_index)) {
+
+		// Are you firing? 
+		if(Controls.fire_primary_state) {
+			// Remember what we picked up, if it's better than what's waiting now
+			if(PlayerCfg.SelectAfterFire) {
+
+				// Nothing waiting -- remember this weapon
+				if(delayed_primary_autoselect_weapon_index == -1) {
+					delayed_primary_autoselect_weapon_index = weapon_index;
+
+				// Something waiting -- is this better? 
+				} else {
+					if(POrderList(weapon_index) < POrderList(delayed_primary_autoselect_weapon_index)) {					
+						delayed_primary_autoselect_weapon_index = weapon_index;
+					}
+				}
+			} else if (! PlayerCfg.NoFireAutoselect) {		
+				select_weapon(weapon_index,0,0,1);
+			}
+		} else {	
+			select_weapon(weapon_index,0,0,1);
+		}
+
+		//select_weapon(weapon_index,0,0,1);
+	}
 
 	return 1;	//return amount used
 }
