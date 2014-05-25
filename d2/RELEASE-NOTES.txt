@@ -1,0 +1,35 @@
+RELEASE NOTES
+=============
+
+What's new in 0.58.1
+--------------------
+* Fixed some bugs regarding reactor, making the game virtually unplayable for a lot of people
+
+
+What's new in 0.58.0
+--------------------
+* Several fixes and improvements for Multiplayer - especially Coop savestates
+* Sensitivity/Ramping sliders for keyboard input
+* More efficient postional data for Multiplayer, making ship positions more accurate and require less traffic (Thanks to v66r)
+* New file extension for AddOns (.dxa)
+* Key combination ALT+ENTER will not work ingame anymore to not interrupt player input
+* Command-line option to disable mouse cursor without disabling the mouse altogether
+* Support for Raspberry Pi by derhass
+* HUD style "no HUD"
+* Fixes for lighting code which wasn't updating correctly all the time
+* Improvement for transparency effects that won't make certain sprites disappear in front of bright surfaces
+* Support for hmp tempo setting (Thanks to Yarn)
+* Improvements and fixes for Shareware/Demo data
+* Improvements for firing mechanism, keeping fire rate accurate at all FPS
+* More fixes and improvements (see CHANGELOG.txt)
+
+
+Special notes for this release
+------------------------------
+* AddOns now use filename extension ".dxa". Your old AddOns will not work anymore. You can either re-download them or simply rename them from *.zip to *.dxa.
+
+
+Known issues
+------------
+* On Windows the mouse is not correctly released if using ALT+TAB to minimize the game. This is not a bug in the program but rather the SDL library. It can be worked around by pausing the game and using ALT+ENTER to get the game to windowed mode. The mosue should not be stuck then anymore.
+
