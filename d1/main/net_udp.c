@@ -11,8 +11,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#ifdef _WIN32
 #include <Windows.h>
 #include <wincrypt.h>
+#endif
 
 #include "pstypes.h"
 #include "window.h"
