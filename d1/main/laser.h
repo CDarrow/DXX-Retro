@@ -66,15 +66,15 @@ struct object;
 extern fix Min_trackable_dot;   //  MIN_TRACKABLE_DOT inversely scaled by FrameTime
 
 void Laser_render(struct object *obj);
-void Laser_player_fire(struct object * obj, int type, int gun_num, int make_sound, int harmless_flag);
-void Laser_player_fire_spread(struct object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, int make_sound, int harmless);
-void Laser_do_weapon_sequence(struct object *obj);
+void Laser_player_fire(struct object * obj, int type, int gun_num, int make_sound, int harmless_flag, vms_vector shot_orientation); /* CED sniperpackets */
+void Laser_player_fire_spread(struct object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, int make_sound, int harmless, vms_vector shot_orientation); /* CED sniperpackets */
+void Laser_do_weapon_sequence(struct object *obj, int doHomerFrame, fix idealHomerFrameTime, unsigned int homerFrameCount );
 void Flare_create(struct object *obj);
 int laser_are_related(int o1, int o2);
 
 extern int do_laser_firing_player(void);
 extern void do_missile_firing(int drop_bomb);
-extern void net_missile_firing(int player, int weapon, int flags);
+extern void net_missile_firing(int player, int weapon, int flags, vms_vector shot_orientation); /* CED sniperpackets */
 extern int Network_laser_track;
 
 int Laser_create_new(vms_vector * direction, vms_vector * position, int segnum, int parent, int type, int make_sound);
@@ -84,7 +84,7 @@ int Laser_create_new(vms_vector * direction, vms_vector * position, int segnum, 
 //	Assumes that it is firing from a player object, so it knows which gun to fire from.
 //	Returns the number of shots actually fired, which will typically be 1, but could be
 //	higher for low frame rates when rapidfire weapons, such as vulcan or plasma are fired.
-extern int do_laser_firing(int objnum, int weapon_id, int level, int flags, int nfires);
+extern int do_laser_firing(int objnum, int weapon_id, int level, int flags, int nfires, vms_vector shot_orientation); /* CED sniperpackets */
 
 //	Easier to call than Laser_create_new because it determines the segment containing the firing point
 //	and deals with it being stuck in an object or through a wall.

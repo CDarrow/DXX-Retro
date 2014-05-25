@@ -137,6 +137,13 @@ char	Object_type_names[MAX_OBJECT_TYPES][9] = {
 };
 #endif
 
+// CED -- Retrohomers variables
+static unsigned int homerFrameCount = 0; 
+static fix currentHomerFrameTime = F0_0; 
+static int doHomerFrame = 0; 
+static fix idealHomerFrameTime = F1_0/idealHomerFPS;
+
+
 #ifndef RELEASE
 //set viewer object to next object in array
 void object_goto_next_viewer()
@@ -1880,7 +1887,7 @@ void object_move_one( object * obj )
 			do_ai_frame(obj);
 			break;
 
-		case CT_WEAPON:		Laser_do_weapon_sequence(obj); break;
+		case CT_WEAPON:		Laser_do_weapon_sequence(obj, doHomerFrame, idealHomerFrameTime, homerFrameCount); break; // CED
 		case CT_EXPLOSION:	do_explosion_sequence(obj); break;
 
 		#ifndef RELEASE
@@ -2068,6 +2075,23 @@ void object_move_all()
 
 	// Move all objects
 	objp = Objects;
+
+ 	// CED -- If a homer frame is owed, run it and take the time off the counter
+ 	idealHomerFrameTime = F1_0/idealHomerFPS; 
+	currentHomerFrameTime += FrameTime;
+	if(currentHomerFrameTime >= idealHomerFrameTime) {
+		homerFrameCount++; 
+		doHomerFrame = 1;
+		currentHomerFrameTime -= idealHomerFrameTime; 
+	} else {
+		doHomerFrame = 0; 
+	}
+
+    // CED -- Don't let slowdowns have a lasting impact; 
+    //   allow you to build up at most 3 frames worth
+    if(currentHomerFrameTime > idealHomerFrameTime*3) {
+    	currentHomerFrameTime = idealHomerFrameTime*3; 
+    }
 
 	#ifndef DEMO_ONLY
 	for (i=0;i<=Highest_object_index;i++) {

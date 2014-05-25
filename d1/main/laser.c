@@ -650,7 +650,8 @@ int find_homing_object_complete(vms_vector *curpos, object *tracker, int track_o
 			vm_vec_normalize(&vec_to_curobj);
 			dot = vm_vec_dot(&vec_to_curobj, &tracker->orient.fvec);
 			if (is_proximity)
-				dot = ((dot << 3) + dot) >> 3;		//	I suspect Watcom would be too stupid to figure out the obvious...
+				continue; // CED -- don't track proxies
+				//dot = ((dot << 3) + dot) >> 3;		//	I suspect Watcom would be too stupid to figure out the obvious...
 
 			//	Note: This uses the constant, not-scaled-by-frametime value, because it is only used
 			//	to determine if an object is initially trackable.  find_homing_object is called on subsequent
@@ -673,12 +674,12 @@ int find_homing_object_complete(vms_vector *curpos, object *tracker, int track_o
 //	------------------------------------------------------------------------------------------------------------
 //	See if legal to keep tracking currently tracked object.  If not, see if another object is trackable.  If not, return -1,
 //	else return object number of tracking object.
-int track_track_goal(int track_goal, object *tracker, fix *dot)
+int track_track_goal(int track_goal, object *tracker, fix *dot, unsigned int homerFrameCount)
 {
 #ifdef NEWHOMER
-	if (object_is_trackable(track_goal, tracker, dot) && (tracker-Objects)) {
+	if (object_is_trackable(track_goal, tracker, dot)) {  // CED -- && (tracker - Objects) is useless
 		return track_goal;
-	} else if (tracker-Objects)
+	} else if ((((tracker-Objects) ^ homerFrameCount) % 4) == 0) // CED -- Reverted to 1994 original release code, with homer frame count
 #else
 	//	Every 8 frames for each object, scan all objects.
 	if (object_is_trackable(track_goal, tracker, dot) && ((((tracker-Objects) ^ d_tick_count) % 8) != 0)) {
@@ -736,7 +737,7 @@ int track_track_goal(int track_goal, object *tracker, fix *dot)
 
 //-------------- Initializes a laser after Fire is pressed -----------------
 
-void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, fix delay_time, int make_sound, int harmless)
+void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, fix delay_time, int make_sound, int harmless, vms_vector shot_orientation)
 {
 	int			LaserSeg, Fate;
 	vms_vector	LaserPos, LaserDir;
@@ -749,6 +750,11 @@ void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fi
 	// Find the initial position of the laser
 	pnt = &Player_ship->gun_points[gun_num];
 
+//double gx = (double)(pnt->x) / (double)(F1_0); 
+//double gy = (double)(pnt->y) / (double)(F1_0); 
+//double gz = (double)(pnt->z) / (double)(F1_0); 
+//con_printf(CON_NORMAL, "Creating weapon at offset %f, %f, %f\n", gx, gy, gz); 
+
 	vm_copy_transpose_matrix(&m,&obj->orient);
 	vm_vec_rotate(&gun_point,pnt,&m);
 
@@ -756,7 +762,9 @@ void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fi
 
 	//	If supposed to fire at a delayed time (delay_time), then move this point backwards.
 	if (delay_time)
-		vm_vec_scale_add2(&LaserPos, &obj->orient.fvec, -fixmul(delay_time, Weapon_info[laser_type].speed[Difficulty_level]));
+		/* CED sniperpackets */
+		//vm_vec_scale_add2(&LaserPos, &obj->orient.fvec, -fixmul(delay_time, Weapon_info[laser_type].speed[Difficulty_level]));
+		vm_vec_scale_add2(&LaserPos, &shot_orientation, -fixmul(delay_time, Weapon_info[laser_type].speed[Difficulty_level]));
 
 //	do_muzzle_stuff(obj, &Pos);
 
@@ -794,7 +802,7 @@ void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fi
 	}
 
 	//	Now, make laser spread out.
-	LaserDir = obj->orient.fvec;
+	LaserDir = shot_orientation; /* CED sniperpackets */ //obj->orient.fvec;
 	if ((spreadr != 0) || (spreadu != 0)) {
 		vm_vec_scale_add2(&LaserDir, &obj->orient.rvec, spreadr);
 		vm_vec_scale_add2(&LaserDir, &obj->orient.uvec, spreadu);
@@ -835,16 +843,16 @@ void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fi
 }
 
 //	-----------------------------------------------------------------------------------------------------------
-void Laser_player_fire_spread(object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, int make_sound, int harmless)
+void Laser_player_fire_spread(object *obj, int laser_type, int gun_num, fix spreadr, fix spreadu, int make_sound, int harmless, vms_vector shot_orientation)
 {
-	Laser_player_fire_spread_delay(obj, laser_type, gun_num, spreadr, spreadu, 0, make_sound, harmless);
+	Laser_player_fire_spread_delay(obj, laser_type, gun_num, spreadr, spreadu, 0, make_sound, harmless, shot_orientation); /* CED sniperpackets */
 }
 
 
 //	-----------------------------------------------------------------------------------------------------------
-void Laser_player_fire(object *obj, int laser_type, int gun_num, int make_sound, int harmless)
+void Laser_player_fire(object *obj, int laser_type, int gun_num, int make_sound, int harmless, vms_vector shot_orientation)
 {
-	Laser_player_fire_spread(obj, laser_type, gun_num, 0, 0, make_sound, harmless);
+	Laser_player_fire_spread(obj, laser_type, gun_num, 0, 0, make_sound, harmless, shot_orientation); /* CED sniperpackets */
 }
 
 //	-----------------------------------------------------------------------------------------------------------
@@ -865,7 +873,7 @@ void Flare_create(object *obj)
 			auto_select_weapon(0);
 		}
 
-		Laser_player_fire( obj, FLARE_ID, 6, 1, 0);
+		Laser_player_fire( obj, FLARE_ID, 6, 1, 0, Objects[Players[Player_num].objnum].orient.fvec); /* CED sniperpackets */
 
 		#ifdef NETWORK
 		if (Game_mode & GM_MULTI)
@@ -906,7 +914,7 @@ fix homing_turn_base[NDL] = { 4, 5, 6, 7, 8 };
 
 //-------------------------------------------------------------------------------------------
 //sequence this laser object for this _frame_ (underscores added here to aid MK in his searching!)
-void Laser_do_weapon_sequence(object *obj)
+void Laser_do_weapon_sequence(object *obj, int doHomerFrame, fix idealHomerFrameTime, unsigned int homerFrameCount)
 {
 	Assert(obj->control_type == CT_WEAPON);
 
@@ -950,18 +958,23 @@ void Laser_do_weapon_sequence(object *obj)
 			}
 
 			//	Make sure the object we are tracking is still trackable.
-			track_goal = track_track_goal(track_goal, obj, &dot);
+			if(doHomerFrame) {
+				track_goal = track_track_goal(track_goal, obj, &dot, homerFrameCount);
 
-			if (track_goal == Players[Player_num].objnum) {
-				fix	dist_to_player;
 
-				dist_to_player = vm_vec_dist_quick(&obj->pos, &Objects[track_goal].pos);
-				if ((dist_to_player < Players[Player_num].homing_object_dist) || (Players[Player_num].homing_object_dist < 0))
-					Players[Player_num].homing_object_dist = dist_to_player;
+				if (track_goal == Players[Player_num].objnum) {
+					fix	dist_to_player;
 
+					dist_to_player = vm_vec_dist_quick(&obj->pos, &Objects[track_goal].pos);
+					if ((dist_to_player < Players[Player_num].homing_object_dist) || (Players[Player_num].homing_object_dist < 0))
+						Players[Player_num].homing_object_dist = dist_to_player;
+
+				}
 			}
 
-			if (track_goal != -1) {
+			if ((track_goal != -1) && doHomerFrame) {
+// CED -- I'm going to mod the NEWHOMER to keep the diffs clean, even though that's confusing
+// This should be refactored if we decide to keep the change. 					
 #ifdef NEWHOMER
 				vm_vec_sub(&vector_to_object, &Objects[track_goal].pos, &obj->pos);
 
@@ -970,13 +983,14 @@ void Laser_do_weapon_sequence(object *obj)
 				speed = vm_vec_normalize(&temp_vec);
 				max_speed = Weapon_info[obj->id].speed[Difficulty_level];
 				if (speed+F1_0 < max_speed) {
-					speed += fixmul(max_speed, FrameTime/2);
+					speed += fixmul(max_speed, idealHomerFrameTime/2);  // CED 
 					if (speed > max_speed)
 						speed = max_speed;
 				}
 
 				// Scale vector to object to current FrameTime.
-				vm_vec_scale(&vector_to_object, F1_0/((float)(F1_0/homing_turn_base[Difficulty_level])/FrameTime));
+				// CED -- Removed
+				//vm_vec_scale(&vector_to_object, F1_0/((float)(F1_0/homing_turn_base[Difficulty_level])/FrameTime));
 
 				vm_vec_add2(&temp_vec, &vector_to_object);
 				//	The boss' smart children track better...
@@ -993,7 +1007,7 @@ void Laser_do_weapon_sequence(object *obj)
 
 					absdot = abs(F1_0 - dot);
 
-					lifelost = fixmul(absdot*32, FrameTime);
+					lifelost = fixmul(absdot*32, idealHomerFrameTime); // CED -- did anyone even know they did this?
 					obj->lifeleft -= lifelost;
 				}
 
@@ -1001,6 +1015,7 @@ void Laser_do_weapon_sequence(object *obj)
 				if (Weapon_info[obj->id].render_type == WEAPON_RENDER_POLYMODEL)
 					homing_missile_turn_towards_velocity(obj, &temp_vec);		//	temp_vec is normalized velocity.
 #else // OLD - ORIGINAL - MISSILE TRACKING CODE
+/* // CED -- pardon the comment -- I keep looking at the wrong code				
 				vm_vec_sub(&vector_to_object, &Objects[track_goal].pos, &obj->pos);
 
 				vm_vec_normalize_quick(&vector_to_object);
@@ -1044,6 +1059,7 @@ void Laser_do_weapon_sequence(object *obj)
 				//	Only polygon objects have visible orientation, so only they should turn.
 				if (Weapon_info[obj->id].render_type == WEAPON_RENDER_POLYMODEL)
 					homing_missile_turn_towards_velocity(obj, &temp_vec);		//	temp_vec is normalized velocity.
+*/
 #endif
 			}
 		}
@@ -1120,7 +1136,8 @@ int do_laser_firing_player(void)
 			if (Players[Player_num].flags & PLAYER_FLAGS_QUAD_LASERS)
 				flags |= LASER_QUAD;
 
-			rval += do_laser_firing(Players[Player_num].objnum, Primary_weapon, laser_level, flags, nfires);
+			/* CED sniperpackets */ 
+			rval += do_laser_firing(Players[Player_num].objnum, Primary_weapon, laser_level, flags, nfires, Objects[Players[Player_num].objnum].orient.fvec);
 
 			plp->energy -= (energy_used * rval) / Weapon_info[weapon_index].fire_count;
 			if (plp->energy < 0)
@@ -1149,19 +1166,19 @@ int do_laser_firing_player(void)
 //	Returns number of times a weapon was fired.  This is typically 1, but might be more for low frame rates.
 //      More than one shot is fired with a pseudo-delay so that players on slow machines can fire (for themselves
 //	or other players) often enough for things like the vulcan cannon.
-int do_laser_firing(int objnum, int weapon_num, int level, int flags, int nfires)
+int do_laser_firing(int objnum, int weapon_num, int level, int flags, int nfires, vms_vector shot_orientation) /* CED sniperpackets */
 {
 	object	*objp = &Objects[objnum];
 
 	switch (weapon_num) {
 		case LASER_INDEX: {
-			Laser_player_fire( objp, level, 0, 1, 0);
-			Laser_player_fire( objp, level, 1, 0, 0);
+			Laser_player_fire( objp, level, 0, 1, 0, shot_orientation);
+			Laser_player_fire( objp, level, 1, 0, 0, shot_orientation);
 
 			if (flags & LASER_QUAD) {
 				//	hideous system to make quad laser 1.5x powerful as normal laser, make every other quad laser bolt harmless
-				Laser_player_fire( objp, level, 2, 0, 0);
-				Laser_player_fire( objp, level, 3, 0, 0);
+				Laser_player_fire( objp, level, 2, 0, 0, shot_orientation);
+				Laser_player_fire( objp, level, 3, 0, 0, shot_orientation);
 			}
 			break;
 		}
@@ -1170,42 +1187,42 @@ int do_laser_firing(int objnum, int weapon_num, int level, int flags, int nfires
 			int	make_sound = 1;
 			//if (d_rand() > 24576)
 			//	make_sound = 1;
-			Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, make_sound, 0);
+			Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, make_sound, 0, shot_orientation);
 			if (nfires > 1) {
-				Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, 0, 0);
+				Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, 0, 0, shot_orientation);
 				if (nfires > 2) {
-					Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, 0, 0);
+					Laser_player_fire_spread( objp, VULCAN_ID, 6, d_rand()/8 - 32767/16, d_rand()/8 - 32767/16, 0, 0, shot_orientation);
 				}
 			}
 			break;
 		}
 		case SPREADFIRE_INDEX:
 			if (flags & LASER_SPREADFIRE_TOGGLED) {
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, F1_0/16, 0, 0, 0);
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, -F1_0/16, 0, 0, 0);
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, 0, 1, 0);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, F1_0/16, 0, 0, 0, shot_orientation);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, -F1_0/16, 0, 0, 0, shot_orientation);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, 0, 1, 0, shot_orientation);
 			} else {
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, F1_0/16, 0, 0);
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, -F1_0/16, 0, 0);
-				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, 0, 1, 0);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, F1_0/16, 0, 0, shot_orientation);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, -F1_0/16, 0, 0, shot_orientation);
+				Laser_player_fire_spread( objp, SPREADFIRE_ID, 6, 0, 0, 1, 0, shot_orientation);
 			}
 			break;
 
 #ifndef SHAREWARE
 		case PLASMA_INDEX:
-			Laser_player_fire( objp, PLASMA_ID, 0, 1, 0);
-			Laser_player_fire( objp, PLASMA_ID, 1, 0, 0);
+			Laser_player_fire( objp, PLASMA_ID, 0, 1, 0, shot_orientation);
+			Laser_player_fire( objp, PLASMA_ID, 1, 0, 0, shot_orientation);
 			if (nfires > 1) {
-				Laser_player_fire_spread_delay( objp, PLASMA_ID, 0, 0, 0, FrameTime/2, 1, 0);
-				Laser_player_fire_spread_delay( objp, PLASMA_ID, 1, 0, 0, FrameTime/2, 0, 0);
+				Laser_player_fire_spread_delay( objp, PLASMA_ID, 0, 0, 0, FrameTime/2, 1, 0, shot_orientation);
+				Laser_player_fire_spread_delay( objp, PLASMA_ID, 1, 0, 0, FrameTime/2, 0, 0, shot_orientation);
 			}
 			break;
 
 		case FUSION_INDEX: {
 			vms_vector	force_vec;
 
-			Laser_player_fire( objp, FUSION_ID, 0, 1, 0);
-			Laser_player_fire( objp, FUSION_ID, 1, 1, 0);
+			Laser_player_fire( objp, FUSION_ID, 0, 1, 0, shot_orientation);
+			Laser_player_fire( objp, FUSION_ID, 1, 1, 0, shot_orientation);
 
 			flags = (sbyte)(Fusion_charge >> 12);
 
@@ -1396,9 +1413,11 @@ void do_missile_firing(int drop_bomb)
 		else
 			Next_missile_fire_time = GameTime64 + (F1_0/25) - fire_frame_overhead;
 
+		vms_vector orient = Objects[Players[Player_num].objnum].orient.fvec;
+
 		switch (weapon) {
 			case CONCUSSION_INDEX:
-				Laser_player_fire( ConsoleObject, CONCUSSION_ID, CONCUSSION_GUN+(Missile_gun & 1), 1, 0 );
+				Laser_player_fire( ConsoleObject, CONCUSSION_ID, CONCUSSION_GUN+(Missile_gun & 1), 1, 0 , orient);
 				Missile_gun++;
 				break;
 
@@ -1411,11 +1430,11 @@ void do_missile_firing(int drop_bomb)
 					maybe_drop_net_powerup(POW_PROXIMITY_WEAPON);
 #endif
 				}
-				Laser_player_fire( ConsoleObject, PROXIMITY_ID, PROXIMITY_GUN, 1, 0);
+				Laser_player_fire( ConsoleObject, PROXIMITY_ID, PROXIMITY_GUN, 1, 0, orient);
 				break;
 
 			case HOMING_INDEX:
-				Laser_player_fire( ConsoleObject, HOMING_ID, HOMING_GUN+(Missile_gun & 1), 1, 0 );
+				Laser_player_fire( ConsoleObject, HOMING_ID, HOMING_GUN+(Missile_gun & 1), 1, 0, orient );
 				Missile_gun++;
 				#ifdef NETWORK
 				maybe_drop_net_powerup(POW_HOMING_AMMO_1);
@@ -1424,14 +1443,14 @@ void do_missile_firing(int drop_bomb)
 
 #ifndef SHAREWARE
 			case SMART_INDEX:
-				Laser_player_fire( ConsoleObject, SMART_ID, SMART_GUN, 1, 0);
+				Laser_player_fire( ConsoleObject, SMART_ID, SMART_GUN, 1, 0, orient);
 #ifdef NETWORK
 				maybe_drop_net_powerup(POW_SMARTBOMB_WEAPON);
 #endif
 				break;
 
 			case MEGA_INDEX:
-				Laser_player_fire( ConsoleObject, MEGA_ID, MEGA_GUN, 1, 0);
+				Laser_player_fire( ConsoleObject, MEGA_ID, MEGA_GUN, 1, 0, orient);
 #ifdef NETWORK
 				maybe_drop_net_powerup(POW_MEGA_WEAPON);
 #endif
@@ -1463,32 +1482,32 @@ void do_missile_firing(int drop_bomb)
 }
 
 #ifdef NETWORK
-void net_missile_firing(int player, int gun, int flags)
+void net_missile_firing(int player, int gun, int flags, vms_vector shot_orientation) /* CED sniperpackets */
 {
-
+	/* CED sniperpackets */ 
 	switch (gun-MISSILE_ADJUST) {
 		case CONCUSSION_INDEX:
-			Laser_player_fire( Objects+Players[player].objnum, CONCUSSION_ID, CONCUSSION_GUN+(flags & 1), 1, 0 );
+			Laser_player_fire( Objects+Players[player].objnum, CONCUSSION_ID, CONCUSSION_GUN+(flags & 1), 1, 0, shot_orientation );
 			break;
 
 		case PROXIMITY_INDEX:
-			Laser_player_fire( Objects+Players[player].objnum, PROXIMITY_ID, PROXIMITY_GUN, 1, 0);
+			Laser_player_fire( Objects+Players[player].objnum, PROXIMITY_ID, PROXIMITY_GUN, 1, 0, shot_orientation);
 			break;
 
 		case HOMING_INDEX:
-			Laser_player_fire( Objects+Players[player].objnum, HOMING_ID, HOMING_GUN+(flags & 1), 1, 0);
+			Laser_player_fire( Objects+Players[player].objnum, HOMING_ID, HOMING_GUN+(flags & 1), 1, 0, shot_orientation);
 			break;
 
 		case SMART_INDEX:
-			Laser_player_fire( Objects+Players[player].objnum, SMART_ID, SMART_GUN, 1, 0);
+			Laser_player_fire( Objects+Players[player].objnum, SMART_ID, SMART_GUN, 1, 0, shot_orientation);
 			break;
 
 		case MEGA_INDEX:
-			Laser_player_fire( Objects+Players[player].objnum, MEGA_ID, MEGA_GUN, 1, 0);
+			Laser_player_fire( Objects+Players[player].objnum, MEGA_ID, MEGA_GUN, 1, 0, shot_orientation);
 			break;
 
 		case FLARE_ID:
-			Laser_player_fire( Objects+Players[player].objnum, FLARE_ID, 6, 1, 0);
+			Laser_player_fire( Objects+Players[player].objnum, FLARE_ID, 6, 1, 0, shot_orientation);
 			break;
 
 		default:

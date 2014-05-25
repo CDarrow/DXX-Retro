@@ -419,13 +419,14 @@ int check_vector_to_sphere_1(vms_vector *intp,vms_vector *p0,vms_vector *p1,vms_
 
 	//this routine could be optimized if it's taking too much time!
 
-	vm_vec_sub(&d,p1,p0);
-	vm_vec_sub(&w,sphere_pos,p0);
+	vm_vec_sub(&d,p1,p0); 
+	vm_vec_sub(&w,sphere_pos,p0);  
 
-	mag_d = vm_vec_copy_normalize(&dn,&d);
+	mag_d = vm_vec_copy_normalize(&dn,&d); 
 
 	if (mag_d == 0) {
-		int_dist = vm_vec_mag(&w);
+		int_dist = vm_vec_mag(&w); 
+
 		*intp = *p0;
 		return (int_dist<sphere_rad)?int_dist:0;
 	}
@@ -440,7 +441,7 @@ int check_vector_to_sphere_1(vms_vector *intp,vms_vector *p0,vms_vector *p1,vms_
 
 	vm_vec_scale_add(&closest_point,p0,&dn,w_dist);
 
-	dist = vm_vec_dist(&closest_point,sphere_pos);
+	dist = vm_vec_dist(&closest_point,sphere_pos); 
 
 	if (dist < sphere_rad) {
 		fix dist2,rad2,shorten;
@@ -448,15 +449,27 @@ int check_vector_to_sphere_1(vms_vector *intp,vms_vector *p0,vms_vector *p1,vms_
 		dist2 = fixmul(dist,dist);
 		rad2 = fixmul(sphere_rad,sphere_rad);
 
-		shorten = fix_sqrt(rad2 - dist2);
+		shorten = fix_sqrt(rad2 - dist2); 
 
 		int_dist = w_dist-shorten;
 
 		if (int_dist > mag_d || int_dist < 0) {
 			//past one or the other end of vector, which means we're inside
 
-			*intp = *p0;		//don't move at all
-			return 1;
+			// CED -- BZZZT, WRONG!  Either you're inside OR you didn't quite make it!
+			if(vm_vec_dist(p0, sphere_pos) < sphere_rad) {
+				*intp = *p0;		//don't move at all
+
+				// Would like to move to edge to avoid messing up damage values,
+				// but for some reason this makes you bounce off of powerups you can't pick up
+				// I can't figure out why that's happening, so there's a hack in
+				// collide_player_and_weapon to handle this case
+				//vm_vec_scale_add(intp,p0,&dn,int_dist);   
+				return 1;
+			} else {
+				return 0; 
+			}
+			
 		}
 
 		vm_vec_scale_add(intp,p0,&dn,int_dist);         //calc intersection point
@@ -847,6 +860,8 @@ int fvi_sub(vms_vector *intp,int *ints,vms_vector *p0,int startseg,vms_vector *p
 						closest_d = d;
 						closest_hit_point = hit_point;
 						hit_type=HIT_OBJECT;
+
+						con_printf(CON_DEBUG, "fvi.c: hit_type = HIT_OBJECT\n"); 
 					}
 			}
 

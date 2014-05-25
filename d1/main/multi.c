@@ -621,6 +621,11 @@ void multi_compute_kill(int killer, int killed)
 		Players[killed_pnum].net_killed_total++;
 		Players[killed_pnum].net_kills_total--;
 
+		if (Game_mode & GM_TEAM)
+		{
+				team_kills[get_team(killed_pnum)] -= 1;
+		}
+
 		if (Newdemo_state == ND_STATE_RECORDING)
 			newdemo_record_multi_kill(killed_pnum, -1);
 
@@ -1438,6 +1443,8 @@ multi_do_death(int objnum)
 	}
 }
 
+
+
 void
 multi_do_fire(const ubyte *buf)
 {
@@ -1452,13 +1459,21 @@ multi_do_fire(const ubyte *buf)
 	flags = buf[4];
 	Network_laser_track = GET_INTEL_SHORT(buf + 6);
 
+	/* CED sniperpackets */
+	vms_vector shot_orientation;
+	shot_orientation.x = (fix) GET_INTEL_INT(buf + 8); 
+	shot_orientation.y = (fix) GET_INTEL_INT(buf + 12); 
+	shot_orientation.z = (fix) GET_INTEL_INT(buf + 16); 
+
+
 	Assert (pnum < N_players);
 
 	if (Objects[Players[pnum].objnum].type == OBJ_GHOST)
 		multi_make_ghost_player(pnum);
 
 	if (weapon >= MISSILE_ADJUST) 
-		net_missile_firing(pnum, weapon, (int)buf[4]);
+		/* CED sniperpackets */
+		net_missile_firing(pnum, weapon, (int)buf[4], shot_orientation); 
 	else {
 		if (weapon == FUSION_INDEX) {
 			Fusion_charge = buf[4] << 12;
@@ -1470,7 +1485,8 @@ multi_do_fire(const ubyte *buf)
 				Players[pnum].flags &= ~PLAYER_FLAGS_QUAD_LASERS;
 		}
 
-		do_laser_firing(Players[pnum].objnum, weapon, (int)buf[3], flags, (int)buf[5]);
+		/* CED sniperpackets */
+		do_laser_firing(Players[pnum].objnum, weapon, (int)buf[3], flags, (int)buf[5], shot_orientation);
 
 		if (weapon == FUSION_INDEX)
 			Fusion_charge = save_charge;
@@ -1563,11 +1579,12 @@ multi_do_reappear(const ubyte *buf)
 	if (pnum != Objects[objnum].id)
 		return;
 
-	if (PKilledFlags[pnum]<=0) // player was not reported dead, so do not accept this packet
-	{
-		PKilledFlags[pnum]--;
-		return;
-	}
+	// CED -- Not helping -- makes other bug worse -- coopfix
+	//if (PKilledFlags[pnum]<=0) // player was not reported dead, so do not accept this packet
+	//{
+	//	PKilledFlags[pnum]--;
+	//	return;
+	//}
 
 	multi_make_ghost_player(Objects[objnum].id);
 	create_player_appearance_effect(&Objects[objnum]);
@@ -2306,7 +2323,14 @@ void multi_send_fire(int laser_gun, int laser_level, int laser_flags, int laser_
 	multibuf[5] = (char)laser_fired;
 	PUT_INTEL_SHORT(multibuf+6, laser_track);
 
-	multi_send_data(multibuf, 8, 1);
+	/* CED sniperpackets */
+	object* ownship = Objects + Players[Player_num].objnum;
+	PUT_INTEL_INT(multibuf+8 , ownship->orient.fvec.x);
+	PUT_INTEL_INT(multibuf+12, ownship->orient.fvec.y);
+	PUT_INTEL_INT(multibuf+16, ownship->orient.fvec.z);
+
+	//multi_send_data(multibuf, 8, 1);
+	multi_send_data(multibuf, 20, 1);
 }
 
 
@@ -2455,6 +2479,12 @@ void multi_powcap_cap_objects()
 
 	if (!(Game_mode & GM_NETWORK))
 		return;
+
+	// Bad interaction with savegames -- CED -- coopfix
+	if(Game_mode & GM_MULTI_COOP) {
+		return;
+	}
+
 
 	Players[Player_num].secondary_ammo[PROXIMITY_INDEX]+=Proximity_dropped;
 	Proximity_dropped=0;

@@ -28,7 +28,7 @@
 #endif
 
 #include <errno.h>
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include "hudmsg.h"
 #include "game.h"
 #include "text.h"

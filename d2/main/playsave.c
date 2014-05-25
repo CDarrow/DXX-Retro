@@ -96,7 +96,9 @@ int new_player_config()
 	PlayerCfg.KeyboardSens[0] = PlayerCfg.KeyboardSens[1] = PlayerCfg.KeyboardSens[2] = PlayerCfg.KeyboardSens[3] = PlayerCfg.KeyboardSens[4] = 16;
 	PlayerCfg.JoystickSens[0] = PlayerCfg.JoystickSens[1] = PlayerCfg.JoystickSens[2] = PlayerCfg.JoystickSens[3] = PlayerCfg.JoystickSens[4] = PlayerCfg.JoystickSens[5] = 8;
 	PlayerCfg.JoystickDead[0] = PlayerCfg.JoystickDead[1] = PlayerCfg.JoystickDead[2] = PlayerCfg.JoystickDead[3] = PlayerCfg.JoystickDead[4] = PlayerCfg.JoystickDead[5] = 0;
-	PlayerCfg.MouseFlightSim = 0;
+	PlayerCfg.JoystickUndercalibrate[0] = PlayerCfg.JoystickUndercalibrate[1] = PlayerCfg.JoystickUndercalibrate[2] = PlayerCfg.JoystickUndercalibrate[3] = PlayerCfg.JoystickUndercalibrate[4] = PlayerCfg.JoystickUndercalibrate[5] = 0;
+	PlayerCfg.MouseControlStyle = MOUSE_CONTROL_OLDSCHOOL; /* Old School Mouse */
+	PlayerCfg.MouseImpulse = 8;
 	PlayerCfg.MouseSens[0] = PlayerCfg.MouseSens[1] = PlayerCfg.MouseSens[2] = PlayerCfg.MouseSens[3] = PlayerCfg.MouseSens[4] = PlayerCfg.MouseSens[5] = 8;
 	PlayerCfg.MouseFSDead = 0;
 	PlayerCfg.MouseFSIndicator = 1;
@@ -123,6 +125,9 @@ int new_player_config()
 	PlayerCfg.CycleAutoselectOnly = 0;
 	PlayerCfg.AlphaEffects = 0;
 	PlayerCfg.DynLightColor = 0;
+	PlayerCfg.DisableCockpit = 0;  /* DisableCockpit */ 
+	PlayerCfg.StickyRearview = 0; /* StickyRearview */ 
+	PlayerCfg.SelectAfterFire = 1;  /* SelectAfterFire */	
 
 	// Default taunt macros
 	#ifdef NETWORK
@@ -211,6 +216,18 @@ int read_player_d2x(char *filename)
 					PlayerCfg.JoystickDead[4] = atoi(line);
 				if(!strcmp(word,"DEADZONE5"))
 					PlayerCfg.JoystickDead[5] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE0"))
+					PlayerCfg.JoystickUndercalibrate[0] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE1"))
+					PlayerCfg.JoystickUndercalibrate[1] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE2"))
+					PlayerCfg.JoystickUndercalibrate[2] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE3"))
+					PlayerCfg.JoystickUndercalibrate[3] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE4"))
+					PlayerCfg.JoystickUndercalibrate[4] = atoi(line);
+				if(!strcmp(word,"UNDERCALIBRATE5"))
+					PlayerCfg.JoystickUndercalibrate[5] = atoi(line);					
 				d_free(word);
 				PHYSFSX_fgets(line,50,f);
 				word=splitword(line,'=');
@@ -227,7 +244,9 @@ int read_player_d2x(char *filename)
 			while(!strstr(word,"END") && !PHYSFS_eof(f))
 			{
 				if(!strcmp(word,"FLIGHTSIM"))
-					PlayerCfg.MouseFlightSim = atoi(line);
+					PlayerCfg.MouseControlStyle = atoi(line);  /* Old School Mouse */
+				if(!strcmp(word,"MOUSEIMPULSE"))
+					PlayerCfg.MouseImpulse = atoi(line);  /* Old School Mouse */
 				if(!strcmp(word,"SENSITIVITY0"))
 					PlayerCfg.MouseSens[0] = atoi(line);
 				if(!strcmp(word,"SENSITIVITY1"))
@@ -320,6 +339,12 @@ int read_player_d2x(char *filename)
 					PlayerCfg.NoRankings = atoi(line);
 				if(!strcmp(word,"AUTOMAPFREEFLIGHT"))
 					PlayerCfg.AutomapFreeFlight = atoi(line);
+				if(!strcmp(word,"DISABLECOCKPIT"))
+					PlayerCfg.DisableCockpit = atoi(line); /* DisableCockpit */ 
+				if(!strcmp(word,"STICKYREARVIEW"))
+					PlayerCfg.StickyRearview = atoi(line); /* StickyRearview */ 
+				if(!strcmp(word,"SELECTAFTERFIRE"))
+					PlayerCfg.SelectAfterFire = atoi(line); /* SelectAfterFire */ 					
 				if(!strcmp(word,"NOFIREAUTOSELECT"))
 					PlayerCfg.NoFireAutoselect = atoi(line);
 				if(!strcmp(word,"CYCLEAUTOSELECTONLY"))
@@ -437,9 +462,16 @@ int write_player_d2x(char *filename)
 		PHYSFSX_printf(fout,"deadzone3=%d\n",PlayerCfg.JoystickDead[3]);
 		PHYSFSX_printf(fout,"deadzone4=%d\n",PlayerCfg.JoystickDead[4]);
 		PHYSFSX_printf(fout,"deadzone5=%d\n",PlayerCfg.JoystickDead[5]);
+		PHYSFSX_printf(fout,"undercalibrate0=%d\n",PlayerCfg.JoystickUndercalibrate[0]);
+		PHYSFSX_printf(fout,"undercalibrate1=%d\n",PlayerCfg.JoystickUndercalibrate[1]);
+		PHYSFSX_printf(fout,"undercalibrate2=%d\n",PlayerCfg.JoystickUndercalibrate[2]);
+		PHYSFSX_printf(fout,"undercalibrate3=%d\n",PlayerCfg.JoystickUndercalibrate[3]);
+		PHYSFSX_printf(fout,"undercalibrate4=%d\n",PlayerCfg.JoystickUndercalibrate[4]);
+		PHYSFSX_printf(fout,"undercalibrate5=%d\n",PlayerCfg.JoystickUndercalibrate[5]);			
 		PHYSFSX_printf(fout,"[end]\n");
 		PHYSFSX_printf(fout,"[mouse]\n");
-		PHYSFSX_printf(fout,"flightsim=%d\n",PlayerCfg.MouseFlightSim);
+		PHYSFSX_printf(fout,"flightsim=%d\n",PlayerCfg.MouseControlStyle);  /* Old School Mouse */
+		PHYSFSX_printf(fout,"mouseimpulse=%d\n",PlayerCfg.MouseImpulse);  /* Old School Mouse */
 		PHYSFSX_printf(fout,"sensitivity0=%d\n",PlayerCfg.MouseSens[0]);
 		PHYSFSX_printf(fout,"sensitivity1=%d\n",PlayerCfg.MouseSens[1]);
 		PHYSFSX_printf(fout,"sensitivity2=%d\n",PlayerCfg.MouseSens[2]);
@@ -475,6 +507,9 @@ int write_player_d2x(char *filename)
 		PHYSFSX_printf(fout,"multimessages=%i\n",PlayerCfg.MultiMessages);
 		PHYSFSX_printf(fout,"norankings=%i\n",PlayerCfg.NoRankings);
 		PHYSFSX_printf(fout,"automapfreeflight=%i\n",PlayerCfg.AutomapFreeFlight);
+		PHYSFSX_printf(fout,"disablecockpit=%i\n",PlayerCfg.DisableCockpit); /* DisableCockpit */ 
+		PHYSFSX_printf(fout,"stickyrearview=%i\n",PlayerCfg.StickyRearview); /* StickyRearview */ 
+		PHYSFSX_printf(fout,"selectafterfire=%i\n",PlayerCfg.SelectAfterFire); /* SelectAfterFire */ 		
 		PHYSFSX_printf(fout,"nofireautoselect=%i\n",PlayerCfg.NoFireAutoselect);
 		PHYSFSX_printf(fout,"cycleautoselectonly=%i\n",PlayerCfg.CycleAutoselectOnly);
 		PHYSFSX_printf(fout,"[end]\n");

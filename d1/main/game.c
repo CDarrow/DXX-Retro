@@ -820,9 +820,12 @@ void check_rear_view()
 	}
 	else
 		if (Controls.rear_view_state) {
-
-			if (leave_mode == 0 && (timer_query() - entry_time) > LEAVE_TIME)
-				leave_mode = 1;
+			if(PlayerCfg.StickyRearview) {
+				if (leave_mode == 0 && (timer_query() - entry_time) > LEAVE_TIME)
+					leave_mode = 1;
+			} else {
+				leave_mode = 1; 
+			}
 		}
 		else
 		{
@@ -1135,6 +1138,8 @@ void GameProcessFrame(void)
 
 		if (allowed_to_fire_laser())
 			FireLaser();				// Fire Laser!
+
+		delayed_autoselect(); /* SelectAfterFire */ 
 
 		if (Auto_fire_fusion_cannon_time) {
 			if (Primary_weapon != FUSION_INDEX)

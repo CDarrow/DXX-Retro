@@ -1501,11 +1501,15 @@ multi_do_fire(const ubyte *buf)
 
 	// Act out the actual shooting
 	pnum = buf[1];
-
 	weapon = (int)buf[2];
-
 	flags = buf[4];
 	Network_laser_track = GET_INTEL_SHORT(buf + 6);
+
+	/* CED sniperpackets */
+	vms_vector shot_orientation;
+	shot_orientation.x = (fix) GET_INTEL_INT(buf + 8); 
+	shot_orientation.y = (fix) GET_INTEL_INT(buf + 12); 
+	shot_orientation.z = (fix) GET_INTEL_INT(buf + 16); 
 
 	Assert (pnum < N_players);
 
@@ -1513,7 +1517,8 @@ multi_do_fire(const ubyte *buf)
 		multi_make_ghost_player(pnum);
 
 	if (weapon == FLARE_ADJUST)
-		Laser_player_fire( Objects+Players[(int)pnum].objnum, FLARE_ID, 6, 1, 0);
+		/* CED sniperpackets */
+		Laser_player_fire( Objects+Players[(int)pnum].objnum, FLARE_ID, 6, 1, 0, shot_orientation);
 	else if (weapon >= MISSILE_ADJUST) {
 		int weapon_id,weapon_gun;
 
@@ -1525,7 +1530,8 @@ multi_do_fire(const ubyte *buf)
 			Multi_is_guided=1;
 		}
 
-		Laser_player_fire( Objects+Players[(int)pnum].objnum, weapon_id, weapon_gun, 1, 0 );
+		/* CED sniperpackets */
+		Laser_player_fire( Objects+Players[(int)pnum].objnum, weapon_id, weapon_gun, 1, 0, shot_orientation);
 	}
 	else {
 		fix save_charge = Fusion_charge;
@@ -1540,7 +1546,8 @@ multi_do_fire(const ubyte *buf)
 				Players[(int)pnum].flags &= ~PLAYER_FLAGS_QUAD_LASERS;
 		}
 
-		do_laser_firing(Players[(int)pnum].objnum, weapon, (int)buf[3], flags, (int)buf[5]);
+		/* CED sniperpackets */
+		do_laser_firing(Players[(int)pnum].objnum, weapon, (int)buf[3], flags, (int)buf[5], shot_orientation);
 
 		if (weapon == FUSION_INDEX)
 			Fusion_charge = save_charge;
@@ -1558,7 +1565,7 @@ multi_do_message(const ubyte *cbuf)
 	int tloc,t;
 
 	int loc = 0;
-	buf += 2;
+	//buf += 2;
 
 	if ((tilde=strchr (buf+loc,'$')))  // do that stupid name stuff
 	{											// why'd I put this in?  Probably for the
@@ -2441,7 +2448,14 @@ void multi_send_fire(int laser_gun, int laser_level, int laser_flags, int laser_
 	multibuf[5] = (char)laser_fired;
 	PUT_INTEL_SHORT(multibuf+6, laser_track);
 
-	multi_send_data(multibuf, 8, 1);
+	/* CED sniperpackets */
+	object* ownship = Objects + Players[Player_num].objnum;
+	PUT_INTEL_INT(multibuf+8 , ownship->orient.fvec.x);
+	PUT_INTEL_INT(multibuf+12, ownship->orient.fvec.y);
+	PUT_INTEL_INT(multibuf+16, ownship->orient.fvec.z);
+
+	//multi_send_data(multibuf, 8, 1);
+	multi_send_data(multibuf, 20, 1);
 }
 
 void

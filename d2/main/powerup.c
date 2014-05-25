@@ -373,6 +373,8 @@ int do_powerup(object *obj)
 			if (! used)
 				if ((Game_mode & GM_MULTI) )
 					ammo -= VULCAN_AMMO_AMOUNT;	//don't let take all ammo
+					// GAUSS AMMO BUG -- fix in 1.3! 
+					//ammo = 0; // Forgot to tell other players we took ammo, it dups, very bad
 
 			if (ammo > 0) {
 				int ammo_used;

@@ -19,6 +19,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "rle.h"
 #include "inferno.h"
@@ -2087,6 +2088,7 @@ void collide_player_and_weapon( object * playerobj, object * weapon, vms_vector 
 	fix		damage = weapon->shields;
 	object * killer=NULL;
 
+
 	if (weapon->id == OMEGA_ID)
 		if (!ok_to_do_omega_damage(weapon)) // see comment in laser.c
 			return;
@@ -2154,8 +2156,17 @@ void collide_player_and_weapon( object * playerobj, object * weapon, vms_vector 
 	}
 
 	object_create_explosion( playerobj->segnum, collision_point, i2f(10)/2, VCLIP_PLAYER_HIT );
-	if ( Weapon_info[weapon->id].damage_radius )
+	if ( Weapon_info[weapon->id].damage_radius ) {
+		vms_vector player2weapon;
+		vm_vec_sub(&player2weapon, collision_point, &playerobj->pos);
+		fix mag = vm_vec_mag(&player2weapon); 
+		if(mag < playerobj->size && mag > 0) {
+			vm_vec_scale_add(collision_point, &playerobj->pos, &player2weapon, fixdiv(playerobj->size, mag)); 
+		}
+		
 		explode_badass_weapon(weapon,collision_point);
+
+	}
 
 	maybe_kill_weapon(weapon,playerobj);
 

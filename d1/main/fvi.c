@@ -460,8 +460,19 @@ static int check_vector_to_sphere_1(vms_vector *intp,const vms_vector *p0,const 
 		if (int_dist > mag_d || int_dist < 0) {
 			//past one or the other end of vector, which means we're inside
 
-			*intp = *p0;		//don't move at all
-			return 1;
+			// CED -- BZZZT, WRONG!  Either you're inside OR you didn't quite make it!
+			if(vm_vec_dist(p0, sphere_pos) < sphere_rad) {
+				*intp = *p0;		//don't move at all
+
+				// Would like to move to edge to avoid messing up damage values,
+				// but for some reason this makes you bounce off of powerups you can't pick up
+				// I can't figure out why that's happening, so there's a hack in
+				// collide_player_and_weapon to handle this case
+				//vm_vec_scale_add(intp,p0,&dn,int_dist);   
+				return 1;
+			} else {
+				return 0; 
+			}
 		}
 
 		vm_vec_scale_add(intp,p0,&dn,int_dist);         //calc intersection point

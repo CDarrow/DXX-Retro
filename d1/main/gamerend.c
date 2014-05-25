@@ -392,6 +392,9 @@ void toggle_cockpit()
 			break;
 		case CM_FULL_SCREEN:
 			new_mode = CM_FULL_COCKPIT;
+			if(PlayerCfg.DisableCockpit) {
+				new_mode = CM_STATUS_BAR; 
+			}
 			break;
 	}
 

@@ -420,6 +420,8 @@ int properties_init()
 		temp_bitmap.bm_flags |= BM_FLAG_PAGED_OUT;
 		temp_bitmap.avg_color = bmh.avg_color;
 
+
+
 		if (MacPig)
 		{
 			// HACK HACK HACK!!!!!
@@ -634,7 +636,11 @@ void piggy_bitmap_page_in( bitmap_index bitmap )
 
 	ReDoIt:
 		descent_critical_error = 0;
-		PHYSFSX_fseek( Piggy_fp, GameBitmapOffset[i], SEEK_SET );
+		//if(i == 45 || i == 46 || i == 47 || i == 48 ) { // CED -- replace ships 1 & 2 instead of 6 & 7 (for testing)
+		//	PHYSFSX_fseek( Piggy_fp, GameBitmapOffset[i + 10], SEEK_SET );
+		//} else {
+			PHYSFSX_fseek( Piggy_fp, GameBitmapOffset[i], SEEK_SET );
+		//}
 		if ( descent_critical_error ) {
 			piggy_critical_error();
 			goto ReDoIt;
@@ -661,6 +667,7 @@ void piggy_bitmap_page_in( bitmap_index bitmap )
 			Piggy_bitmap_cache_next += sizeof(int);
 			descent_critical_error = 0;
 			PHYSFS_read( Piggy_fp, &Piggy_bitmap_cache_data[Piggy_bitmap_cache_next], 1, zsize-4 );
+
 			if ( descent_critical_error ) {
 				piggy_critical_error();
 				goto ReDoIt;
@@ -680,6 +687,7 @@ void piggy_bitmap_page_in( bitmap_index bitmap )
 			}
 			descent_critical_error = 0;
 			PHYSFS_read( Piggy_fp, &Piggy_bitmap_cache_data[Piggy_bitmap_cache_next], 1, bmp->bm_h*bmp->bm_w );
+			
 			if ( descent_critical_error ) {
 				piggy_critical_error();
 				goto ReDoIt;

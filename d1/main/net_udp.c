@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "pstypes.h"
 #include "window.h"
@@ -111,9 +112,115 @@ int iTrackerVerified = 0;
 #endif
 extern obj_position Player_init[MAX_PLAYERS];
 
+
+char* msg_name(int type)
+{
+	switch(type)
+	{
+		case UPID_VERSION_DENY:
+			return "UPID_VERSION_DENY";
+		case UPID_GAME_INFO_REQ:
+			return "UPID_GAME_INFO_REQ";
+		case UPID_GAME_INFO:
+			return "UPID_GAME_INFO";
+		case UPID_GAME_INFO_LITE_REQ:
+			return "UPID_GAME_INFO_LITE_REQ";
+		case UPID_GAME_INFO_LITE:
+			return "UPID_GAME_INFO_LITE";
+		case UPID_DUMP:
+			return "UPID_DUMP";
+		case UPID_ADDPLAYER:
+			return "UPID_ADDPLAYER";
+		case UPID_REQUEST:
+			return "UPID_REQUEST";
+		case UPID_QUIT_JOINING:
+		    return "UPID_QUIT_JOINING";
+		case UPID_SYNC:
+			return "UPID_SYNC";
+		case UPID_OBJECT_DATA:
+			return "UPID_OBJECT_DATA";
+		case UPID_PING:
+			return "UPID_PING";
+		case UPID_PONG:
+			return "UPID_PONG";
+		case UPID_ENDLEVEL_H:
+			return "UPID_ENDLEVEL_H";
+		case UPID_ENDLEVEL_C:
+			return "UPID_ENDLEVEL_C";
+		case UPID_PDATA:
+			return "UPID_PDATA";
+		case UPID_MDATA_PNORM:
+			return "UPID_MDATA_PNORM";
+		case UPID_MDATA_PNEEDACK:
+			return "UPID_MDATA_PNEEDACK";
+		case UPID_MDATA_ACK:
+			return "UPID_MDATA_ACK";
+		case UPID_TRACKER_VERIFY:
+			return "UPID_TRACKER_VERIFY";			
+		case UPID_TRACKER_INCGAME:
+			return "UPID_TRACKER_INCGAME";
+		
+		default:
+			return "UNKNOWN";
+	}
+}
+
+static PHYSFS_file *netlog_fp=NULL;
+static struct timeval program_start; 
+
+static void net_log_close(void)
+{
+	if (netlog_fp)
+		PHYSFS_close(netlog_fp);
+	
+	netlog_fp = NULL;
+}
+
+void net_log_init(void)
+{
+	if(! netlog_fp) {
+		netlog_fp = PHYSFS_openWrite("netlog.txt");
+		atexit(net_log_close);
+
+		gettimeofday(&program_start, NULL);
+	}
+}
+
+
+
+void net_log_log(char tx, const void* msg, int len, const struct sockaddr *address, socklen_t addrlen) {
+	net_log_init();
+
+	struct timeval t;
+	gettimeofday(&t, NULL); 
+	long usec = (t.tv_sec - program_start.tv_sec)*1000000L + t.tv_usec - program_start.tv_usec; 
+	
+	if(netlog_fp) {
+		struct sockaddr_in *addrin = (struct sockaddr_in*) address;
+		char *ip = inet_ntoa(addrin->sin_addr); 
+
+		if(tx) {
+			PHYSFSX_printf(netlog_fp, "%d.%06d Tx ", usec/1000000L, usec%1000000L); 
+		} else {
+			PHYSFSX_printf(netlog_fp, "%d.%06d Rx ",  usec/1000000L, usec%1000000L); 
+		}
+		char* cmsg = (char*) msg; 
+
+		PHYSFSX_printf(netlog_fp, "%d bytes  %s  %s\n", len, ip, msg_name(cmsg[0])); 
+
+		
+		for(int i = 0; i < len; i++) {
+			PHYSFSX_printf(netlog_fp, "%03d ", cmsg[i]); 
+		}
+		PHYSFSX_printf(netlog_fp, "\n"); 
+	}
+}
+
 /* General UDP functions - START */
 ssize_t dxx_sendto(int sockfd, const void *msg, int len, unsigned int flags, const struct sockaddr *to, socklen_t tolen)
 {
+	//net_log_log(1, msg, len, to, tolen); 
+
 	ssize_t rv = sendto(sockfd, msg, len, flags, to, tolen);
 
 	UDP_num_sendto++;
@@ -126,6 +233,8 @@ ssize_t dxx_sendto(int sockfd, const void *msg, int len, unsigned int flags, con
 ssize_t dxx_recvfrom(int sockfd, void *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen)
 {
 	ssize_t rv = recvfrom(sockfd, buf, len, flags, from, fromlen);
+
+	//net_log_log(0, buf, rv, from, *fromlen); 
 
 	UDP_num_recvfrom++;
 	UDP_len_recvfrom += rv;
@@ -2516,7 +2625,7 @@ void net_udp_process_packet(ubyte *data, struct _sockaddr sender_addr, int lengt
 			break;
 		}
 		case UPID_GAME_INFO_LITE:
-			if (multi_i_am_master() || length != UPID_GAME_INFO_LITE_SIZE)
+			if (multi_i_am_master() || length != UPID_GAME_INFO_LITE_SIZE) 
 				break;
 			net_udp_process_game_info(data, length, sender_addr, 1);
 			break;

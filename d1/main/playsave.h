@@ -30,6 +30,10 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #define N_SAVE_SLOTS    10
 #define GAME_NAME_LEN   25      // +1 for terminating zero = 26
 
+#define MOUSE_CONTROL_FLIGHT_SIM 1   /* Old School Mouse */
+#define MOUSE_CONTROL_REBIRTH 0
+#define MOUSE_CONTROL_OLDSCHOOL 2
+
 // NOTE: Obsolete structure - only kept for compability of shareware plr file
 typedef struct saved_game_sw {
 	char		name[GAME_NAME_LEN+1];		//extra char for terminating zero
@@ -62,7 +66,9 @@ typedef struct player_config
 	int KeyboardSens[5];
 	int JoystickSens[6];
 	int JoystickDead[6];
-	ubyte MouseFlightSim;
+	int JoystickUndercalibrate[6];
+	ubyte MouseControlStyle; /* Old School Mouse -- ubyte MouseFlightSim; */ 
+	int MouseImpulse; /* Old School Mouse */ 
 	int MouseSens[6];
 	int MouseFSDead;
 	int MouseFSIndicator;
@@ -85,6 +91,9 @@ typedef struct player_config
 	ubyte CycleAutoselectOnly;
 	int AlphaEffects;
 	int DynLightColor;
+	ubyte DisableCockpit;  /* DisableCockpit */ 
+	ubyte StickyRearview; /* StickyRearview */ 
+	ubyte SelectAfterFire; /* SelectAfterFire */ 
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;

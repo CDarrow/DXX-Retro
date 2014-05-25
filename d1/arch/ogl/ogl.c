@@ -1639,6 +1639,13 @@ int ogl_loadtexture (unsigned char *data, int dxo, int dyo, ogl_texture *tex, in
 
 unsigned char decodebuf[1024*1024];
 
+// An unbelievably horrible awful wretched hack
+unsigned char blackpyro_tex1[8] = {60, 59, 31, 31, 31, 31, 23, 60}; 
+unsigned char blackpyro_tex2[8] = {255, 168, 255, 168, 226, 168, 224, 255 }; 
+
+unsigned char whitepyro_tex1[8] = {60, 59, 27, 27, 27, 27, 23, 60}; 
+unsigned char whitepyro_tex2[8] = {255, 144, 255, 144, 226, 144, 224, 255};
+
 void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 {
 	unsigned char *buf;
@@ -1707,6 +1714,7 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 		dbits = decodebuf;
 
 		for (i=0; i < bm->bm_h; i++ )    {
+			//con_printf(CON_NORMAL, "RLE decoding bitmap %d\n", bm->bm_handle); 
 			gr_rle_decode(sbits,dbits);
 			if ( bm->bm_flags & BM_FLAG_RLE_BIG )
 				sbits += (int)INTEL_SHORT(*((short *)&(bm->bm_data[4+(i*data_offset)])));
@@ -1715,6 +1723,78 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 			dbits += bm->bm_w;
 		}
 		buf=decodebuf;
+
+		/*
+		char is_black_tex1 = 1; 
+		char is_black_tex2 = 1; 
+		for(i = 0; i < 8; i++) {
+			if(bm->bm_data[4+i] != blackpyro_tex1[i]) {
+				is_black_tex1=0;
+				break;
+			}
+		}
+
+		for(i = 0; i < 8; i++) {
+			if(bm->bm_data[4+64+i] != blackpyro_tex2[i]) {
+				is_black_tex2=0;
+				break;
+			}
+		}
+
+		if(is_black_tex1 || is_black_tex2) {
+			for(i=0; i < bm->bm_h * bm->bm_w; i++) {
+				ubyte r = gr_current_pal[buf[i]*3];
+				ubyte g = gr_current_pal[buf[i]*3+1];
+				ubyte b = gr_current_pal[buf[i]*3+2];
+
+				ubyte max = r;
+				if(g > max) { max = g; }
+				if(b > max) { max = b; }
+
+				if(r > g && g > b) {
+					int replace = gr_find_closest_color(max/10,max/10,max/10); 
+					buf[i] = replace; 
+				}
+
+				
+			}			
+		}
+		
+		char is_white_tex1 = 1; 
+		char is_white_tex2 = 1; 
+		for(i = 0; i < 8; i++) {
+			if(bm->bm_data[4+i] != whitepyro_tex1[i]) {
+				is_white_tex1=0;
+				break;
+			}
+		}
+
+		for(i = 0; i < 8; i++) {
+			if(bm->bm_data[4+64+i] != whitepyro_tex2[i]) {
+				is_white_tex2=0;
+				break;
+			}
+		}
+
+		if(is_white_tex1 || is_white_tex2) {
+			for(i=0; i < bm->bm_h * bm->bm_w; i++) {
+				ubyte r = gr_current_pal[buf[i]*3];
+				ubyte g = gr_current_pal[buf[i]*3+1];
+				ubyte b = gr_current_pal[buf[i]*3+2];
+
+				ubyte max = r;
+				if(g > max) { max = g; }
+				if(b > max) { max = b; }
+
+				if(g > r && g > b) {
+					int replace = gr_find_closest_color(max,max,max); 
+					buf[i] = replace; 
+				}
+
+				
+			}			
+		} */
+
 	}
 	ogl_loadtexture(buf, 0, 0, bm->gltexture, bm->bm_flags, 0, texfilt);
 }

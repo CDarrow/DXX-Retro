@@ -445,6 +445,8 @@ int choose_drop_segment()
 	player_seg = Objects[Players[Player_num].objnum].segnum;
 
 	while ((segnum == -1) && (cur_drop_depth > BASE_NET_DROP_DEPTH/2)) {
+		//con_printf(CON_NORMAL, "Attempting spawn at depth %d\n", cur_drop_depth); 
+
 		pnum = (d_rand() * N_players) >> 15;
 		count = 0;
 		while ((count < N_players) && ((Players[pnum].connected == CONNECT_DISCONNECTED) || (pnum==Player_num))) {
@@ -458,19 +460,21 @@ int choose_drop_segment()
 		}
 
 		segnum = pick_connected_segment(&Objects[Players[pnum].objnum], cur_drop_depth);
+		//
 		if (segnum == -1)
 		{
 			cur_drop_depth--;
 			continue;
 		}
 		if (Segments[segnum].special == SEGMENT_IS_CONTROLCEN)
-			{segnum = -1;}
+			{segnum = -1;  con_printf(CON_NORMAL, "   Unacceptable: Rector segment\n");  }
 		else {	//don't drop in any children of control centers
 			int i;
 			for (i=0;i<6;i++) {
 				int ch = Segments[segnum].children[i];
 				if (IS_CHILD(ch) && Segments[ch].special == SEGMENT_IS_CONTROLCEN) {
 					segnum = -1;
+					//con_printf(CON_NORMAL, "   Unacceptable: Rector child\n");
 					break;
 				}
 			}
@@ -481,6 +485,7 @@ int choose_drop_segment()
 			compute_segment_center(&tempv, &Segments[segnum]);
 			if (find_connected_distance(player_pos,player_seg,&tempv,segnum,-1,WID_FLY_FLAG) < i2f(20)*cur_drop_depth) {
 				segnum = -1;
+				//con_printf(CON_NORMAL, "   Unacceptable: too close\n");
 			}
 		}
 
@@ -488,13 +493,30 @@ int choose_drop_segment()
 	}
 
 	if (segnum == -1) {
-		cur_drop_depth = BASE_NET_DROP_DEPTH;
+		//con_printf(CON_NORMAL, "Attempting to spawn under reduced constraints.\n");
+
+		cur_drop_depth = BASE_NET_DROP_DEPTH * 2; // CED -- more chances
 		while (cur_drop_depth > 0 && segnum == -1) // before dropping in random segment, try to find ANY segment which is connected to the player responsible for the drop so object will not spawn in inaccessible areas
 		{
 			segnum = pick_connected_segment(&Objects[Players[Player_num].objnum], --cur_drop_depth);
-			if (Segments[segnum].special == SEGMENT_IS_CONTROLCEN)
+			//con_printf(CON_NORMAL, "Can spawn at %d for depth %d?\n", segnum, cur_drop_depth);
+			if (Segments[segnum].special == SEGMENT_IS_CONTROLCEN) {
 				segnum = -1;
+
+				//con_printf(CON_NORMAL, "   Unacceptable: Rector segment\n", segnum);
+			} else {	//don't drop in any children of control centers
+				int i;
+				for (i=0;i<6;i++) {
+					int ch = Segments[segnum].children[i];
+					if (IS_CHILD(ch) && Segments[ch].special == SEGMENT_IS_CONTROLCEN) {
+						segnum = -1;
+						//con_printf(CON_NORMAL, "   Unacceptable: Rector child\n");
+						break;
+					}
+				}
+			}
 		}
+		//con_printf(CON_NORMAL, "Selected %d (final).\n", segnum);
 		return ((segnum == -1)?((d_rand() * Highest_segment_index) >> 15):segnum); // basically it should be impossible segnum == -1 now... but oh well...
 	} else
 		return segnum;

@@ -21,7 +21,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include <setjmp.h>
 
 #ifdef OGL
@@ -420,6 +420,11 @@ void calc_frame_time()
 		FrameTime = (last_frametime==0?1:last_frametime);		//...then use time from last frame
 
 	GameTime64 += FrameTime;
+
+	// CED -- Something's busted with the D2 code.  Here's D1.
+	fix D1_MIN_TRACKABLE = (3 * F1_0) / 4; 
+	Min_trackable_dot = 3*(F1_0 - D1_MIN_TRACKABLE)/4 + D1_MIN_TRACKABLE;
+
 
 	calc_d_tick();
 }
@@ -967,9 +972,12 @@ void check_rear_view()
 	}
 	else
 		if (Controls.rear_view_state) {
-
-			if (leave_mode == 0 && (timer_query() - entry_time) > LEAVE_TIME)
-				leave_mode = 1;
+			if(PlayerCfg.StickyRearview) {
+				if (leave_mode == 0 && (timer_query() - entry_time) > LEAVE_TIME)
+					leave_mode = 1;
+			} else {
+				leave_mode = 1; 
+			}
 		}
 		else
 		{
@@ -1374,6 +1382,8 @@ void GameProcessFrame(void)
 
 		if (allowed_to_fire_laser())
 			FireLaser();				// Fire Laser!
+
+		delayed_autoselect(); /* SelectAfterFire */ 
 
 		if (Auto_fire_fusion_cannon_time) {
 			if (Primary_weapon != FUSION_INDEX)

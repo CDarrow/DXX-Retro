@@ -976,8 +976,8 @@ void change_res()
 
 void input_config_sensitivity()
 {
-	newmenu_item m[33];
-	int i = 0, nitems = 0, keysens = 0, joysens = 0, joydead = 0, mousesens = 0, mousefsdead;
+	newmenu_item m[36+8];
+	int i = 0, nitems = 0, keysens = 0, joysens = 0, joydead = 0, joyunder = 0, mousesens = 0, mousefsdead, mouseimpulse; /* Old school mouse */ 
 
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Keyboard Sensitivity:"; nitems++;
 	keysens = nitems;
@@ -1005,6 +1005,15 @@ void input_config_sensitivity()
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_BANK_LR; m[nitems].value = PlayerCfg.JoystickDead[4]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_THROTTLE; m[nitems].value = PlayerCfg.JoystickDead[5]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
+	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Joystick Undercalibration:"; nitems++;
+	joyunder = nitems;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_TURN_LR; m[nitems].value = PlayerCfg.JoystickUndercalibrate[0]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_PITCH_UD; m[nitems].value = PlayerCfg.JoystickUndercalibrate[1]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_SLIDE_LR; m[nitems].value = PlayerCfg.JoystickUndercalibrate[2]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_SLIDE_UD; m[nitems].value = PlayerCfg.JoystickUndercalibrate[3]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_BANK_LR; m[nitems].value = PlayerCfg.JoystickUndercalibrate[4]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_THROTTLE; m[nitems].value = PlayerCfg.JoystickUndercalibrate[5]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;	
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Mouse Sensitivity:"; nitems++;
 	mousesens = nitems;
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_TURN_LR; m[nitems].value = PlayerCfg.MouseSens[0]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
@@ -1013,6 +1022,10 @@ void input_config_sensitivity()
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_SLIDE_UD; m[nitems].value = PlayerCfg.MouseSens[3]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_BANK_LR; m[nitems].value = PlayerCfg.MouseSens[4]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
 	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = TXT_THROTTLE; m[nitems].value = PlayerCfg.MouseSens[5]; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
+	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
+	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Old School Mouse:"; nitems++;
+	mouseimpulse = nitems; 
+	m[nitems].type = NM_TYPE_SLIDER; m[nitems].text = "Base Sensitivity:"; m[nitems].value = PlayerCfg.MouseImpulse; m[nitems].min_value = 0; m[nitems].max_value = 16; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "Mouse FlightSim Deadzone:"; nitems++;
 	mousefsdead = nitems;
@@ -1027,11 +1040,13 @@ void input_config_sensitivity()
 		PlayerCfg.JoystickSens[i] = m[joysens+i].value;
 		PlayerCfg.JoystickDead[i] = m[joydead+i].value;
 		PlayerCfg.MouseSens[i] = m[mousesens+i].value;
+		PlayerCfg.JoystickUndercalibrate[i] = m[joyunder+i].value;
 	}
 	PlayerCfg.MouseFSDead = m[mousefsdead].value;
+	PlayerCfg.MouseImpulse = m[mouseimpulse].value; /* Old School Mouse */ 
 }
 
-static int opt_ic_usejoy = 0, opt_ic_usemouse = 0, opt_ic_confkey = 0, opt_ic_confjoy = 0, opt_ic_confmouse = 0, opt_ic_confweap = 0, opt_ic_mouseflightsim = 0, opt_ic_joymousesens = 0, opt_ic_grabinput = 0, opt_ic_mousefsgauge = 0, opt_ic_help0 = 0, opt_ic_help1 = 0, opt_ic_help2 = 0;
+static int opt_ic_usejoy = 0, opt_ic_usemouse = 0, opt_ic_confkey = 0, opt_ic_confjoy = 0, opt_ic_confmouse = 0, opt_ic_confweap = 0, opt_ic_mouseflightsim = 0, opt_ic_joymousesens = 0, opt_ic_grabinput = 0, opt_ic_mousefsgauge = 0, opt_ic_stickyrear = 0, opt_ic_help0 = 0, opt_ic_help1 = 0, opt_ic_help2 = 0;
 int input_config_menuset(newmenu *menu, d_event *event, void *userdata)
 {
 	newmenu_item *items = newmenu_get_items(menu);
@@ -1046,14 +1061,19 @@ int input_config_menuset(newmenu *menu, d_event *event, void *userdata)
 				(items[citem].value)?(PlayerCfg.ControlType|=CONTROL_USING_JOYSTICK):(PlayerCfg.ControlType&=~CONTROL_USING_JOYSTICK);
 			if (citem == opt_ic_usemouse)
 				(items[citem].value)?(PlayerCfg.ControlType|=CONTROL_USING_MOUSE):(PlayerCfg.ControlType&=~CONTROL_USING_MOUSE);
+			/* Old School Mouse */
 			if (citem == opt_ic_mouseflightsim)
-				PlayerCfg.MouseFlightSim = 0;
+				PlayerCfg.MouseControlStyle = MOUSE_CONTROL_REBIRTH;
 			if (citem == opt_ic_mouseflightsim+1)
-				PlayerCfg.MouseFlightSim = 1;
+				PlayerCfg.MouseControlStyle = MOUSE_CONTROL_FLIGHT_SIM;
+			if (citem == opt_ic_mouseflightsim+2)
+				PlayerCfg.MouseControlStyle = MOUSE_CONTROL_OLDSCHOOL;			
 			if (citem == opt_ic_grabinput)
 				GameCfg.Grabinput = items[citem].value;
 			if (citem == opt_ic_mousefsgauge)
 				PlayerCfg.MouseFSIndicator = items[citem].value;
+			if (citem == opt_ic_stickyrear)			
+				PlayerCfg.StickyRearview = items[citem].value;			
 			break;
 
 		case EVENT_NEWMENU_SELECTED:
@@ -1085,7 +1105,7 @@ int input_config_menuset(newmenu *menu, d_event *event, void *userdata)
 
 void input_config()
 {
-	newmenu_item m[20];
+	newmenu_item m[23];
 	int nitems = 0;
 
 	opt_ic_usejoy = nitems;
@@ -1104,8 +1124,10 @@ void input_config()
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = "MOUSE CONTROL TYPE:"; nitems++;
 	opt_ic_mouseflightsim = nitems;
-	m[nitems].type = NM_TYPE_RADIO; m[nitems].text = "normal"; m[nitems].value = !PlayerCfg.MouseFlightSim; m[nitems].group = 0; nitems++;
-	m[nitems].type = NM_TYPE_RADIO; m[nitems].text = "FlightSim"; m[nitems].value = PlayerCfg.MouseFlightSim; m[nitems].group = 0; nitems++;
+	/* Old School Mouse */
+	m[nitems].type = NM_TYPE_RADIO; m[nitems].text = "Rebirth"; m[nitems].value = PlayerCfg.MouseControlStyle == MOUSE_CONTROL_REBIRTH; m[nitems].group = 0; nitems++;
+	m[nitems].type = NM_TYPE_RADIO; m[nitems].text = "FlightSim"; m[nitems].value = PlayerCfg.MouseControlStyle == MOUSE_CONTROL_FLIGHT_SIM; m[nitems].group = 0; nitems++;
+	m[nitems].type = NM_TYPE_RADIO; m[nitems].text = "Old school"; m[nitems].value = PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL; m[nitems].group = 0; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
 	opt_ic_joymousesens = nitems;
 	m[nitems].type = NM_TYPE_MENU; m[nitems].text = "SENSITIVITY & DEADZONE"; nitems++;
@@ -1114,6 +1136,8 @@ void input_config()
 	m[nitems].type = NM_TYPE_CHECK; m[nitems].text= "Keep Keyboard/Mouse focus"; m[nitems].value = GameCfg.Grabinput; nitems++;
 	opt_ic_mousefsgauge = nitems;
 	m[nitems].type = NM_TYPE_CHECK; m[nitems].text= "Mouse FlightSim Indicator"; m[nitems].value = PlayerCfg.MouseFSIndicator; nitems++;
+	opt_ic_stickyrear = nitems;
+	m[nitems].type = NM_TYPE_CHECK; m[nitems].text= "Sticky Rearview"; m[nitems].value = PlayerCfg.StickyRearview; nitems++;
 	m[nitems].type = NM_TYPE_TEXT; m[nitems].text = ""; nitems++;
 	opt_ic_help0 = nitems;
 	m[nitems].type = NM_TYPE_MENU; m[nitems].text = "GAME SYSTEM KEYS"; nitems++;
@@ -1181,7 +1205,7 @@ void reticle_config()
 	PlayerCfg.ReticleSize = m[opt_ret_size].value;
 }
 
-int opt_gr_texfilt, opt_gr_brightness, opt_gr_reticlemenu, opt_gr_alphafx, opt_gr_dynlightcolor, opt_gr_vsync, opt_gr_multisample, opt_gr_fpsindi;
+int opt_gr_texfilt, opt_gr_brightness, opt_gr_reticlemenu, opt_gr_alphafx, opt_gr_dynlightcolor, opt_gr_vsync, opt_gr_multisample, opt_gr_fpsindi, opt_gr_disablecockpit;
 int graphics_config_menuset(newmenu *menu, d_event *event, void *userdata)
 {
 	newmenu_item *items = newmenu_get_items(menu);
@@ -1222,7 +1246,7 @@ int graphics_config_menuset(newmenu *menu, d_event *event, void *userdata)
 void graphics_config()
 {
 #ifdef OGL
-	newmenu_item m[13];
+	newmenu_item m[14];
 	int i = 0;
 #else
 	newmenu_item m[3];
@@ -1254,6 +1278,9 @@ void graphics_config()
 #endif
 	opt_gr_fpsindi = nitems;
 	m[nitems].type = NM_TYPE_CHECK; m[nitems].text="FPS Counter"; m[nitems].value = GameCfg.FPSIndicator; nitems++;
+
+	opt_gr_disablecockpit = nitems;
+	m[nitems].type = NM_TYPE_CHECK; m[nitems].text="Disable Cockpit View"; m[nitems].value = PlayerCfg.DisableCockpit; nitems++;
 #ifdef OGL
 	m[opt_gr_texfilt+GameCfg.TexFilt].value=1;
 #endif
@@ -1274,6 +1301,7 @@ void graphics_config()
 #endif
 	GameCfg.GammaLevel = m[opt_gr_brightness].value;
 	GameCfg.FPSIndicator = m[opt_gr_fpsindi].value;
+	PlayerCfg.DisableCockpit = m[opt_gr_disablecockpit].value; 
 #ifdef OGL
 	gr_set_attributes();
 	gr_set_mode(Game_screen_mode);
@@ -1865,7 +1893,7 @@ void do_sound_menu()
 
 void do_misc_menu()
 {
-	newmenu_item m[10];
+	newmenu_item m[11];
 	int i = 0;
 
 	do {
@@ -1877,8 +1905,9 @@ void do_misc_menu()
 		ADD_CHECK(5, "No Rankings (Multi)",PlayerCfg.NoRankings);
 		ADD_CHECK(6, "Show D2-style Prox. Bomb Gauge",PlayerCfg.BombGauge);
 		ADD_CHECK(7, "Free Flight controls in Automap",PlayerCfg.AutomapFreeFlight);
-		ADD_CHECK(8, "No Weapon Autoselect when firing",PlayerCfg.NoFireAutoselect);
-		ADD_CHECK(9, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);
+		ADD_CHECK(8, "No Weapon Autoselect when firing",PlayerCfg.NoFireAutoselect);		
+		ADD_CHECK(9, "Autoselect after firing",PlayerCfg.SelectAfterFire);
+		ADD_CHECK(10, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);
 
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, NULL, NULL, i );
 
@@ -1891,7 +1920,8 @@ void do_misc_menu()
 		PlayerCfg.BombGauge 			= m[6].value;
 		PlayerCfg.AutomapFreeFlight		= m[7].value;
 		PlayerCfg.NoFireAutoselect		= m[8].value;
-		PlayerCfg.CycleAutoselectOnly		= m[9].value;
+		PlayerCfg.SelectAfterFire       = m[9].value;  if(PlayerCfg.SelectAfterFire) { PlayerCfg.NoFireAutoselect = 1; }
+		PlayerCfg.CycleAutoselectOnly		= m[10].value;
 
 	} while( i>-1 );
 

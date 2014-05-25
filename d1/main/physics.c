@@ -30,6 +30,8 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "wall.h"
 #include "laser.h"
 
+#include <math.h>
+
 //Global variables for physics system
 
 #define ROLL_RATE	0x2000
@@ -214,9 +216,102 @@ void do_physics_sim_rot(object *obj)
 
 		drag = (obj->mtype.phys_info.drag*5)/2;
 
+		const char ORIGINAL = 0;
+		const char LINEAR_INTERPOLATION = 1;
+		const char GEOMETRIC_DRAG = 2; 
+
+		const char STRATEGY = ORIGINAL; 
+
+		if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+			vm_vec_copy_scale(&accel,&obj->mtype.phys_info.rotthrust,fixdiv(f1_0,obj->mtype.phys_info.mass));
+		}
+
+		if(STRATEGY == ORIGINAL) {
+			while (count--) {
+				if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+					vm_vec_add2(&obj->mtype.phys_info.rotvel,&accel);
+				}
+
+				vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-drag);
+			}
+
+			//do linear scale on remaining bit of time
+			if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+				vm_vec_scale_add2(&obj->mtype.phys_info.rotvel,&accel,k);
+			}
+			vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-fixmul(k,drag));
+		} else if (STRATEGY == LINEAR_INTERPOLATION) {
+			vms_vector target_rotvel;
+			vm_vec_copy_scale(&target_rotvel, &obj->mtype.phys_info.rotvel, F1_0); 
+
+			// Target 21.3 FPS -- three iterations
+			for(int i = 0; i < 3; i++)  {
+				if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+					vm_vec_add2(&target_rotvel, &accel);
+				}
+				vm_vec_scale(&target_rotvel,f1_0-drag);
+			}			
+
+
+			fix target_frametime = F1_0 / 64 * 3; 
+			fix interpolation_fraction = fixdiv(FrameTime, target_frametime); 
+
+			vm_vec_sub2(&target_rotvel, &obj->mtype.phys_info.rotvel);
+			vm_vec_scale(&target_rotvel, interpolation_fraction); 
+
+			vm_vec_add2(&obj->mtype.phys_info.rotvel, &target_rotvel); 
+		} else if(STRATEGY == GEOMETRIC_DRAG) {
+			while (count--) {
+				if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+					vm_vec_add2(&obj->mtype.phys_info.rotvel,&accel);
+				}
+
+				vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-drag);
+			}
+
+			//do linear scale on remaining bit of time
+			if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+				vm_vec_scale_add2(&obj->mtype.phys_info.rotvel,&accel,k);
+			}
+
+			double target_frametime = 3.0/64.0;
+			const double fix_offset = 65536.0; 
+			double interpolation_fraction =  ((double)(r) / fix_offset) / target_frametime ; 
+
+			double ddrag = (double)(drag) / fix_offset;
+			double kdrag = pow((1.0 - ddrag), interpolation_fraction*3);
+
+			fix fractional_drag = (fix)(kdrag * fix_offset); 
+
+			vm_vec_scale(&obj->mtype.phys_info.rotvel,fractional_drag);
+			//vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-fixmul(k,drag));
+		}
+
+		
+
+		/*
+		fix k_drag = f1_0-fixmul(k,drag);
+
+		if(FrameTime < F1_0/30) {
+			// Pegged to 30 FPS for now
+			double fix_offset = (double) F1_0; 
+			double target_framerate = 20.0; 
+			double ddrag = ((double) drag)/fix_offset;
+			//double target_drag = (1.0-ddrag)*(1.0-ddrag)*(1.0-ddrag*2.0/15.0); // Drag value multiplied by at 30 hz
+			double target_drag = (1.0-ddrag)*(1.0-ddrag)*(1.0-ddrag)*(1.0-ddrag*2.0/15.0); // Drag value at 20 hz
+
+			double frame_pow = 20.0 * ((double)(FrameTime)/fix_offset); 
+			double frame_drag = pow(target_drag, frame_pow);
+
+			k_drag = (fix) (frame_drag*fix_offset); 
+			
+		}
+
 		if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
 
 			vm_vec_copy_scale(&accel,&obj->mtype.phys_info.rotthrust,fixdiv(f1_0,obj->mtype.phys_info.mass));
+
+			// CED -- fix this for frame independence! 
 
 			while (count--) {
 
@@ -228,7 +323,8 @@ void do_physics_sim_rot(object *obj)
 			//do linear scale on remaining bit of time
 
 			vm_vec_scale_add2(&obj->mtype.phys_info.rotvel,&accel,k);
-			vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-fixmul(k,drag));
+			//vm_vec_scale(&obj->mtype.phys_info.rotvel,f1_0-fixmul(k,drag));
+			vm_vec_scale(&obj->mtype.phys_info.rotvel,k_drag);
 		}
 		else
 		{
@@ -239,10 +335,13 @@ void do_physics_sim_rot(object *obj)
 
 			//do linear scale on remaining bit of time
 
-			total_drag = fixmul(total_drag,f1_0-fixmul(k,drag));
+			//total_drag = fixmul(total_drag,f1_0-fixmul(k,drag));
+			total_drag = fixmul(total_drag,k_drag);
 
 			vm_vec_scale(&obj->mtype.phys_info.rotvel,total_drag);
+
 		}
+		*/
 
 	}
 
@@ -324,7 +423,7 @@ void do_physics_sim(object *obj)
 	physics_info *pi;
 	int orig_segnum = obj->segnum;
 	int bounced=0;
-	fix PhysTime = (FrameTime<F1_0/30?F1_0/30:FrameTime);
+	//fix PhysTime = (FrameTime<F1_0/30?F1_0/30:FrameTime);
 
 	Assert(obj->movement_type == MT_PHYSICS);
 
@@ -350,7 +449,8 @@ void do_physics_sim(object *obj)
 	   after the main collision-loop is done.
 	   This won't make collision results be equal in all FPS settings, but hopefully more accurate, the higher our FPS are.
 	*/
-	sim_time = PhysTime; //FrameTime;
+	/* This is the wrong approach for making the math accurate, and is causing 0-damage collisions. -- CED */
+	sim_time = FrameTime; //PhysTime; //FrameTime;
 
 	//debug_obj = obj;
 
@@ -380,6 +480,7 @@ void do_physics_sim(object *obj)
 	// NOTE: this always must be dependent on FrameTime, if sim_time differs!
 	if ((drag = obj->mtype.phys_info.drag) != 0) {
 
+
 		int count;
 		vms_vector accel;
 		fix r,k,have_accel;
@@ -388,10 +489,52 @@ void do_physics_sim(object *obj)
 		r = FrameTime % FT;
 		k = fixdiv(r,FT);
 
-		if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+		const char ORIGINAL = 0;
+		const char GEOMETRIC_DRAG = 2;
 
-			vm_vec_copy_scale(&accel,&obj->mtype.phys_info.thrust,fixdiv(f1_0,obj->mtype.phys_info.mass));
-			have_accel = (accel.x || accel.y || accel.z);
+		const char STRATEGY = ORIGINAL; 
+
+		if(STRATEGY == ORIGINAL) {
+
+			if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+
+				vm_vec_copy_scale(&accel,&obj->mtype.phys_info.thrust,fixdiv(f1_0,obj->mtype.phys_info.mass));
+				have_accel = (accel.x || accel.y || accel.z);
+
+				while (count--) {
+					if (have_accel)
+						vm_vec_add2(&obj->mtype.phys_info.velocity,&accel);
+
+					vm_vec_scale(&obj->mtype.phys_info.velocity,f1_0-drag);
+				}
+
+				//do linear scale on remaining bit of time
+
+				vm_vec_scale_add2(&obj->mtype.phys_info.velocity,&accel,k);
+				if (drag)
+					vm_vec_scale(&obj->mtype.phys_info.velocity,f1_0-fixmul(k,drag));
+			}
+			else if (drag)
+			{
+				fix total_drag=f1_0;
+
+				while (count--)
+					total_drag = fixmul(total_drag,f1_0-drag);
+
+				//do linear scale on remaining bit of time
+
+				total_drag = fixmul(total_drag,f1_0-fixmul(k,drag));
+
+				vm_vec_scale(&obj->mtype.phys_info.velocity,total_drag);
+			}
+		} else if (STRATEGY == GEOMETRIC_DRAG) {
+			if (obj->mtype.phys_info.flags & PF_USES_THRUST) {
+
+				vm_vec_copy_scale(&accel,&obj->mtype.phys_info.thrust,fixdiv(f1_0,obj->mtype.phys_info.mass));
+				have_accel = (accel.x || accel.y || accel.z);
+			} else {
+				have_accel = 0;
+			}
 
 			while (count--) {
 				if (have_accel)
@@ -400,24 +543,24 @@ void do_physics_sim(object *obj)
 				vm_vec_scale(&obj->mtype.phys_info.velocity,f1_0-drag);
 			}
 
-			//do linear scale on remaining bit of time
+				//do linear scale on remaining bit of time
+			if (have_accel)
+				vm_vec_scale_add2(&obj->mtype.phys_info.velocity,&accel,k);
 
-			vm_vec_scale_add2(&obj->mtype.phys_info.velocity,&accel,k);
+			double target_frametime = 3.0/64.0;
+			const double fix_offset = 65536.0; 
+			double interpolation_fraction =  ((double)(r) / fix_offset) / target_frametime ; 
+
+			double ddrag = (double)(drag) / fix_offset;
+			double kdrag = pow((1.0 - ddrag), interpolation_fraction*3);
+
+			fix fractional_drag = (fix)(kdrag * fix_offset); 
+
+
 			if (drag)
-				vm_vec_scale(&obj->mtype.phys_info.velocity,f1_0-fixmul(k,drag));
-		}
-		else if (drag)
-		{
-			fix total_drag=f1_0;
-
-			while (count--)
-				total_drag = fixmul(total_drag,f1_0-drag);
-
-			//do linear scale on remaining bit of time
-
-			total_drag = fixmul(total_drag,f1_0-fixmul(k,drag));
-
-			vm_vec_scale(&obj->mtype.phys_info.velocity,total_drag);
+				vm_vec_scale(&obj->mtype.phys_info.velocity,fractional_drag);
+				//vm_vec_scale(&obj->mtype.phys_info.velocity,f1_0-fixmul(k,drag));
+		
 		}
 	}
 
@@ -454,9 +597,18 @@ void do_physics_sim(object *obj)
 			fq.flags |= FQ_GET_SEGLIST;
 
 		fate = find_vector_intersection(&fq,&hit_info);
+		//if(fate != HIT_NONE) {
+		//	double radius = (double)(fq.rad) / (double)(F1_0); 
+		//	con_printf(CON_NORMAL, "Collision from object with radius %0.2f\n", radius); 
+		//}
+
+
 		//	Matt: Mike's hack.
 		if (fate == HIT_OBJECT) {
 			object	*objp = &Objects[hit_info.hit_object];
+
+			//double radius = (double)(objp->size) / (double)(F1_0); 
+			//con_printf(CON_NORMAL, "   Collided with object of radius %0.2f\n", radius); 
 
 			if (((objp->type == OBJ_WEAPON) && is_proximity_bomb_or_smart_mine(objp->id)) || objp->type == OBJ_POWERUP) // do not increase count for powerups since they *should* not change our movement
 				count--;
@@ -692,6 +844,7 @@ void do_physics_sim(object *obj)
 	}
 
 	// As sim_time may not base on FrameTime, scale actual object position to get accurate movement
+	/* CED // NO, no, NO, no, NO, NO, NO, NO, NO!!!!
 	if (PhysTime/FrameTime > 0)
 	{
 		vms_vector md;
@@ -709,6 +862,7 @@ void do_physics_sim(object *obj)
 			}
 		}
 	}
+	*/
 
 	// After collision with objects and walls, set velocity from actual movement
 	if (!obj_stopped && !bounced

@@ -356,7 +356,7 @@ void draw_automap(automap *am)
 
 	name_frame(am);
 
-	if (PlayerCfg.MouseFlightSim && PlayerCfg.MouseFSIndicator)
+	if ((PlayerCfg.MouseControlStyle == MOUSE_CONTROL_FLIGHT_SIM) && PlayerCfg.MouseFSIndicator) /* Old School Mouse */
 		show_mousefs_indicator(am->controls.raw_mouse_axis[0], am->controls.raw_mouse_axis[1], am->controls.raw_mouse_axis[2], GWIDTH-(GHEIGHT/8), GHEIGHT-(GHEIGHT/8), GHEIGHT/5);
 
 	am->t2 = timer_query();
@@ -541,6 +541,13 @@ int automap_process_input(window *wind, d_event *event, automap *am)
 		if ( am->viewDist < ZOOM_MIN_VALUE ) am->viewDist = ZOOM_MIN_VALUE;
 		if ( am->viewDist > ZOOM_MAX_VALUE ) am->viewDist = ZOOM_MAX_VALUE;
 	}
+	
+
+
+	// CED
+	//if(PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL) {
+	//	Controls.pitch_time = Controls.vertical_thrust_time = Controls.heading_time = Controls.sideways_thrust_time = Controls.bank_time = Controls.forward_thrust_time = 0;
+	//}
 	
 	return 0;
 }

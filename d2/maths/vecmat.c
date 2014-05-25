@@ -217,6 +217,7 @@ fix vm_vec_mag(const vms_vector *v)
 	return quad_sqrt(q.low,q.high);
 }
 
+
 //computes the distance between two points. (does sub and mag)
 fix vm_vec_dist(const vms_vector *v0,const vms_vector *v1)
 {
@@ -282,6 +283,7 @@ fix vm_vec_copy_normalize(vms_vector *dest,const vms_vector *src)
 
 	return m;
 }
+
 
 //normalize a vector. returns mag of source vec
 fix vm_vec_normalize(vms_vector *v)

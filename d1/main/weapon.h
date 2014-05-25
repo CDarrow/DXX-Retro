@@ -138,6 +138,8 @@ extern const ubyte Secondary_weapon_to_powerup[MAX_SECONDARY_WEAPONS];
 extern void auto_select_weapon(int weapon_type);        //parm is primary or secondary
 extern void select_weapon(int weapon_num, int secondary_flag, int print_message,int wait_for_rearm);
 
+
+
 extern const int  Primary_ammo_max[MAX_PRIMARY_WEAPONS];
 extern const ubyte	Secondary_ammo_max[MAX_PRIMARY_WEAPONS];
 
@@ -161,6 +163,9 @@ int pick_up_secondary(int weapon_index,int count);
 //called when a primary weapon is picked up
 //returns true if actually picked up
 int pick_up_primary(int weapon_index);
+
+// Run a delayed autoselect, if one is waiting
+void delayed_autoselect();
 
 //called when ammo (for the vulcan cannon) is picked up
 int pick_up_ammo(int class_flag,int weapon_index,int ammo_count);

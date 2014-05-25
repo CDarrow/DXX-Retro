@@ -417,6 +417,7 @@ void auto_select_weapon(int weapon_type)
 	}
 }
 
+int delayed_secondary_autoselect_weapon_index = -1;
 //	---------------------------------------------------------------------
 //called when one of these weapons is picked up
 //when you pick up a secondary, you always get the weapon & ammo for it
@@ -446,8 +447,39 @@ int pick_up_secondary(int weapon_index,int count)
 	if (Players[Player_num].secondary_ammo[weapon_index] == count)	// only autoselect if player didn't have any
 	{
 		cutpoint=SOrderList (255);
-		if (((Controls.fire_secondary_state && PlayerCfg.NoFireAutoselect)?0:1) && SOrderList (weapon_index)<cutpoint && ((SOrderList (weapon_index) < SOrderList(Secondary_weapon)) || (Players[Player_num].secondary_ammo[Secondary_weapon] == 0))   )
-			select_weapon(weapon_index,1, 0, 1);
+
+
+		// Picked up something better than you have, or you're dry
+		if(SOrderList(weapon_index)<cutpoint && (SOrderList(weapon_index)<SOrderList(Secondary_weapon) || Players[Player_num].secondary_ammo[Secondary_weapon] == 0)) {
+
+			// Are you firing? 
+			if(Controls.fire_secondary_state) {
+				// Remember what we picked up, if it's better than what's waiting now
+				if(PlayerCfg.SelectAfterFire) {
+
+					// Nothing waiting -- remember this weapon
+					if(delayed_secondary_autoselect_weapon_index == -1) {
+						delayed_secondary_autoselect_weapon_index = weapon_index;
+
+					// Something waiting -- is this better? 
+					} else {
+						if(SOrderList(weapon_index) < SOrderList(delayed_secondary_autoselect_weapon_index)) {					
+							delayed_secondary_autoselect_weapon_index = weapon_index;
+						}
+					}
+				} else if (! PlayerCfg.NoFireAutoselect) {		
+					select_weapon(weapon_index,1, 0, 1);
+				}
+			} else {	
+				select_weapon(weapon_index,1, 0, 1);
+			}
+		}
+		
+
+
+		//cutpoint=SOrderList (255);
+		//if (((Controls.fire_secondary_state && PlayerCfg.NoFireAutoselect)?0:1) && SOrderList (weapon_index)<cutpoint && ((SOrderList (weapon_index) < SOrderList(Secondary_weapon)) || (Players[Player_num].secondary_ammo[Secondary_weapon] == 0))   )
+		//	select_weapon(weapon_index,1, 0, 1);
 	}
 
 	if (num_picked_up>1) {
@@ -524,6 +556,8 @@ int SOrderList (int num)
 	Error ("Secondary Weapon is not in order list!!!");
 }
 
+int delayed_primary_autoselect_weapon_index = -1; 
+
 //called when a primary weapon is picked up
 //returns true if actually picked up
 int pick_up_primary(int weapon_index)
@@ -540,8 +574,35 @@ int pick_up_primary(int weapon_index)
 
 	cutpoint=POrderList (255);
 
-	if (((Controls.fire_primary_state && PlayerCfg.NoFireAutoselect)?0:1) && POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(Primary_weapon))
-		select_weapon(weapon_index,0,0,1);
+	// Picked up something better than you have
+	if(POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(Primary_weapon)) {
+
+		// Are you firing? 
+		if(Controls.fire_primary_state) {
+			// Remember what we picked up, if it's better than what's waiting now
+			if(PlayerCfg.SelectAfterFire) {
+
+				// Nothing waiting -- remember this weapon
+				if(delayed_primary_autoselect_weapon_index == -1) {
+					delayed_primary_autoselect_weapon_index = weapon_index;
+
+				// Something waiting -- is this better? 
+				} else {
+					if(POrderList(weapon_index) < POrderList(delayed_primary_autoselect_weapon_index)) {					
+						delayed_primary_autoselect_weapon_index = weapon_index;
+					}
+				}
+			} else if (! PlayerCfg.NoFireAutoselect) {		
+				select_weapon(weapon_index,0,0,1);
+			}
+		} else {	
+			select_weapon(weapon_index,0,0,1);
+		}
+	}
+
+	//if (((Controls.fire_primary_state && PlayerCfg.NoFireAutoselect)?0:1) && POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(Primary_weapon)) {
+	//	select_weapon(weapon_index,0,0,1);
+	//}
 
 	PALETTE_FLASH_ADD(7,14,21);
 
@@ -549,6 +610,19 @@ int pick_up_primary(int weapon_index)
 		HUD_init_message(HM_DEFAULT, "%s!",PRIMARY_WEAPON_NAMES(weapon_index));
 
 	return 1;
+}
+
+/* SelectAfterFire */ 
+void delayed_autoselect() {
+	if(delayed_primary_autoselect_weapon_index > -1 && ! Controls.fire_primary_state) {
+		select_weapon(delayed_primary_autoselect_weapon_index, 0, 0, 1); 
+		delayed_primary_autoselect_weapon_index = -1; 
+	}
+
+	if(delayed_secondary_autoselect_weapon_index > -1 && ! Controls.fire_secondary_state) {
+		select_weapon(delayed_secondary_autoselect_weapon_index, 1, 0, 1); 
+		delayed_secondary_autoselect_weapon_index = -1; 
+	}	
 }
 
 //called when ammo (for the vulcan cannon) is picked up

@@ -211,6 +211,9 @@ int pick_up_secondary(int weapon_index,int count);
 //returns true if actually picked up
 int pick_up_primary(int weapon_index);
 
+// Run a delayed autoselect, if one is waiting
+void delayed_autoselect();
+
 //called when ammo (for the vulcan cannon) is picked up
 int pick_up_ammo(int class_flag,int weapon_index,int ammo_count);
 

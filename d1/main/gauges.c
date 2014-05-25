@@ -1566,6 +1566,10 @@ void draw_player_ship(int cloak_state,int x, int y)
 		bm = &GameBitmaps[Gauges[GAUGE_SHIPS+Player_num].index];
 	}
 
+	//for(int i = 0; i < 8; i++) {
+	//	con_printf(CON_NORMAL, "Player ship %d %d\n", i, Gauges[GAUGE_SHIPS+i].index);
+	//}
+
 	if (cloak_state)
 	{
 		static int step = 0;
@@ -1971,14 +1975,20 @@ extern int Missile_gun;
 extern int allowed_to_fire_laser(void);
 extern int allowed_to_fire_missile(void);
 
-const rgb player_rgb[] = {	{15,15,23},
-							{27,0,0},
-							{0,23,0},
-							{30,11,31},
-							{31,16,0},
-							{24,17,6},
-							{14,21,12},
-			{29,29,0}, };
+// CED -- shipcolor fix
+const rgb player_rgb[] = {	//{0,0,0}, // black
+							//{4,4,12}, // indigo
+							{15,15,23},    // 0x7878B8 ---> blue
+							//{23, 23, 23}, // white							
+							{27,0,0},      // 0xD80000 ---> red
+							{0,23,0},      // 0x00B800 ---> green
+							{30,11,31},    // 0xF058F8 ---> PINK
+							{31,16,0},     // 0xF88000 ---> orange
+							//{0,0,0}, // black
+							//{23, 23, 23}, // white
+							{24,17,6},     // 0xC08830 ---> light orange (PROBLEM)
+							{14,21,12},    // 0x70A860 ---> light green (PROBLEM)
+			                {29,29,0}, };  // 0xE8E800 ---> YELLOW
 
 typedef struct {
 	sbyte x, y;
@@ -2470,7 +2480,7 @@ void draw_hud()
 			hud_show_kill_list();
 		if (PlayerCfg.CockpitMode[1] != CM_LETTERBOX)
 			show_reticle(PlayerCfg.ReticleType, 1);
-		if (PlayerCfg.CockpitMode[1] != CM_LETTERBOX && Newdemo_state != ND_STATE_PLAYBACK && PlayerCfg.MouseFlightSim && PlayerCfg.MouseFSIndicator)
+		if (PlayerCfg.CockpitMode[1] != CM_LETTERBOX && Newdemo_state != ND_STATE_PLAYBACK && (PlayerCfg.MouseControlStyle == MOUSE_CONTROL_FLIGHT_SIM) && PlayerCfg.MouseFSIndicator) /* Old School Mouse */
 			show_mousefs_indicator(Controls.raw_mouse_axis[0], Controls.raw_mouse_axis[1], Controls.raw_mouse_axis[2], GWIDTH/2, GHEIGHT/2, GHEIGHT/4);
 	}
 

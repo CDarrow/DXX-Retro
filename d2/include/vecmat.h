@@ -286,7 +286,6 @@ fix vm_vec_mag (const vms_vector * v);
 //computes the distance between two points. (does sub and mag)
 fix vm_vec_dist (const vms_vector * v0, const vms_vector * v1);
 
-
 //computes an approximation of the magnitude of the vector
 //uses dist = largest + next_largest*3/8 + smallest*3/16
 fix vm_vec_mag_quick (const vms_vector * v);
@@ -300,6 +299,7 @@ fix vm_vec_dist_quick (const vms_vector * v0, const vms_vector * v1);
 
 //normalize a vector. returns mag of source vec
 fix vm_vec_copy_normalize (vms_vector * dest, const vms_vector * src);
+
 
 fix vm_vec_normalize (vms_vector * v);
 

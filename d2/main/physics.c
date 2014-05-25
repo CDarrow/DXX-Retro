@@ -20,6 +20,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "joy.h"
 #include "dxxerror.h"
@@ -361,7 +362,8 @@ void do_physics_sim(object *obj)
 	   after the main collision-loop is done.
 	   This won't make collision results be equal in all FPS settings, but hopefully more accurate, the higher our FPS are.
 	*/
-	sim_time = PhysTime; //FrameTime;
+	/* This is the wrong approach for making the math accurate, and is causing 0-damage collisions. -- CED */
+	sim_time = FrameTime; //PhysTime; //FrameTime;
 
 	//debug_obj = obj;
 
@@ -435,6 +437,8 @@ void do_physics_sim(object *obj)
 	do {
 		try_again = 0;
 
+		//con_printf(CON_DEBUG, "Moving %d.\n", objnum); 
+
 		//Move the object
 		vm_vec_copy_scale(&frame_vec, &obj->mtype.phys_info.velocity, sim_time);
 
@@ -465,6 +469,9 @@ void do_physics_sim(object *obj)
 			fq.flags |= FQ_GET_SEGLIST;
 
 		fate = find_vector_intersection(&fq,&hit_info);
+
+		//con_printf(CON_DEBUG, "Fate %d.\n", fate); 
+
 		//	Matt: Mike's hack.
 		if (fate == HIT_OBJECT) {
 			object	*objp = &Objects[hit_info.hit_object];
@@ -678,6 +685,23 @@ void do_physics_sim(object *obj)
 
 					old_vel = obj->mtype.phys_info.velocity;
 
+					/*
+					double p0x = (double)(fq.p0->x)/(double)(F1_0); 
+					double p0y = (double)(fq.p0->y)/(double)(F1_0); 
+					double p0z = (double)(fq.p0->z)/(double)(F1_0); 
+
+					double p1x = (double)(fq.p1->x)/(double)(F1_0); 
+					double p1y = (double)(fq.p1->y)/(double)(F1_0); 
+					double p1z = (double)(fq.p1->z)/(double)(F1_0); 
+
+					double dx = p0x - p1x;
+					double dy = p0y - p1y;
+					double dz = p0z - p1z;
+
+					double fsize0 = (double)(size0) / (double)(F1_0); 
+					double fsize1 = (double)(size1) / (double)(F1_0); 
+					con_printf(CON_DEBUG, "Colliding two objects of size %f + %f = %f while moving %f.\n", fsize0, fsize1, fsize0 + fsize1, sqrt(dx*dx + dy*dy + dz*dz)); 
+					*/
 					collide_two_objects( obj, &Objects[hit_info.hit_object], &pos_hit);
 
 				}
@@ -685,6 +709,8 @@ void do_physics_sim(object *obj)
 				// Let object continue its movement
 				if ( !(obj->flags&OF_SHOULD_BE_DEAD)  )	{
 					//obj->pos = save_pos;
+
+					
 
 					if (obj->mtype.phys_info.flags&PF_PERSISTENT || (old_vel.x == obj->mtype.phys_info.velocity.x && old_vel.y == obj->mtype.phys_info.velocity.y && old_vel.z == obj->mtype.phys_info.velocity.z)) {
 						//if (Objects[hit_info.hit_object].type == OBJ_POWERUP)
@@ -722,6 +748,7 @@ void do_physics_sim(object *obj)
 	}
 
 	// As sim_time may not base on FrameTime, scale actual object position to get accurate movement
+	/*
 	if (PhysTime/FrameTime > 0)
 	{
 		vms_vector md;
@@ -739,6 +766,7 @@ void do_physics_sim(object *obj)
 			}
 		}
 	}
+	*/
 
 	// After collision with objects and walls, set velocity from actual movement
 	if (!obj_stopped && !bounced 

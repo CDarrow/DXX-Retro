@@ -577,12 +577,23 @@ int choose_drop_segment()
 	}
 
 	if (segnum == -1) {
-		cur_drop_depth = BASE_NET_DROP_DEPTH;
+		cur_drop_depth = BASE_NET_DROP_DEPTH * 2; // CED -- more chances
 		while (cur_drop_depth > 0 && segnum == -1) // before dropping in random segment, try to find ANY segment which is connected to the player responsible for the drop so object will not spawn in inaccessible areas
 		{
 			segnum = pick_connected_segment(&Objects[Players[Player_num].objnum], --cur_drop_depth);
-			if (Segment2s[segnum].special == SEGMENT_IS_CONTROLCEN)
+			if (Segment2s[segnum].special == SEGMENT_IS_CONTROLCEN) {
 				segnum = -1;
+			} else {	//don't drop in any children of control centers
+				int i;
+				for (i=0;i<6;i++) {
+					int ch = Segments[segnum].children[i];
+					if (IS_CHILD(ch) && Segments[ch].special == SEGMENT_IS_CONTROLCEN) {
+						segnum = -1;
+						//con_printf(CON_NORMAL, "   Unacceptable: Rector child\n");
+						break;
+					}
+				}
+			}
 		}
 		return ((segnum == -1)?((d_rand() * Highest_segment_index) >> 15):segnum); // basically it should be impossible segnum == -1 now... but oh well...
 	} else

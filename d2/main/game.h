@@ -113,6 +113,8 @@ extern int Game_suspended;          // if non-zero, nothing moves but player
 
 #define	SHOW_EXIT_PATH	1
 
+// CED -- Retrohomers FPS
+#define idealHomerFPS 30.0;
 
 // from game.c
 void init_game(void);
