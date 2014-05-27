@@ -243,7 +243,7 @@ void net_log_init(void)
 
 void net_log_log(char tx, const void* msg, int len, const struct sockaddr *address, socklen_t addrlen) {
 	//return;
-	//if(! GameArg.LogNetTraffic) { return; }
+	if(! GameArg.LogNetTraffic) { return; }
 
 	net_log_init();
 
@@ -274,7 +274,8 @@ void net_log_log(char tx, const void* msg, int len, const struct sockaddr *addre
 }
 
 void net_log_comment(char* comment) {
-	//if(! GameArg.LogNetTraffic) { return; }
+	//return;
+	if(! GameArg.LogNetTraffic) { return; }
 
 	net_log_init();
 
@@ -775,7 +776,6 @@ int valid_sender(ubyte *data, int data_len, struct _sockaddr sender_addr) {
 		case UPID_QUIT_JOINING: 
 		case UPID_PONG: 
 		case UPID_ENDLEVEL_C: 
-		case UPID_PROXY: 
 			if(! multi_i_am_master()) {
 				drop_rx_packet(data, "received by non-game master"); 
 				return 0; 				
@@ -797,8 +797,8 @@ int valid_ip(ubyte *data, int data_len, struct _sockaddr sender_addr) {
 		case UPID_GAME_INFO: 
 		case UPID_DUMP: 
 		case UPID_ADDPLAYER:
-		case UPID_SYNC: 
-		case UPID_OBJECT_DATA:
+		// case UPID_SYNC: 
+		// case UPID_OBJECT_DATA:
 		case UPID_PING: 
 		case UPID_ENDLEVEL_H: 
 		case UPID_REATTEMPT_DIRECT: 
@@ -902,13 +902,13 @@ int valid_netgame_status(ubyte *data, int data_len, struct _sockaddr sender_addr
 			}
 		break;
 
-		case UPID_SYNC:
-			if(Network_status == NETSTAT_WAITING) {
-				rv = 1;
-			} else {
-				rv = 0; 
-			}
-		break;		
+		//case UPID_SYNC:
+		//	if(Network_status == NETSTAT_WAITING) {
+		//		rv = 1;
+		//	} else {
+		//		rv = 0; 
+		//	}
+		//break;		
 
 		case UPID_ENDLEVEL_H:
 		case UPID_ENDLEVEL_C: 
@@ -927,8 +927,8 @@ int valid_netgame_status(ubyte *data, int data_len, struct _sockaddr sender_addr
 	return rv; 
 }
 
-int pass_security_check(ubyte *data, struct _sockaddr sender_addr, int data_len) {
-	return valid_ip(data, data_len, sender_addr) &&
+int pass_security_check(ubyte *data, struct _sockaddr sender_addr, int data_len, int check_ip) {
+	return ((! check_ip) || valid_ip(data, data_len, sender_addr)) &&
 	       valid_size(data, data_len, sender_addr) &&
 	       valid_token(data, data_len, sender_addr) &&
 	       valid_sender(data, data_len, sender_addr) &&
@@ -1682,7 +1682,8 @@ net_udp_new_player(UDP_sequence_packet *their)
 
 	memcpy(Players[pnum].callsign, their->player.callsign, CALLSIGN_LEN+1);
 	memcpy(Netgame.players[pnum].callsign, their->player.callsign, CALLSIGN_LEN+1);
-	memcpy(&Netgame.players[pnum].protocol.udp.addr, &their->player.protocol.udp.addr, sizeof(struct _sockaddr));
+	//memcpy(&Netgame.players[pnum].protocol.udp.addr, &their->player.protocol.udp.addr, sizeof(struct _sockaddr));
+	update_address_for_player(pnum, their->player.protocol.udp.addr);
 
 	if(multi_i_am_master()) {
 		connection_statuses[pnum].type = DIRECT;
@@ -1873,7 +1874,7 @@ void net_udp_welcome_player(UDP_sequence_packet *their)
 
 	UDP_sync_player = *their;
 	UDP_sync_player.player.connected = player_num;
-	player_tokens[player_num] = UDP_sync_player.token; 
+	player_tokens[player_num] = UDP_sync_player.token; 	
 	Network_send_objects = 1;
 	Network_send_objnum = -1;
 	Netgame.players[player_num].LastPacketTime = timer_query();
@@ -2349,7 +2350,10 @@ void net_udp_add_player(UDP_sequence_packet *p)
 		{
 			Netgame.players[i].LastPacketTime = timer_query();
 			if(Netgame.RetroProtocol && (! multi_i_am_master()) && (! multi_who_is_master() == i)) {
-				memcpy(&Netgame.players[i].protocol.udp.addr, &p->player.protocol.udp.addr, sizeof(struct _sockaddr)); 
+				//memcpy(&Netgame.players[i].protocol.udp.addr, &p->player.protocol.udp.addr, sizeof(struct _sockaddr)); 
+				update_address_for_player(i, p->player.protocol.udp.addr);
+				player_tokens[i] = p->token;
+
 				resetProxy(i); 
 				reattemptDirect(i);
 			}
@@ -2364,7 +2368,8 @@ void net_udp_add_player(UDP_sequence_packet *p)
 
 	ClipRank (&p->player.rank);
 	memcpy( Netgame.players[N_players].callsign, p->player.callsign, CALLSIGN_LEN+1 );
-	memcpy( (struct _sockaddr *)&Netgame.players[N_players].protocol.udp.addr, (struct _sockaddr *)&p->player.protocol.udp.addr, sizeof(struct _sockaddr) );
+	//memcpy( (struct _sockaddr *)&Netgame.players[N_players].protocol.udp.addr, (struct _sockaddr *)&p->player.protocol.udp.addr, sizeof(struct _sockaddr) );
+	update_address_for_player(N_players, p->player.protocol.udp.addr);
 	Netgame.players[N_players].rank=p->player.rank;
 	Netgame.players[N_players].connected = CONNECT_PLAYING;
 	Players[N_players].KillGoalCount=0;
@@ -2378,7 +2383,8 @@ void net_udp_add_player(UDP_sequence_packet *p)
 
 
 	if(Netgame.RetroProtocol && (! multi_i_am_master()) && (! multi_who_is_master() == N_players)) {
-		memcpy(&Netgame.players[i].protocol.udp.addr, &p->player.protocol.udp.addr, sizeof(struct _sockaddr)); 
+		//memcpy(&Netgame.players[i].protocol.udp.addr, &p->player.protocol.udp.addr, sizeof(struct _sockaddr)); 
+		update_address_for_player(i, p->player.protocol.udp.addr);
 		resetProxy(i);
 		reattemptDirect(i);
 	}
@@ -2408,7 +2414,8 @@ void net_udp_remove_player(UDP_sequence_packet *p)
 	for (i=pn; i<N_players-1; i++ )
 	{
 		memcpy( Netgame.players[i].callsign, Netgame.players[i+1].callsign, CALLSIGN_LEN+1 );
-		memcpy( (struct _sockaddr *)&Netgame.players[i].protocol.udp.addr, (struct _sockaddr *)&Netgame.players[i+1].protocol.udp.addr, sizeof(struct _sockaddr) );
+		//memcpy( (struct _sockaddr *)&Netgame.players[i].protocol.udp.addr, (struct _sockaddr *)&Netgame.players[i+1].protocol.udp.addr, sizeof(struct _sockaddr) );
+		update_address_for_player(i, Netgame.players[i+1].protocol.udp.addr);
 		Netgame.players[i].rank=Netgame.players[i+1].rank;
 		ClipRank (&Netgame.players[i].rank);
 	}
@@ -2876,7 +2883,10 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 
 			if(is_sync && Netgame.RetroProtocol) {
 				if(i != 0) { // Don't ever overwrite host addr
-					memcpy(&Netgame.players[i].protocol.udp.addr, data + len, sizeof(struct _sockaddr)); 
+					//memcpy(&Netgame.players[i].protocol.udp.addr, data + len, sizeof(struct _sockaddr)); 
+					struct _sockaddr new_address;
+					memcpy(&new_address, data + len,  sizeof(struct _sockaddr) ); 
+					update_address_for_player(i, new_address); 
 
 					struct sockaddr_in *addrin = (struct sockaddr_in*) &Netgame.players[i].protocol.udp.addr;
 					char *ip = inet_ntoa(addrin->sin_addr); 
@@ -3023,12 +3033,12 @@ void net_udp_process_request(UDP_sequence_packet *their)
 		}
 }
 
-void net_udp_process_packet(ubyte *data, struct _sockaddr sender_addr, int length )
+void net_udp_process_packet(ubyte *data, struct _sockaddr sender_addr, int length, int is_proxy )
 {
 	UDP_sequence_packet their;
 	memset(&their, 0, sizeof(UDP_sequence_packet));
 
-	if(! pass_security_check(data, sender_addr, length)) {
+	if(! pass_security_check(data, sender_addr, length, ! is_proxy)) {
 		con_printf(CON_NORMAL, "Dropped pid %s: failed security checks.\n", msg_name(data[0])); 
 		return;
 	}
@@ -3899,7 +3909,6 @@ void net_udp_reset_connection_statuses() {
 		connection_statuses[i].last_direct_pong = 0;  
 
 		count_pdata_received[i] = 0;
-		last_pdata_received[i] = 0;
 		last_pdata_received_at[0] = 0; 
 		for(int j = 0; j < MAX_LOSS_BUFFER; j++) {
 			pdata_received[i][j] = 0;
@@ -4634,7 +4643,7 @@ void net_udp_listen()
 	{
 		size = udp_receive_packet( 0, packet, UPID_MAX_SIZE, &sender_addr );
 		while ( size > 0 )	{
-			net_udp_process_packet( packet, sender_addr, size );
+			net_udp_process_packet( packet, sender_addr, size, 0 );
 			size = udp_receive_packet( 0, packet, UPID_MAX_SIZE, &sender_addr );
 		}
 	}
@@ -4643,7 +4652,7 @@ void net_udp_listen()
 	{
 		size = udp_receive_packet( 1, packet, UPID_MAX_SIZE, &sender_addr );
 		while ( size > 0 )	{
-			net_udp_process_packet( packet, sender_addr, size );
+			net_udp_process_packet( packet, sender_addr, size, 0 );
 			size = udp_receive_packet( 1, packet, UPID_MAX_SIZE, &sender_addr );
 		}
 	}
@@ -4652,7 +4661,7 @@ void net_udp_listen()
 	{
 		size = udp_receive_packet( 2, packet, UPID_MAX_SIZE, &sender_addr );
 		while ( size > 0 )	{
-			net_udp_process_packet( packet, sender_addr, size );
+			net_udp_process_packet( packet, sender_addr, size, 0 );
 			size = udp_receive_packet( 2, packet, UPID_MAX_SIZE, &sender_addr );
 		}
 	}
@@ -4703,7 +4712,9 @@ void net_udp_timeout_check(fix64 time)
 				}
 				else if ((time - Netgame.players[i].LastPacketTime) > UDP_TIMEOUT)
 				{
-					if(! Netgame.RetroProtocol || multi_i_am_master() || i == 0) {
+					if((! Netgame.RetroProtocol) || multi_i_am_master() || i == 0) {
+						multi_disconnect_player(i);
+					} else if ((time - Netgame.players[i].LastPacketTime) > UDP_TIMEOUT*2) {
 						multi_disconnect_player(i);
 					} else {
 						if(connection_statuses[i].type == DIRECT) {
@@ -5535,18 +5546,22 @@ void net_udp_process_pdata ( ubyte *data, int data_len, struct _sockaddr sender_
 	
 
 	// Drop out of order packets
-	int last_received = last_pdata_received[pd.Player_num];
-	int modular_packet_num = packet_num - last_received; 
-	if(modular_packet_num < 0) {
-		modular_packet_num += MAX_LOSS_BUFFER; 
-	}
-	if(modular_packet_num > MAX_LOSS_BUFFER - 10) {
-		received_pdata_num(pd.Player_num, packet_num);
-		char err_mess[200]; 
-		snprintf(err_mess, 200, "out-of-order packet %d (last received %d)", packet_num, last_received); 
-		drop_rx_packet(data, err_mess); 
-		return; 
-	}
+
+		int last_received = last_pdata_received[pd.Player_num];
+		int modular_packet_num = packet_num - last_received; 
+		if(modular_packet_num < 0) {
+			modular_packet_num += MAX_LOSS_BUFFER; 
+		}
+		if(modular_packet_num > MAX_LOSS_BUFFER - 10) {
+			if(last_pdata_received_at != 0 && last_received != 0) {
+				received_pdata_num(pd.Player_num, packet_num);
+				char err_mess[200]; 
+				snprintf(err_mess, 200, "out-of-order packet %d (last received %d).", packet_num, last_received); 
+				drop_rx_packet(data, err_mess); 
+				return; 
+			}
+		}
+	
 
 	received_pdata_num(pd.Player_num, packet_num); 
 
@@ -5677,8 +5692,10 @@ void net_udp_process_p2p_reattempt_direct (ubyte *data, struct _sockaddr sender_
 		return;
 	}
 
+	struct _sockaddr new_address;	
+	memcpy(&new_address, data + len, sizeof(struct _sockaddr)); 
 
-	memcpy(&Netgame.players[pnum].protocol.udp.addr, data + len, sizeof(struct _sockaddr)); 
+	update_address_for_player(pnum, new_address); 
 	reattemptDirect(pnum); 
 }
 
@@ -5717,6 +5734,15 @@ void net_udp_send_p2p_ping (int to_player, int force_direct, fix64 time) {
 
 }
 
+char* ip_from_sockaddr(struct _sockaddr addr) {
+	struct sockaddr_in *addrin = (struct sockaddr_in*) &addr;
+	return inet_ntoa(addrin->sin_addr); 
+}
+
+ushort port_from_sockaddr(struct _sockaddr addr) {
+	struct sockaddr_in *addrin = (struct sockaddr_in*) &addr;
+	return SWAPSHORT(addrin->sin_port);
+}
 
 
 void net_udp_process_p2p_ping(ubyte *data, struct _sockaddr sender_addr, int data_len) {
@@ -5734,8 +5760,15 @@ void net_udp_process_p2p_ping(ubyte *data, struct _sockaddr sender_addr, int dat
 	if(direct_ping) {
 
 		// Don't update master, non-existent player, or me
-		if(from_player < 1 || from_player > MAX_PLAYERS || from_player == Player_num) {
+		if( (from_player == multi_who_is_master()) || 
+			(from_player > MAX_PLAYERS) || 
+			(from_player == Player_num)) {
 			update_address_for_player(from_player, sender_addr);
+		} else {
+			char log_comment[100];
+			snprintf(log_comment, 100, "Cannot update address -- illegal player num %d (==%d, >%d, == %d)", from_player,
+				multi_who_is_master(), MAX_PLAYERS, Player_num); 
+			net_log_comment(log_comment); 
 		}
 
 		// Restablish direct attempt, if we aren't already doing that
@@ -5812,12 +5845,28 @@ void net_udp_process_p2p_pong(ubyte *data, struct _sockaddr sender_addr, int dat
 	}	
 }
 
-void update_address_for_player(int pnum, struct _sockaddr new_addr) {
-	struct _sockaddr null_addr;
-	memset(&null_addr, 0, sizeof(struct _sockaddr)); 
 
-	if(memcmp(&new_addr, &Netgame.players[pnum].protocol.udp.addr, sizeof(struct _sockaddr))) {	
+void update_address_for_player(int pnum, struct _sockaddr new_addr) {
+	char logcomment[200]; 
+	snprintf(logcomment, 200, "Requested update to address for player %d to %s:%u\n", pnum, 
+		ip_from_sockaddr(new_addr), port_from_sockaddr(new_addr)); 
+	net_log_comment(logcomment); 
+
+	if( (port_from_sockaddr(new_addr) != 0) && // Not null
+	   memcmp(&new_addr,  &Netgame.players[pnum].protocol.udp.addr, sizeof(struct _sockaddr))    // New address
+
+	) {	
+		char logentry[200];
+		snprintf(logentry, 200, "   Updating IP address for player %d from %s:%u", 
+			pnum, ip_from_sockaddr(Netgame.players[pnum].protocol.udp.addr), port_from_sockaddr(Netgame.players[pnum].protocol.udp.addr)); 
+		snprintf(logentry, 200, "   to %s:%u", 
+			ip_from_sockaddr(new_addr), port_from_sockaddr(new_addr)); 		
+		
+		net_log_comment(logentry); 
+
 		memcpy(&Netgame.players[pnum].protocol.udp.addr, &new_addr, sizeof(struct _sockaddr)); 
+	} else {
+		net_log_comment("   IP address not updated (old or null)."); 
 	}
 }
 
@@ -5900,7 +5949,7 @@ void net_udp_process_proxy(ubyte* data, struct _sockaddr sender_addr, int data_l
 
 		struct _sockaddr null_source;
 		memset(&null_source, 0, sizeof(struct _sockaddr)); 
-		net_udp_process_packet(contents, null_source, data_len - UPID_PROXY_HEADER_SIZE );
+		net_udp_process_packet(contents, null_source, data_len - UPID_PROXY_HEADER_SIZE, 1 );
 
 	} else {
 		// Oh, we're forwarding.  

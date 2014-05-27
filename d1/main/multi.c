@@ -677,6 +677,7 @@ void multi_compute_kill(int killer, int killed)
 		}
 			Players[killed_pnum].net_killed_total += 1;
 			Players[killed_pnum].net_kills_total -= 1;
+			Players[killer_pnum].KillGoalCount -=1; // Suicides count against kill goal
 
 			if (Newdemo_state == ND_STATE_RECORDING)
 				newdemo_record_multi_kill(killed_pnum, -1);
@@ -714,6 +715,7 @@ void multi_compute_kill(int killer, int killed)
 			{
 				team_kills[get_team(killed_pnum)] -= 1;
 				Players[killer_pnum].net_kills_total -= 1;
+				Players[killer_pnum].KillGoalCount -=1;
 			}
 			else
 			{
@@ -2768,9 +2770,23 @@ multi_send_remobj(int objnum)
 	multibuf[3] = obj_owner;
 
 	if(Netgame.RetroProtocol) {
-		multi_send_data(multibuf, 4, 1); // Send it twice, once direct for speed
+		int plr_count = 0;
+		for(int i = 0; i < MAX_PLAYERS; i++) {
+			if(Players[i].connected == CONNECT_PLAYING ) {
+				plr_count += 1; 
+			}
+		}
+		
+		// In a two player game, we can get both speed and packet loss prevention
+		if(plr_count <= 2) {
+			multi_send_data(multibuf, 4, 2); 
+		} else {
+			// Otherwise, just risk the dup.  Direct for speed is more important
+			multi_send_data(multibuf, 4, 1); 
+		}
+	} else {
+		multi_send_data(multibuf, 4, 2);
 	}
-	multi_send_data(multibuf, 4, 2);
 
 	if (Network_send_objects && multi_objnum_is_past(objnum))
 	{

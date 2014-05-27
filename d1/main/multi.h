@@ -64,7 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2936 // Retromod 1.3 Experimental 4
+#define MULTI_PROTO_VERSION 2937 // Retromod 1.3 Experimental 7
 
 //#define MULTI_PROTO_VERSION 5555 // Experimental
 

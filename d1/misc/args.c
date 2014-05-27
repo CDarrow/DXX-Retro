@@ -218,9 +218,9 @@ void ReadCmdArgs(void)
 #else
 	GameArg.DbgSdlHWSurface = FindArg("-hwsurface");
 	GameArg.DbgSdlASyncBlit = FindArg("-asyncblit");
+#endif
 
 	GameArg.LogNetTraffic 		= ! FindArg("-nonetlog");
-#endif
 }
 
 void args_exit(void)

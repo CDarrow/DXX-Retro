@@ -108,3 +108,9 @@ X6
     - Sent object pickup packets direct (if possible) so they arrive sooner
     - Removed DXX-Rebirth watermark from screenshots without hud
     - Raised PPS limit to 30 (smoother games on LAN)
+
+X7
+    - Resolved a lot of bugs caused by players who couldn't host
+    - Made proxy connections work again
+    - Resolved slow weapon loss 
+    - Suicides now affect kill goals

@@ -6,7 +6,7 @@
 #define __stringize2(X)	#X
 #define __stringize(X)	__stringize2(X)
 
-#define RH_VERSION "1.3.X6 (Experimental Netcode)"
+#define RH_VERSION "1.3.X7 (Experimental Netcode)"
 
 #define DXX_VERSION_MAJOR __stringize(DXX_VERSION_MAJORi)
 #define DXX_VERSION_MINOR __stringize(DXX_VERSION_MINORi)
