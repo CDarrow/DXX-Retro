@@ -1824,7 +1824,7 @@ multi_do_escape(const ubyte *buf)
 #define MAX_PACKETS 200 // Memory's cheap ;)
 int is_recent_duplicate(const ubyte *buf) {
 	const fix64 timeout = F1_0*10; 
-	static ubyte received_packets[5][MAX_PACKETS]; // old pickup packets
+	static ubyte received_packets[MAX_PACKETS*5]; // old pickup packets
 	static fix64 rxtime[MAX_PACKETS];
 	static ubyte num_waiting = 0;
 
@@ -1832,11 +1832,12 @@ int is_recent_duplicate(const ubyte *buf) {
 
 	fix64 now = timer_query(); 
 
+
 	// Clear out old ones
 	for(int i = 0; i < num_waiting; i++) {
 		if(now - rxtime[i] <= timeout) {
 			if(num_now_waiting != i) {
-				memcpy(received_packets + num_now_waiting, received_packets + i, 5); 
+				memcpy(received_packets + num_now_waiting*5, received_packets + i*5, 5); 
 				rxtime[num_now_waiting] = rxtime[i];
 			}
 
@@ -1848,17 +1849,17 @@ int is_recent_duplicate(const ubyte *buf) {
 
 	// Search for dups
 	for(int i = 0; i < num_waiting; i++) {
-		if(! memcmp(received_packets + i, buf, 5)) {			
+		if(! memcmp(received_packets + i*5, buf, 5)) {			
 			return 1; 
 		} 
 	}
 
 	// Not a dup, hold on to this one
 	if(num_waiting < MAX_PACKETS) {
-		memcpy(received_packets + num_waiting, buf, 5);
+		memcpy(received_packets + num_waiting*5, buf, 5);
 		rxtime[num_waiting] = now; 
 		num_waiting++; 
-	}
+	} 
 
 	return 0; 
 }
@@ -1876,12 +1877,12 @@ multi_do_remobj(const ubyte *buf)
 
 	Assert(objnum >= 0);
 
-	if (objnum < 1)
-		return;
-
 	if(is_recent_duplicate(buf)) {
 		return; 
 	}
+
+	if (objnum < 1)
+		return;
 
 	local_objnum = objnum_remote_to_local(objnum, obj_owner); // translate to local objnum
 
