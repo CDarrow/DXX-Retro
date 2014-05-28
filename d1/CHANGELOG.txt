@@ -114,3 +114,12 @@ X7
     - Made proxy connections work again
     - Resolved slow weapon loss 
     - Suicides now affect kill goals
+
+X8
+    - Quiet plasma is a misc option (this is not permanent -- for testing/comparison)
+    - Moved rarely-used game hosting options to the bottom of the screen
+    - One more attempt at powerup state -- X7 allowed item buildup on lossy connections
+    - Reversed polarity of net logging command line switch; logging is off by default.  
+      Turn it on with -netlog. 
+    - Disabled lag/loss monitors when scores are in "team" mode
+    - Moved "P" away from lag meter when no loss

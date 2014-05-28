@@ -3429,9 +3429,9 @@ void net_udp_more_game_options ()
 	char PlayText[80],KillText[80],srinvul[50],packstring[5];
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 #ifdef USE_TRACKER
-	newmenu_item m[25];
+	newmenu_item m[28];
 #else
- 	newmenu_item m[23];
+ 	newmenu_item m[26];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3466,15 +3466,52 @@ void net_udp_more_game_options ()
 	sprintf( SecCapText, "Cap Secondaries: %s", Netgame.SecondaryCapFactor == 0 ? "Uncapped" : (Netgame.SecondaryCapFactor == 1 ? "Max Six" : "Max Two"));
 	m[opt].type = NM_TYPE_SLIDER; m[opt].value=Netgame.SecondaryCapFactor; m[opt].text= SecCapText; m[opt].min_value=0; m[opt].max_value=2; opt++;
 
+	opt_setpower = opt;
+	m[opt].type = NM_TYPE_MENU;  m[opt].text = "Set Objects allowed..."; opt++;
 
-	opt_show_on_map=opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = TXT_SHOW_ON_MAP; m[opt].value=(Netgame.game_flags & NETGAME_FLAG_SHOW_MAP); opt_show_on_map=opt; opt++;
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
 	opt_start_invul=opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Invulnerable when reappearing"; m[opt].value=Netgame.InvulAppear; opt++;
 
 	opt_short_invul=opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Short spawn invulns"; m[opt].value=Netgame.ShortSpawnInvuln; opt++;	
+
+	opt_respawnconcs = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Respawn Concussions"; m[opt].value = Netgame.RespawnConcs; opt++;	
+
+	opt_faircolors = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "All Players Blue"; m[opt].value = Netgame.FairColors; opt++;		
+
+	opt_allowcolor = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Colored Dynamic Lighting"; m[opt].value = Netgame.AllowColoredLighting; opt++;	
+
+
+
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
+
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Packets per second (2 - 30)"; opt++;
+	opt_packets=opt;
+	m[opt].type = NM_TYPE_INPUT; m[opt].text=packstring; m[opt].text_len=2; opt++;
+
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Network port"; opt++;
+	opt_port = opt;
+	m[opt].type = NM_TYPE_INPUT; m[opt].text = UDP_MyPort; m[opt].text_len=5; opt++;
+
+#ifdef USE_TRACKER
+	opt_tracker = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Track this game"; m[opt].value = Netgame.Tracker; opt++;
+#endif
+
+	opt_retroproto = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Retro Protocol (p2p, etc.)"; m[opt].value = Netgame.RetroProtocol; opt++;
+
+
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;	
+
+
+	opt_show_on_map=opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = TXT_SHOW_ON_MAP; m[opt].value=(Netgame.game_flags & NETGAME_FLAG_SHOW_MAP); opt_show_on_map=opt; opt++;
 
 	opt_bright = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Bright player ships"; m[opt].value=Netgame.BrightPlayers; opt++;
@@ -3485,36 +3522,9 @@ void net_udp_more_game_options ()
 	opt_ffire=opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "No friendly fire (Team, Coop)"; m[opt].value=Netgame.NoFriendlyFire; opt++;
 
-	opt_setpower = opt;
-	m[opt].type = NM_TYPE_MENU;  m[opt].text = "Set Objects allowed..."; opt++;
 
-	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Packets per second (2 - 30)"; opt++;
-	opt_packets=opt;
-	m[opt].type = NM_TYPE_INPUT; m[opt].text=packstring; m[opt].text_len=2; opt++;
-	opt_shortpack=opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Short Packets (saves traffic)"; m[opt].value = Netgame.ShortPackets; opt++;
-
-	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Network port"; opt++;
-	opt_port = opt;
-	m[opt].type = NM_TYPE_INPUT; m[opt].text = UDP_MyPort; m[opt].text_len=5; opt++;
-#ifdef USE_TRACKER
-	opt_tracker = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Track this game"; m[opt].value = Netgame.Tracker; opt++;
-#endif
-
-	opt_retroproto = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Retro Protocol (p2p, etc.)"; m[opt].value = Netgame.RetroProtocol; opt++;
-
-	opt_respawnconcs = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Respawn Concussions"; m[opt].value = Netgame.RespawnConcs; opt++;	
-
-	opt_allowcolor = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Colored Dynamic Lighting"; m[opt].value = Netgame.AllowColoredLighting; opt++;	
-
-
-	opt_faircolors = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "All Players Blue"; m[opt].value = Netgame.FairColors; opt++;		
-
+	//opt_shortpack=opt;
+	//m[opt].type = NM_TYPE_CHECK; m[opt].text = "Short Packets (saves traffic)"; m[opt].value = Netgame.ShortPackets; opt++;
 
 	opt_blackwhite = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Alternate Colors (Ships 6 and 7)"; m[opt].value = Netgame.BlackAndWhitePyros; opt++;	

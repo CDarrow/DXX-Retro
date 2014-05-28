@@ -1821,6 +1821,47 @@ multi_do_escape(const ubyte *buf)
 	multi_make_player_ghost(buf[1]);
 }
 
+#define MAX_PACKETS 200 // Memory's cheap ;)
+int is_recent_duplicate(const ubyte *buf) {
+	const fix64 timeout = F1_0*10; 
+	static ubyte received_packets[5][MAX_PACKETS]; // old pickup packets
+	static fix64 rxtime[MAX_PACKETS];
+	static ubyte num_waiting = 0;
+
+	ubyte num_now_waiting = 0; 
+
+	fix64 now = timer_query(); 
+
+	// Clear out old ones
+	for(int i = 0; i < num_waiting; i++) {
+		if(now - rxtime[i] <= timeout) {
+			if(num_now_waiting != i) {
+				memcpy(received_packets + num_now_waiting, received_packets + i, 5); 
+				rxtime[num_now_waiting] = rxtime[i];
+			}
+
+			num_now_waiting++; 
+		} 
+	}
+
+	num_waiting = num_now_waiting; 
+
+	// Search for dups
+	for(int i = 0; i < num_waiting; i++) {
+		if(! memcmp(received_packets + i, buf, 5)) {			
+			return 1; 
+		} 
+	}
+
+	// Not a dup, hold on to this one
+	if(num_waiting < MAX_PACKETS) {
+		memcpy(received_packets + num_waiting, buf, 5);
+		rxtime[num_waiting] = now; 
+		num_waiting++; 
+	}
+
+	return 0; 
+}
 
 void
 multi_do_remobj(const ubyte *buf)
@@ -1831,11 +1872,16 @@ multi_do_remobj(const ubyte *buf)
 
 	objnum = GET_INTEL_SHORT(buf + 1);
 	obj_owner = buf[3];
+	//ubyte counter = buf[4]; 
 
 	Assert(objnum >= 0);
 
 	if (objnum < 1)
 		return;
+
+	if(is_recent_duplicate(buf)) {
+		return; 
+	}
 
 	local_objnum = objnum_remote_to_local(objnum, obj_owner); // translate to local objnum
 
@@ -2745,6 +2791,8 @@ multi_send_remobj(int objnum)
 	sbyte obj_owner;
 	short remote_objnum;
 
+	static char remove_obj_counter = 0; 
+
 	if (Objects[objnum].type==OBJ_POWERUP && (Game_mode & GM_NETWORK))
 	{
 		if (multi_powerup_is_4pack (Objects[objnum].id))
@@ -2768,6 +2816,7 @@ multi_send_remobj(int objnum)
 	PUT_INTEL_SHORT(multibuf+1, remote_objnum); // Map to network objnums
 
 	multibuf[3] = obj_owner;
+	multibuf[4] = remove_obj_counter++; 
 
 	if(Netgame.RetroProtocol) {
 		int plr_count = 0;
@@ -2779,13 +2828,14 @@ multi_send_remobj(int objnum)
 		
 		// In a two player game, we can get both speed and packet loss prevention
 		if(plr_count <= 2) {
-			multi_send_data(multibuf, 4, 2); 
+			multi_send_data(multibuf, 5, 2); 
 		} else {
-			// Otherwise, just risk the dup.  Direct for speed is more important
-			multi_send_data(multibuf, 4, 1); 
+			// Otherwise, send via both paths -- dup will be dropped
+			multi_send_data(multibuf, 5, 1); 
+			multi_send_data(multibuf, 5, 2); 
 		}
 	} else {
-		multi_send_data(multibuf, 4, 2);
+		multi_send_data(multibuf, 5, 2);
 	}
 
 	if (Network_send_objects && multi_objnum_is_past(objnum))

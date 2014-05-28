@@ -64,9 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2937 // Retromod 1.3 Experimental 7
-
-//#define MULTI_PROTO_VERSION 5555 // Experimental
+#define MULTI_PROTO_VERSION 2938 // Retromod 1.3 Experimental 8
 
 // PROTOCOL VARIABLES AND DEFINES - END
 
@@ -79,7 +77,7 @@ extern int multi_protocol; // set and determinate used protocol
 	VALUE(MULTI_REAPPEAR             , 4)	\
 	VALUE(MULTI_FIRE                 , 20)	/* CED sniperpackets -- was 8 */ \
 	VALUE(MULTI_KILL                 , 5)	\
-	VALUE(MULTI_REMOVE_OBJECT        , 4)	\
+	VALUE(MULTI_REMOVE_OBJECT        , 5)	\
 	VALUE(MULTI_MESSAGE              , 37)	/* (MAX_MESSAGE_LENGTH = 40) */	\
 	VALUE(MULTI_QUIT                 , 2)	\
 	VALUE(MULTI_PLAY_SOUND           , 4)	\

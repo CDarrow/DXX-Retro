@@ -108,6 +108,7 @@ int new_player_config()
 	PlayerCfg.SelectAfterFire = 1;  /* SelectAfterFire */
 	PlayerCfg.VulcanAmmoWarnings = 1; 
 	PlayerCfg.ShieldWarnings = 0; 
+	PlayerCfg.QuietPlasma = 1; 
 	PlayerCfg.maxFps = GameArg.SysMaxFPS; 
 	
 
@@ -385,7 +386,9 @@ int read_player_d1x(char *filename)
 				if(!strcmp(word,"VULCANAMMOWARNINGS"))
 					PlayerCfg.VulcanAmmoWarnings = atoi(line);	
 				if(!strcmp(word,"SHIELDWARNINGS"))
-					PlayerCfg.ShieldWarnings = atoi(line);		
+					PlayerCfg.ShieldWarnings = atoi(line);	
+				if(!strcmp(word,"QUIETPLASMA"))
+					PlayerCfg.QuietPlasma = atoi(line);							
 				if(!strcmp(word,"MAXFPS")) {
 					PlayerCfg.maxFps = atoi(line);														
 					if(PlayerCfg.maxFps < 25) { PlayerCfg.maxFps = 25; }
@@ -741,6 +744,7 @@ int write_player_d1x(char *filename)
 		PHYSFSX_printf(fout,"cycleautoselectonly=%i\n",PlayerCfg.CycleAutoselectOnly);
 		PHYSFSX_printf(fout,"vulcanammowarnings=%i\n",PlayerCfg.VulcanAmmoWarnings);		
 		PHYSFSX_printf(fout,"shieldwarnings=%i\n",PlayerCfg.ShieldWarnings);	
+		PHYSFSX_printf(fout,"quietplasma=%i\n",PlayerCfg.QuietPlasma);	
 		PHYSFSX_printf(fout,"maxfps=%i\n",PlayerCfg.maxFps);	
 		PHYSFSX_printf(fout,"[end]\n");
 		PHYSFSX_printf(fout,"[graphics]\n");

@@ -220,7 +220,8 @@ void ReadCmdArgs(void)
 	GameArg.DbgSdlASyncBlit = FindArg("-asyncblit");
 #endif
 
-	GameArg.LogNetTraffic 		= ! FindArg("-nonetlog");
+	//GameArg.LogNetTraffic 		= ! FindArg("-nonetlog");
+	GameArg.LogNetTraffic 		= FindArg("-netlog");
 }
 
 void args_exit(void)

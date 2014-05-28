@@ -2352,7 +2352,7 @@ void hud_show_kill_list()
 
 		}
 
-		if(Show_network_stats && player_num != Player_num && Players[player_num].connected ) {
+		if(Show_network_stats && player_num != Player_num && Players[player_num].connected && Show_kill_list != 3) {
 			int lag = -1; 
 			
 			if(Netgame.RetroProtocol) {
@@ -2415,7 +2415,7 @@ void hud_show_kill_list()
 				fontcolor_bad();
 
 				if(loss_up > 0 || loss_down > 0) {
-					gr_printf(cnxx,y,"P");
+					gr_printf(cnxx + FSPACX(5), y,"P");
 				} else {
 					gr_printf(loss_upx,y,"P");
 				}

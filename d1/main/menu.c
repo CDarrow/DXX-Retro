@@ -1908,7 +1908,7 @@ void do_sound_menu()
 
 void do_misc_menu()
 {
-	newmenu_item m[13];
+	newmenu_item m[14];
 	int i = 0;
 
 	do {
@@ -1925,7 +1925,7 @@ void do_misc_menu()
 		ADD_CHECK(10, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);		
 		ADD_CHECK(11, "Ammo Warnings",PlayerCfg.VulcanAmmoWarnings);
 		ADD_CHECK(12, "Shield Warnings",PlayerCfg.ShieldWarnings);
-
+		ADD_CHECK(13, "Quiet Plasma",PlayerCfg.QuietPlasma);
 
 
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, NULL, NULL, i );
@@ -1943,6 +1943,7 @@ void do_misc_menu()
 		PlayerCfg.CycleAutoselectOnly		= m[10].value;
 		PlayerCfg.VulcanAmmoWarnings = m[11].value; 
 		PlayerCfg.ShieldWarnings = m[12].value; 
+		PlayerCfg.QuietPlasma = m[13].value; 
 
 
 

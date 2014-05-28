@@ -91,6 +91,7 @@ typedef struct player_config
 	ubyte CycleAutoselectOnly;
 	ubyte VulcanAmmoWarnings;
 	ubyte ShieldWarnings; 
+	ubyte QuietPlasma; 
 	int AlphaEffects;
 	int DynLightColor;
 	ubyte DisableCockpit;  /* DisableCockpit */ 

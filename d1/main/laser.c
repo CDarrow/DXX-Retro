@@ -328,11 +328,11 @@ int Laser_create_new( vms_vector * direction, vms_vector * position, int segnum,
 			if ( parent == (Viewer-Objects) )	{
 				if (weapon_type == VULCAN_ID)	// Make your own vulcan gun  1/2 as loud.
 					volume = F1_0 / 2;
-				if(weapon_type == PLASMA_ID)  // Plasma's a bit loud, too
+				if(weapon_type == PLASMA_ID && PlayerCfg.QuietPlasma)  // Plasma's a bit loud, too
 					volume = F1_0  * 3 / 4; 
 				digi_play_sample( Weapon_info[obj->id].flash_sound, volume );
 			} else {
-				if(weapon_type == PLASMA_ID)  // Plasma's a bit loud, too
+				if(weapon_type == PLASMA_ID && PlayerCfg.QuietPlasma)  // Plasma's a bit loud, too
 					volume = F1_0  * 3 / 4; 
 
 				if(Weapon_info[obj->id].flash_sound == 22)  // Reactor ball
