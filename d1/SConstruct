@@ -87,6 +87,7 @@ class DXXCommon:
 			pass
 		def adjust_environment(self,program,env):
 			env.Append(CPPDEFINES = ['_WIN32', 'HAVE_STRUCT_TIMEVAL'])
+			env.Append(CPPFLAGS = ['-mno-ms-bitfields'])
 	class DarwinPlatformSettings(_PlatformSettings):
 		osdef = '__APPLE__'
 		def __init__(self,user_settings):
@@ -177,6 +178,9 @@ class DXXCommon:
 		elif sys.platform == 'darwin':
 			print "%s: compiling on Mac OS X" % self.PROGRAM_NAME
 			platform = self.DarwinPlatformSettings
+		elif sys.platform == 'cygwin':
+			print "%s: compiling on Widnows Cygwin" % self.PROGRAM_NAME
+			platform = self.Win32PlatformSettings
 		else:
 			print "%s: compiling on *NIX" % self.PROGRAM_NAME
 			platform = self.LinuxPlatformSettings
@@ -215,7 +219,11 @@ class DXXCommon:
 		# debug?
 		if (self.user_settings.debug == 1):
 			print "%s: including: DEBUG" % self.PROGRAM_NAME
-			env.Append(CPPFLAGS = ['-g'])
+			if (sys.platform == 'cygwin'):
+				# C preprocessor macro expansion for gdb
+				env.Append(CPPFLAGS = ['-g3'])
+			else:
+				env.Append(CPPFLAGS = ['-g'])
 		else:
 			env.Append(CPPDEFINES = ['NDEBUG', 'RELEASE'])
 			env.Append(CPPFLAGS = ['-O2'])
@@ -278,6 +286,9 @@ class DXXProgram(DXXCommon):
 			self.platform_sources = [os.path.join(program.srcdir, 'arch/win32/messagebox.c')]
 			rcbasename = 'arch/win32/%s' % program.target
 			self.platform_objects = [env.RES(target='%s%s%s' % (program.user_settings.builddir, rcbasename, env["OBJSUFFIX"]), source='%s.rc' % rcbasename)]
+			if (sys.platform == 'cygwin'):
+				env.Append(CPPPATH = '/usr/local/include')
+				env['LIBPATH'] = '/usr/local/lib'
 	# Settings to apply to Apple builds
 	# This appears to be unused.  The reference to sdl_only fails to
 	# execute.
