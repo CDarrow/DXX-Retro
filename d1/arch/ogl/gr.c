@@ -44,11 +44,11 @@
 #include "args.h"
 #include "key.h"
 #include "physfsx.h"
+#include "playsave.h"
 #include "internal.h"
 #include "render.h"
 #include "console.h"
 #include "config.h"
-#include "playsave.h"
 #include "vers_id.h"
 #include "game.h"
 
