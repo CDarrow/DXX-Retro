@@ -24,10 +24,6 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <SDL/SDL.h>
 #include <setjmp.h>
 
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "pstypes.h"
 #include "console.h"
 #include "gr.h"
@@ -93,6 +89,10 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "vers_id.h"
 #include "event.h"
 #include "window.h"
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 #ifdef EDITOR
 #include "editor/editor.h"

@@ -22,10 +22,6 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdio.h>
 #include <string.h>
 
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "pstypes.h"
 #include "timer.h"
 #include "key.h"
@@ -52,6 +48,10 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "mouse.h"
 #include "console.h"
 #include "args.h"
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 #define MAX_BRIEFING_COLORS     7
 #define DEFAULT_BRIEFING_BKG		"brief03.pcx"
