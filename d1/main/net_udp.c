@@ -11,11 +11,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <wincrypt.h>
-#endif
-
 #include "pstypes.h"
 #include "window.h"
 #include "strutil.h"
@@ -55,6 +50,11 @@
 #include "byteswap.h"
 #include "config.h"
 #include "vers_id.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <wincrypt.h>
+#endif
 
 // Prototypes
 void net_udp_init();
