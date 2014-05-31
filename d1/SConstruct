@@ -87,7 +87,6 @@ class DXXCommon:
 			pass
 		def adjust_environment(self,program,env):
 			env.Append(CPPDEFINES = ['_WIN32', 'HAVE_STRUCT_TIMEVAL'])
-			env.Append(CPPFLAGS = ['-mno-ms-bitfields'])
 	class DarwinPlatformSettings(_PlatformSettings):
 		osdef = '__APPLE__'
 		def __init__(self,user_settings):
