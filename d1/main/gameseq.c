@@ -25,10 +25,6 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <errno.h>
 #include <time.h>
 
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "inferno.h"
 #include "game.h"
 #include "key.h"
@@ -95,6 +91,9 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "strutil.h"
 #ifdef EDITOR
 #include "editor/editor.h"
+#endif
+#ifdef OGL
+#include "ogl_init.h"
 #endif
 #include "custom.h"
 #include "byteswap.h"

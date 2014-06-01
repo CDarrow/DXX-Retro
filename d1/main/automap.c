@@ -21,10 +21,6 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "dxxerror.h"
 #include "3d.h"
 #include "inferno.h"
@@ -71,6 +67,10 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "window.h"
 #include "playsave.h"
 #include "args.h"
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 #define LEAVE_TIME 0x4000
 
