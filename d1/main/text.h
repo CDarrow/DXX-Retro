@@ -645,7 +645,7 @@ static inline char *dxx_gettext(unsigned idx, const char *text)
 #define N_TEXT_STRINGS_MIN				514
 #define N_TEXT_STRINGS                  621
 
-#define dxx_text_ensure_simple_expr(E,T)	((void)(E), (Int3()), (T))
+#define dxx_text_ensure_simple_expr(E,T)	((void)(E), ((void)0), (T))
 
 #define PRIMARY_WEAPON_NAMES(u)	(	\
 	((u) == LASER_INDEX) ? TXT_W_LASER :	\
