@@ -515,7 +515,7 @@ void do_invulnerable_stuff(void)
 		if (GameTime64 > Players[Player_num].invulnerable_time+INVULNERABLE_TIME_MAX)
 		{
 			Players[Player_num].flags ^= PLAYER_FLAGS_INVULNERABLE;
-			if (FakingInvul==0)
+			if (FakingInvul==0 && Newdemo_state != ND_STATE_PLAYBACK)
 			{
 				digi_play_sample( SOUND_INVULNERABILITY_OFF, F1_0);
 				#ifdef NETWORK

@@ -18,7 +18,7 @@ int net_udp_endlevel(int *secret);
 int net_udp_kmatrix_poll1( newmenu *menu, d_event *event, void *userdata );
 int net_udp_kmatrix_poll2( newmenu *menu, d_event *event, void *userdata );
 void net_udp_send_endlevel_packet();
-void net_udp_dump_player(struct _sockaddr dump_addr, int why);
+void net_udp_dump_player(struct _sockaddr dump_addr, int their_token, int why);
 void net_udp_disconnect_player(int playernum);
 int net_udp_level_sync();
 void net_udp_send_mdata_direct(ubyte *data, int data_len, int pnum, int priority);

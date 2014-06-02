@@ -1304,7 +1304,7 @@ void multi_send_message_end()
 				{
 #ifdef USE_UDP
 					case MULTI_PROTO_UDP:
-						net_udp_dump_player(Netgame.players[i].protocol.udp.addr, DUMP_KICKED);
+						net_udp_dump_player(Netgame.players[i].protocol.udp.addr, 0, DUMP_KICKED);
 						break;
 #endif
 					default:
