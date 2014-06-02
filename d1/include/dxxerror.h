@@ -38,19 +38,19 @@ void set_warn_func(void (*f)(char *s));//specifies the function to call with war
 void clear_warn_func(void (*f)(char *s));//say this function no longer valid
 void Error(const char *fmt,...) __noreturn __attribute_gcc_format((printf, 1, 2));				//exit with error code=1, print message
 #define Assert assert
-#ifndef NDEBUG		//macros for debugging
 
+// Debug
+#ifndef NDEBUG
 # if defined(__APPLE__) || defined(macintosh)
-extern void Debugger(void);	// Avoids some name clashes
+   extern void Debugger(void);
 #  define Int3 Debugger
+# elif defined(__GNUC__)
+#  define Int3() __asm__("int3")
 # else
 #  define Int3() ((void)0)
-# endif // Macintosh
-
-#else					//macros for real game
-
-//Changed Assert and Int3 because I couldn't get the macros to compile -KRB
-#define Int3() ((void)0)
+# endif
+#else
+# define Int3() ((void)0)
 #endif
 
 #endif /* _ERROR_H */
