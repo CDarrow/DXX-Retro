@@ -167,6 +167,10 @@ void apply_force_damage(object *obj,fix force,object *other_obj)
 			if ( (other_obj->type == OBJ_ROBOT) && (Robot_info[other_obj->id].attack_type) )
 				damage = fixmul(damage, FrameTime*2);
 
+			#ifdef NETWORK
+			if (Game_mode & GM_MULTI)
+				con_printf(CON_NORMAL, "You took %0.1f damage from colliding with a ship!\n", (double)(damage) / (double)(F1_0)); 
+			#endif
 			apply_damage_to_player(obj,other_obj,damage,0);
 			break;
 
@@ -296,14 +300,21 @@ void collide_player_and_wall( object * player, fix hitspeed, short hitseg, short
 		if (volume > 0 ) {
 			digi_link_sound_to_pos( SOUND_PLAYER_HIT_WALL, hitseg, 0, hitpt, 0, volume );
 			#ifdef NETWORK
-			if (Game_mode & GM_MULTI)
-				multi_send_play_sound(SOUND_PLAYER_HIT_WALL, volume);
+			if (Game_mode & GM_MULTI) {
+				multi_send_play_sound(SOUND_PLAYER_HIT_WALL, volume);				
+			}
 			#endif
 		}
 
-		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE))
-			if ( Players[Player_num].shields > f1_0*10 )
-			  	apply_damage_to_player( player, player, damage, 0 );
+		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE)) {
+			if ( Players[Player_num].shields > f1_0*10 ) {
+				#ifdef NETWORK
+				if (Game_mode & GM_MULTI) 
+			  		con_printf(CON_NORMAL, "You took %0.1f damage from hitting a wall!\n", (double)(damage) / (double)(F1_0)); 
+			  	#endif
+			  	apply_damage_to_player( player, player, damage, 0 );			  	
+			}
+		}
 	}
 
 	return;
@@ -326,8 +337,15 @@ void scrape_player_on_wall(object *obj, short hitseg, short hitside, vms_vector 
 		vms_vector	hit_dir, rand_vec;
 		fix damage = fixmul(d,FrameTime);
 
-		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE))
+		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE)) {
+			#ifdef NETWORK
+			if (Game_mode & GM_MULTI) {
+				con_printf(CON_NORMAL, "You took %0.1f damage from lava!\n", (double)(damage) / (double)(F1_0)); 
+			}
+			#endif
+			  	
 			apply_damage_to_player( obj, obj, damage, 0 );
+		}
 
 		PALETTE_FLASH_ADD(f2i(damage*4), 0, 0);	//flash red
 		if ((GameTime64 > Last_volatile_scrape_sound_time + F1_0/4) || (GameTime64 < Last_volatile_scrape_sound_time)) {
@@ -1278,6 +1296,29 @@ void apply_damage_to_player(object *player, object *killer, fix damage, ubyte po
 }
 
 
+char* weapon_id_to_name(int weapon_id) {
+	switch(weapon_id) {
+		case 0: 
+		case 1:
+		case 2:
+		case 3:
+			return "laser";
+		case VULCAN_ID: return "vulcan";
+		case XSPREADFIRE_ID:
+		case SPREADFIRE_ID: return "spreadfire";
+		case PLASMA_ID: return "plasma";
+		case FUSION_ID: return "fusion";
+		case CONCUSSION_ID: return "concussion";
+		case HOMING_ID: return "homer";
+		case PROXIMITY_ID: return "proxy";
+		case SMART_ID: return "smart"; 
+		case PLAYER_SMART_HOMING_ID: return "smart blob"; 
+		case MEGA_ID: return "mega";
+		case FLARE_ID: return "flare"; 
+		default: con_printf(CON_NORMAL, "Unknown weapon: %d\n", weapon_id); return "unknown weapon"; 
+	}
+}
+
 void collide_player_and_weapon( object * player, object * weapon, vms_vector *collision_point )
 {
 	fix		damage = weapon->shields;
@@ -1357,8 +1398,44 @@ void collide_player_and_weapon( object * player, object * weapon, vms_vector *co
 //		if (weapon->id == SMART_HOMING_ID)
 //			damage /= 4;
 
-		if (!(weapon->flags & OF_HARMLESS))
+		if (!(weapon->flags & OF_HARMLESS)) {
+
+			if(player->id == Player_num && ! Player_is_dead) {
+				char* killer_name;
+				char* weapon_name; 
+
+				short parent_type = weapon->ctype.laser_info.parent_type;
+				switch(parent_type) {
+					case OBJ_PLAYER: 
+						killer_name = Players[killer->id].callsign; 
+						weapon_name = weapon_id_to_name(weapon->id); 
+						break;
+
+					case OBJ_ROBOT:
+						killer_name = "a robot";
+						weapon_name = "weapon";
+						break;
+
+					case OBJ_CNTRLCEN:
+						killer_name = "the reactor";
+						weapon_name = "defenses";
+						break;
+
+					default:
+						killer_name = "something";
+						weapon_name = weapon_id_to_name(weapon->id);
+				}
+				 
+				#ifdef NETWORK
+				if (Game_mode & GM_MULTI) {
+					con_printf(CON_NORMAL, "You took %0.1f damage from %s's %s!\n", (double)(damage)/(double)(F1_0), killer_name, weapon_name); 
+				}
+				#endif
+			}
+
 			apply_damage_to_player( player, killer, damage, 1);
+
+		}
 	}
 
 	//	Robots become aware of you if you get hit.
@@ -1376,7 +1453,13 @@ void collide_player_and_nasty_robot( object * player, object * robot, vms_vector
 
 	bump_two_objects(player, robot, 0);	//no damage from bump
 
-	apply_damage_to_player( player, robot, F1_0*(Difficulty_level+1), 0);
+	fix damage = F1_0*(Difficulty_level+1); 
+
+	#ifdef NETWORK
+		if (Game_mode & GM_MULTI)
+			con_printf(CON_NORMAL, "You took %0.1f damage from bumping a robot!\n", (double)(damage) / (double)(F1_0)); 
+	#endif
+	apply_damage_to_player( player, robot, damage, 0);
 
 	return;
 }

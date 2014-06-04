@@ -1243,11 +1243,16 @@ void FireLaser()
 			if (Fusion_next_sound_time < GameTime64) {
 				if (Fusion_charge > F1_0*2) {
 					digi_play_sample( 11, F1_0 );
+
+					fix damage = d_rand() * 4; 
 #ifdef NETWORK
-					if(Game_mode & GM_MULTI)
+					if(Game_mode & GM_MULTI) {
 						multi_send_play_sound(11, F1_0);
+						con_printf(CON_NORMAL, "You took %0.1f damage from overcharging fusion!\n", (double)(damage)/(double)(F1_0)); 
+					}
 #endif
-					apply_damage_to_player(ConsoleObject, ConsoleObject, d_rand() * 4, 0);
+					
+					apply_damage_to_player(ConsoleObject, ConsoleObject, damage, 0);
 				} else {
 					create_awareness_event(ConsoleObject, PA_WEAPON_ROBOT_COLLISION);
 					digi_play_sample( SOUND_FUSION_WARMUP, F1_0 );

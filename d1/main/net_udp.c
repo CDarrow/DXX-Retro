@@ -710,7 +710,7 @@ int generate_token() {
    }
 
    // Not cryptographically secure, but apparently we can't do that
-   con_printf(CON_NORMAL, "Using cryptographically insecure token.\n"); 
+   con_printf(CON_DEBUG, "Using cryptographically insecure token.\n"); 
    srand(time(NULL));
    return rand(); 
 #else
@@ -726,7 +726,7 @@ void drop_rx_packet(ubyte  *data, char* reason) {
 	char comment[200];
 	snprintf(comment, 199, "Dropped %s: %s\n", msg_name(data[0]), reason); 
 	net_log_comment(comment);
-	con_printf(CON_NORMAL, comment); 
+	con_printf(CON_URGENT, comment); 
 }
 
 int is_master_ip(struct _sockaddr addr) {
@@ -1474,7 +1474,7 @@ void net_udp_receive_sequence_packet(ubyte *data, UDP_sequence_packet *seq, stru
 		struct sockaddr_in *addrin = (struct sockaddr_in*) &seq->player.protocol.udp.addr;
 		char *ip = inet_ntoa(addrin->sin_addr); 
 		ushort port = SWAPSHORT(addrin->sin_port);
-		con_printf(CON_NORMAL, "New player joined from ip %s port %d\n", ip, port); 
+		con_printf(CON_DEBUG, "New player joined from ip %s port %d\n", ip, port); 
 
 	} else if (multi_i_am_master()) {
 		memcpy(&seq->player.protocol.udp.addr, (struct _sockaddr *)&sender_addr, sizeof(struct _sockaddr));
@@ -1705,7 +1705,7 @@ net_udp_new_player(UDP_sequence_packet *their)
 	struct sockaddr_in *addrin = (struct sockaddr_in*) &their->player.protocol.udp.addr;
 	char *ip = inet_ntoa(addrin->sin_addr); 
 	ushort port = SWAPSHORT(addrin->sin_port);
-	con_printf(CON_NORMAL, "Received new player num %d at ip %s port %d\n", pnum, ip, port); 
+	con_printf(CON_DEBUG, "Received new player num %d at ip %s port %d\n", pnum, ip, port); 
 
 	ClipRank (&their->player.rank);
 	Netgame.players[pnum].rank=their->player.rank;
@@ -2906,7 +2906,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 					struct sockaddr_in *addrin = (struct sockaddr_in*) &Netgame.players[i].protocol.udp.addr;
 					char *ip = inet_ntoa(addrin->sin_addr); 
 					ushort port = SWAPSHORT(addrin->sin_port);
-					con_printf(CON_NORMAL, "Received new player num (in game info) %d at ip %s port %d\n", i, ip, port); 	
+					con_printf(CON_DEBUG, "Received new player num (in game info) %d at ip %s port %d\n", i, ip, port); 	
 				}		
 
 				len += sizeof(struct _sockaddr);
@@ -3054,7 +3054,7 @@ void net_udp_process_packet(ubyte *data, struct _sockaddr sender_addr, int lengt
 	memset(&their, 0, sizeof(UDP_sequence_packet));
 
 	if(! pass_security_check(data, sender_addr, length, ! is_proxy)) {
-		con_printf(CON_NORMAL, "Dropped pid %s: failed security checks.\n", msg_name(data[0])); 
+		con_printf(CON_URGENT, "Dropped pid %s: failed security checks.\n", msg_name(data[0])); 
 		return;
 	}
 
@@ -3945,7 +3945,7 @@ void net_udp_reset_connection_statuses() {
 	}
 
 	netgame_token = my_player_token = generate_token(); 
-	con_printf(CON_NORMAL, "Generated token %d\n", netgame_token); 
+	con_printf(CON_DEBUG, "Generated token %d\n", netgame_token); 
 }
 
 void

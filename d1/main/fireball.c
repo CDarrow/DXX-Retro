@@ -150,8 +150,47 @@ object *object_create_explosion_sub(object *objp, short segnum, vms_vector * pos
 
 								phys_apply_force(obj0p,&vforce);
 								phys_apply_rot(obj0p,&vforce2);
-								if ( obj0p->shields >= 0 )
+								if ( obj0p->shields >= 0) {
+
+									if((obj0p != NULL) && (killer != NULL) && (obj0p->id == Player_num) && (! Player_is_dead)) {
+									
+										char* killer_name;
+										char* weapon_name; 
+
+										short parent_type = killer->type;
+										switch(parent_type) {
+											case OBJ_PLAYER: 
+												killer_name = Players[killer->id].callsign; 
+												if(objp != NULL && objp->type == OBJ_WEAPON) {
+													weapon_name = weapon_id_to_name(objp->id); 
+												} else if(objp != NULL && objp->type == OBJ_PLAYER) {
+													weapon_name = "death"; 
+												} else {
+													weapon_name = "unknown"; 
+												}
+												
+												break;
+
+											case OBJ_ROBOT:
+												killer_name = "a robot";
+												weapon_name = "weapon";
+												break;
+
+											case OBJ_CNTRLCEN:
+												killer_name = "the reactor";
+												weapon_name = "defenses";
+												break;
+
+											default:
+												killer_name = "something";
+												weapon_name = "unknown";
+										}
+										 
+										con_printf(CON_NORMAL, "You took %0.1f damage from %s's %s blast!\n", (double)(damage)/(double)(F1_0), killer_name, weapon_name); 
+									}
+
 									apply_damage_to_player(obj0p, killer, damage, 0 );
+								}
 							}
 								break;
 

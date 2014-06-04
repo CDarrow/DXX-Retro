@@ -49,6 +49,8 @@ extern int check_effect_blowup(segment *seg,int side,vms_vector *pnt);
 extern void apply_damage_to_controlcen(object *controlcen, fix damage, short who);
 extern void bump_one_object(object *obj0, vms_vector *hit_dir, fix damage);
 
+char* weapon_id_to_name(int weapon_id); 
+
 void do_shield_warnings();
 
 #endif
