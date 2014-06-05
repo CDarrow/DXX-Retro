@@ -3706,8 +3706,8 @@ int net_udp_game_param_handler( newmenu *menu, d_event *event, param_opt *opt )
 				sprintf( menus[opt->maxnet].text, "Maximum players: %d", menus[opt->maxnet].value+2 );
 				Netgame.max_numplayers = menus[opt->maxnet].value+2;
 				
-				if (!(Netgame.game_flags & NETGAME_FLAG_SHOW_MAP))
-					Netgame.game_flags |= NETGAME_FLAG_SHOW_MAP;
+				//if (!(Netgame.game_flags & NETGAME_FLAG_SHOW_MAP))
+				//	Netgame.game_flags |= NETGAME_FLAG_SHOW_MAP;
 
 				if (Netgame.PlayTimeAllowed || Netgame.KillGoal)
 				{
