@@ -81,7 +81,6 @@ defined(__LITTLE_ENDIAN__)	// from physfs_internal.h
 #endif
 
 #ifdef __GNUC__
-# pragma pack(1) 
 # define __pack__ __attribute__((packed))
 #elif defined(_MSC_VER)
 # pragma pack(push, packing)

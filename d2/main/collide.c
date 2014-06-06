@@ -26,6 +26,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "game.h"
 #include "gr.h"
 #include "stdlib.h"
+#include "timer.h"
 #include "bm.h"
 #include "3d.h"
 #include "segment.h"
@@ -195,6 +196,11 @@ void apply_force_damage(object *obj,fix force,object *other_obj)
 			if (Difficulty_level == 0)
 				damage /= 2;
 
+			#ifdef NETWORK
+			if (Game_mode & GM_MULTI)
+				con_printf(CON_NORMAL, "You took %0.1f damage from colliding with a ship!\n", (double)(damage) / (double)(F1_0)); 
+			#endif
+
 			apply_damage_to_player(obj,other_obj,damage, 0);
 			break;
 
@@ -363,9 +369,15 @@ void collide_player_and_wall( object * playerobj, fix hitspeed, short hitseg, sh
 			#endif
 		}
 
-		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE))
-			if ( Players[Player_num].shields > f1_0*10 || ForceFieldHit)
-			  	apply_damage_to_player( playerobj, playerobj, damage, 0 );
+		if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE)) {
+			if ( Players[Player_num].shields > f1_0*10 || ForceFieldHit) {
+				#ifdef NETWORK
+				if (Game_mode & GM_MULTI) 
+			  		con_printf(CON_NORMAL, "You took %0.1f damage from hitting a wall!\n", (double)(damage) / (double)(F1_0)); 
+			  	#endif
+			  	apply_damage_to_player( playerobj, playerobj, damage, 0 );			  	
+			}
+		}
 
 		// -- No point in doing this unless we compute a reasonable hitpt.  Currently it is just the player's position. --MK, 01/18/96
 		// -- if (!(TmapInfo[Segments[hitseg].sides[hitwall].tmap_num].flags & TMI_FORCE_FIELD)) {
@@ -412,8 +424,15 @@ int check_volatile_wall(object *obj,int segnum,int sidenum,vms_vector *hitpt)
 				if (Difficulty_level == 0)
 					damage /= 2;
 
-				if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE))
+				if (!(Players[Player_num].flags & PLAYER_FLAGS_INVULNERABLE)) {
+					#ifdef NETWORK
+					if (Game_mode & GM_MULTI) {
+						con_printf(CON_NORMAL, "You took %0.1f damage from lava!\n", (double)(damage) / (double)(F1_0)); 
+					}
+					#endif
+					  	
 					apply_damage_to_player( obj, obj, damage, 0 );
+				}
 
 				PALETTE_FLASH_ADD(f2i(damage*4), 0, 0);	//flash red
 			}
@@ -1791,15 +1810,21 @@ void maybe_drop_secondary_weapon_egg(object *playerobj, int weapon_index, int co
 	}
 }
 
-void drop_missile_1_or_4(object *playerobj,int missile_index)
+void drop_missile_1_or_4(object *playerobj,int missile_index, ubyte force)
 {
 	int num_missiles,powerup_id;
 
 	num_missiles = Players[playerobj->id].secondary_ammo[missile_index];
 	powerup_id = Secondary_weapon_to_powerup[missile_index];
 
-	if (num_missiles > 10)
-		num_missiles = 10;
+	if(! force) {
+		if(missile_index == CONCUSSION_INDEX && Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+			num_missiles = RespawningConcussions[playerobj->id];
+		} 
+	}
+	
+	//	if (num_missiles > 10)
+	//		num_missiles = 10;	
 
 	call_object_create_egg(playerobj, num_missiles/4, OBJ_POWERUP, powerup_id+1);
 	call_object_create_egg(playerobj, num_missiles%4, OBJ_POWERUP, powerup_id);
@@ -1807,7 +1832,13 @@ void drop_missile_1_or_4(object *playerobj,int missile_index)
 
 // -- int	Items_destroyed = 0;
 
-void drop_player_eggs(object *playerobj)
+
+void drop_player_eggs_remote(object *playerobj, ubyte remote);
+void drop_player_eggs(object *playerobj) {
+	drop_player_eggs_remote(playerobj, 0); 
+}
+
+void drop_player_eggs_remote(object *playerobj, ubyte remote)
 {
 	if ((playerobj->type == OBJ_PLAYER) || (playerobj->type == OBJ_GHOST)) {
 		int	rthresh;
@@ -1878,8 +1909,14 @@ void drop_player_eggs(object *playerobj)
 		if (Players[pnum].flags & PLAYER_FLAGS_MAP_ALL)
 			call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_FULL_MAP);
 
-		if (Players[pnum].flags & PLAYER_FLAGS_AFTERBURNER)
-			call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_AFTERBURNER);
+		if (Players[pnum].flags & PLAYER_FLAGS_AFTERBURNER) {
+#ifdef NETWORK
+			if(Game_mode & GM_MULTI && Netgame.BornWithBurner) {
+				// Drop nothing
+			} else 
+#endif			
+				call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_AFTERBURNER);
+		}
 
 		if (Players[pnum].flags & PLAYER_FLAGS_AMMO_RACK)
 			call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_AMMO_RACK);
@@ -1952,11 +1989,12 @@ void drop_player_eggs(object *playerobj)
 		maybe_drop_secondary_weapon_egg(playerobj, SMISSILE5_INDEX, Players[playerobj->id].secondary_ammo[SMISSILE5_INDEX]);
 
 		//	Drop the player's missiles in packs of 1 and/or 4
-		drop_missile_1_or_4(playerobj,HOMING_INDEX);
-		drop_missile_1_or_4(playerobj,GUIDED_INDEX);
-		drop_missile_1_or_4(playerobj,CONCUSSION_INDEX);
-		drop_missile_1_or_4(playerobj,SMISSILE1_INDEX);
-		drop_missile_1_or_4(playerobj,SMISSILE4_INDEX);
+		drop_missile_1_or_4(playerobj,HOMING_INDEX, remote);
+		drop_missile_1_or_4(playerobj,GUIDED_INDEX, remote);
+		drop_missile_1_or_4(playerobj,CONCUSSION_INDEX, remote);
+		drop_missile_1_or_4(playerobj,SMISSILE1_INDEX, remote);
+		drop_missile_1_or_4(playerobj,SMISSILE4_INDEX, remote);
+
 
 		//	If player has vulcan ammo, but no vulcan cannon, drop the ammo.
 		if (!(Players[playerobj->id].primary_weapon_flags & HAS_VULCAN_FLAG)) {
@@ -2039,6 +2077,47 @@ void drop_player_eggs(object *playerobj)
 // -- removed, 09/06/95, MK --
 // -- removed, 09/06/95, MK -- #define	LOSE_WEAPON_THRESHOLD	(F1_0*30)
 
+
+fix total_ouch = 0;
+fix64 last_damage_time = 0; 
+void shield_warning_damage(fix ouch) {
+	total_ouch += ouch; 
+	last_damage_time = timer_query(); 
+}
+
+void reset_shield_warning_damage() {
+	total_ouch = 0;
+	last_damage_time = 0; 
+}
+
+void do_shield_warnings() {
+	if(total_ouch > 0 && timer_query() - last_damage_time > F1_0/12) {
+		int pre_shields = (Players[Player_num].shields + total_ouch) / F1_0; 
+		int post_shields = Players[Player_num].shields / F1_0; 
+
+		int warning_increment = 10; 
+		
+		if(PlayerCfg.ShieldWarnings) {
+			
+			if(pre_shields > warning_increment*1 && post_shields <= warning_increment*1) {
+				HUD_init_message_literal(HM_MULTI, "Shield critical!"); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			} else if(pre_shields > warning_increment*2 && post_shields <= warning_increment*2) {
+				HUD_init_message_literal(HM_MULTI, "Shields low."); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			} else if(pre_shields > warning_increment*4 && post_shields <= warning_increment*4) {
+				HUD_init_message_literal(HM_MULTI, "Shield warning."); 
+				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
+				reset_shield_warning_damage();
+			}		
+
+
+		}
+	}
+}
+
 extern fix64 Buddy_sorry_time;
 
 void apply_damage_to_player(object *playerobj, object *killer, fix damage, ubyte possibly_friendly)
@@ -2076,10 +2155,52 @@ void apply_damage_to_player(object *playerobj, object *killer, fix damage, ubyte
 			if (Buddy_objnum != -1)
 				if (killer && (killer->type == OBJ_ROBOT) && (Robot_info[killer->id].companion))
 					Buddy_sorry_time = GameTime64;
+
+			reset_shield_warning_damage(); 
+		} else {
+			shield_warning_damage(damage);
 		}
+
 
 		playerobj->shields = Players[Player_num].shields;		//mirror
 
+	}
+}
+
+char* weapon_id_to_name(int weapon_id) {
+	switch(weapon_id) {
+		case LASER_ID_L1:
+		case LASER_ID_L2:
+		case LASER_ID_L3:
+		case LASER_ID_L4:
+			return "laser";
+		case LASER_ID_L5:
+		case LASER_ID_L6:
+			return "super laser";			
+		case VULCAN_ID: return "vulcan";
+		case GAUSS_ID: return "gauss";		
+		case SPREADFIRE_ID: return "spreadfire";
+		case HELIX_ID: return "helix";		
+		case PLASMA_ID: return "plasma";
+		case PHOENIX_ID: return "phoenix";		
+		case FUSION_ID: return "fusion";
+		case OMEGA_ID: return "omega";		
+		case CONCUSSION_ID: return "concussion";
+		case FLASH_ID: return "flash";		
+		case HOMING_ID: return "homer";
+		case GUIDEDMISS_ID: return "guided";		
+		case PROXIMITY_ID: return "proxy";
+		case SUPERPROX_ID: return "smart mine";	
+		case SMART_MINE_HOMING_ID: return "smart mine blob"; 	
+		case SMART_ID: return "smart"; 
+		case MERCURY_ID: return "mercury";		
+		case PLAYER_SMART_HOMING_ID: return "smart blob"; 
+		case MEGA_ID: return "mega";
+		case EARTHSHAKER_ID: return "shaker";	
+		case EARTHSHAKER_MEGA_ID: return "shaker shocklet";	
+		case FLARE_ID: return "flare"; 
+		case PMINE_ID: return "little red mine";
+		default: con_printf(CON_NORMAL, "Unknown weapon: %d\n", weapon_id); return "unknown weapon"; 
 	}
 }
 
@@ -2179,8 +2300,45 @@ void collide_player_and_weapon( object * playerobj, object * weapon, vms_vector 
 //		if (weapon->id == SMART_HOMING_ID)
 //			damage /= 4;
 
-		if (!(weapon->flags & OF_HARMLESS))
+		if (!(weapon->flags & OF_HARMLESS)) {
+
+			if(playerobj->id == Player_num && ! Player_is_dead) {
+				char* killer_name;
+				char* weapon_name; 
+
+				short parent_type = weapon->ctype.laser_info.parent_type;
+				switch(parent_type) {
+					case OBJ_PLAYER: 
+						killer_name = Players[killer->id].callsign; 
+						weapon_name = weapon_id_to_name(weapon->id); 
+						break;
+
+					case OBJ_ROBOT:
+						killer_name = "a robot";
+						weapon_name = "weapon";
+						break;
+
+					case OBJ_CNTRLCEN:
+						killer_name = "the reactor";
+						weapon_name = "defenses";
+						break;
+
+					default:
+						killer_name = "something";
+						weapon_name = weapon_id_to_name(weapon->id);
+				}
+				 
+				#ifdef NETWORK
+				if (Game_mode & GM_MULTI) {
+					con_printf(CON_NORMAL, "You took %0.1f damage from %s's %s!\n", (double)(damage)/(double)(F1_0), killer_name, weapon_name); 
+				}
+				#endif
+			}
+
 			apply_damage_to_player( playerobj, killer, damage, 1);
+
+		}
+
 	}
 
 	//	Robots become aware of you if you get hit.
@@ -2199,7 +2357,13 @@ void collide_player_and_nasty_robot( object * playerobj, object * robot, vms_vec
 
 	bump_two_objects(playerobj, robot, 0);	//no damage from bump
 
-	apply_damage_to_player( playerobj, robot, F1_0*(Difficulty_level+1), 0);
+	fix damage = F1_0*(Difficulty_level+1); 
+
+	#ifdef NETWORK
+		if (Game_mode & GM_MULTI)
+			con_printf(CON_NORMAL, "You took %0.1f damage from bumping a robot!\n", (double)(damage) / (double)(F1_0)); 
+	#endif
+	apply_damage_to_player( playerobj, robot, damage, 0);
 
 	return;
 }

@@ -319,6 +319,17 @@ void select_weapon(int weapon_num, int secondary_flag, int print_message, int wa
 			//end edit - Victor Rachels
 #endif
 			if (wait_for_rearm) digi_play_sample_once( SOUND_GOOD_SELECTION_PRIMARY, F1_0 );
+
+			if((weapon_num == VULCAN_INDEX || weapon_num == GAUSS_INDEX) && PlayerCfg.VulcanAmmoWarnings && Players[Player_num].primary_ammo[VULCAN_INDEX] != 0) {
+				if(Players[Player_num].primary_ammo[VULCAN_INDEX] < 500/12) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo critical!"); 
+					digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				} else if(Players[Player_num].primary_ammo[VULCAN_INDEX] < 1000/12) {
+					HUD_init_message_literal(HM_MULTI, "Vulcan ammo low."); 
+					digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
+				}
+			}
+
 #ifdef NETWORK
 			if (Game_mode & GM_MULTI)	{
 				if (wait_for_rearm) multi_send_play_sound(SOUND_GOOD_SELECTION_PRIMARY, F1_0);
@@ -568,6 +579,35 @@ int pick_up_secondary(int weapon_index,int count)
 	if (Players[Player_num].secondary_ammo[weapon_index] > max) {
 		num_picked_up = count - (Players[Player_num].secondary_ammo[weapon_index] - max);
 		Players[Player_num].secondary_ammo[weapon_index] = max;
+
+		// Respawn extras
+		if(weapon_index == HOMING_INDEX) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_HOMING_AMMO_1); 
+			}
+		}
+
+		if(weapon_index == GUIDED_INDEX) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_GUIDED_MISSILE_1); 
+			}
+		}		
+
+		if(weapon_index == SMISSILE4_INDEX) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_MERCURY_MISSILE_1); 
+			}
+		}			
+
+		if(weapon_index == CONCUSSION_INDEX && (Game_mode & GM_MULTI) && Netgame.RespawnConcs) {
+			for(int i = 0; i < count - num_picked_up; i++) {
+				maybe_drop_net_powerup(POW_MISSILE_1); 
+			}
+		}
+	}
+
+	if(weapon_index == CONCUSSION_INDEX && (Game_mode & GM_MULTI) && Netgame.RespawnConcs) {
+		RespawningConcussions[Player_num] += num_picked_up; 		
 	}
 
 	if (Players[Player_num].secondary_ammo[weapon_index] == count)	// only autoselect if player didn't have any
@@ -821,9 +861,35 @@ int pick_up_ammo(int class_flag,int weapon_index,int ammo_count)
 		supposed_weapon=SUPER_LASER_INDEX;  // allotment for stupid way of doing super laser
 
 
-	if (((Controls.fire_primary_state && PlayerCfg.NoFireAutoselect)?0:1) && Players[Player_num].primary_weapon_flags&(1<<weapon_index) && weapon_index>Primary_weapon && old_ammo==0 &&
-		POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(supposed_weapon))
-		select_weapon(weapon_index,0,0,1);
+	int primary_weapon_index = supposed_weapon;
+
+	if ( Players[Player_num].primary_weapon_flags&(1<<weapon_index)  && old_ammo==0 &&
+		POrderList(weapon_index)<cutpoint && POrderList(weapon_index)<POrderList(primary_weapon_index)) {
+
+		// Are you firing? 
+		if(Controls.fire_primary_state) {
+			// Remember what we picked up, if it's better than what's waiting now
+			if(PlayerCfg.SelectAfterFire) {
+
+				// Nothing waiting -- remember this weapon
+				if(delayed_primary_autoselect_weapon_index == -1) {
+					delayed_primary_autoselect_weapon_index = weapon_index;
+
+				// Something waiting -- is this better? 
+				} else {
+					if(POrderList(weapon_index) < POrderList(delayed_primary_autoselect_weapon_index)) {					
+						delayed_primary_autoselect_weapon_index = weapon_index;
+					}
+				}
+			} else if (! PlayerCfg.NoFireAutoselect) {		
+				select_weapon(weapon_index,0,0,1);
+			}
+		} else {	
+			select_weapon(weapon_index,0,0,1);
+		}
+
+		//select_weapon(weapon_index,0,0,1);
+	}
 
 	return ammo_count;	//return amount used
 }
@@ -1241,10 +1307,33 @@ void DropSecondaryWeapon ()
 
 	weapon_drop_id = Secondary_weapon_to_powerup[Secondary_weapon];
 
+	int conc_ammo = 0;
 	// see if we drop single or 4-pack
 	switch (Secondary_weapon_to_powerup[Secondary_weapon])
 	{
 		case POW_MISSILE_1:
+			conc_ammo = Players[Player_num].secondary_ammo[Secondary_weapon];
+			if(Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+				conc_ammo = RespawningConcussions[Player_num]; 
+			}
+
+			if(conc_ammo == 0) {
+				HUD_init_message_literal(HM_DEFAULT, "You cannot drop spawn concussions!");
+				return;
+			}
+
+			if(conc_ammo < 4) {
+				sub_ammo = 1;
+			} else {
+				sub_ammo = 4;
+				weapon_drop_id++;
+			}
+
+			if(Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+				RespawningConcussions[Player_num] -= sub_ammo;
+			}
+			
+			break; 
 		case POW_HOMING_AMMO_1:
 		case POW_SMISSILE1_1:
 		case POW_GUIDED_MISSILE_1:

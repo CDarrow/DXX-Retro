@@ -82,11 +82,15 @@ typedef struct player_config
 	ubyte AutomapFreeFlight;
 	ubyte NoFireAutoselect;
 	ubyte CycleAutoselectOnly;
+	ubyte VulcanAmmoWarnings;
+	ubyte ShieldWarnings; 
+	ubyte QuietPlasma; 	
 	int AlphaEffects;
 	int DynLightColor;
 	ubyte DisableCockpit;  /* DisableCockpit */ 
 	ubyte StickyRearview; /* StickyRearview */ 
 	ubyte SelectAfterFire; /* SelectAfterFire */ 	
+	int maxFps;	
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;

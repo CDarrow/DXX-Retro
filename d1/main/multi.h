@@ -64,7 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2938 // Retromod 1.3 Experimental 8
+#define MULTI_PROTO_VERSION 2939 // Retromod 1.3 RC1
 
 // PROTOCOL VARIABLES AND DEFINES - END
 
@@ -108,7 +108,7 @@ extern int multi_protocol; // set and determinate used protocol
 	VALUE(MULTI_SAVE_GAME            , 2+24)	/* (ubyte slot, uint id, char name[20]) */	\
 	VALUE(MULTI_RESTORE_GAME         , 2+4)	/* (ubyte slot, uint id) */	\
 	VALUE(MULTI_HEARTBEAT            , 5)	\
-	VALUE(MULTI_KILLGOALS            , 9)	\
+	VALUE(MULTI_KILLGOALS            , 11)	\
 	VALUE(MULTI_POWCAP_UPDATE        , MAX_POWERUP_TYPES+1)	\
 	VALUE(MULTI_DO_BOUNTY            , 2)	\
 	VALUE(MULTI_TYPING_STATE         , 3)	\
@@ -419,6 +419,7 @@ typedef struct netgame_info
 	short						BrightPlayers;
 	short						InvulAppear;
 	char						team_name[2][CALLSIGN_LEN+1];
+	ubyte						TeamKillGoalCount[2]; 
 	int						locations[MAX_PLAYERS];
 	short						kills[MAX_PLAYERS][MAX_PLAYERS];
 	ushort						segments_checksum;

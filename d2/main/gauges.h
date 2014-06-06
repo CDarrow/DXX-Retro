@@ -63,6 +63,9 @@ typedef struct {
 } rgb;
 
 extern const rgb player_rgb[MAX_PLAYERS];
+extern const rgb player_rgb_alt[];
+extern const rgb player_rgb_all_blue[];
+extern const rgb* selected_player_rgb; 
 
 #define WBU_WEAPON      0       // the weapons display
 #define WBU_MISSILE     1       // the missile view

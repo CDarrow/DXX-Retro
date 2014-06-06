@@ -21,10 +21,6 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "dxxerror.h"
 #include "3d.h"
 #include "inferno.h"
@@ -72,6 +68,10 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "window.h"
 #include "playsave.h"
 #include "args.h"
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 #define LEAVE_TIME 0x4000
 
@@ -469,15 +469,18 @@ void draw_automap(automap *am)
 
 	draw_all_edges(am);
 
+	selected_player_rgb = player_rgb; 
 	// Draw player...
 #ifdef NETWORK
+	if(Netgame.BlackAndWhitePyros) 
+		selected_player_rgb = player_rgb_alt; 
 	if (Game_mode & GM_TEAM)
 		color = get_team(Player_num);
 	else
 #endif	
 		color = Player_num;	// Note link to above if!
 
-	gr_setcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b));
+	gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
 	draw_player(&Objects[Players[Player_num].objnum]);
 
 	DrawMarkers(am);
@@ -492,7 +495,7 @@ void draw_automap(automap *am)
 						color = get_team(i);
 					else
 						color = i;
-					gr_setcolor(BM_XRGB(player_rgb[color].r,player_rgb[color].g,player_rgb[color].b));
+					gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
 					draw_player(&Objects[Players[i].objnum]);
 				}
 			}

@@ -23,11 +23,6 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdarg.h>
 #include <SDL/SDL.h>
 #include <setjmp.h>
-
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "pstypes.h"
 #include "console.h"
 #include "gr.h"
@@ -96,6 +91,10 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "movie.h"
 #include "event.h"
 #include "window.h"
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 #ifdef EDITOR
 #include "editor/editor.h"
@@ -402,10 +401,10 @@ void calc_frame_time()
 	timer_value = timer_query();
 	FrameTime = timer_value - last_timer_value;
 
-	while (FrameTime < f1_0 / (GameCfg.VSync?MAXIMUM_FPS:GameArg.SysMaxFPS))
+	while (FrameTime < f1_0 / (GameCfg.VSync?MAXIMUM_FPS:PlayerCfg.maxFps))
 	{
 		if (GameArg.SysUseNiceFPS && !GameCfg.VSync)
-			timer_delay(f1_0 / GameArg.SysMaxFPS - FrameTime);
+			timer_delay(f1_0 / PlayerCfg.maxFps - FrameTime);
 		timer_update();
 		timer_value = timer_query();
 		FrameTime = timer_value - last_timer_value;
@@ -537,7 +536,7 @@ void do_invulnerable_stuff(void)
 		if (GameTime64 > Players[Player_num].invulnerable_time+INVULNERABLE_TIME_MAX)
 		{
 			Players[Player_num].flags ^= PLAYER_FLAGS_INVULNERABLE;
-			if (FakingInvul==0)
+			if (FakingInvul==0 && Newdemo_state != ND_STATE_PLAYBACK)
 			{
 				digi_play_sample( SOUND_INVULNERABILITY_OFF, F1_0);
 				#ifdef NETWORK
@@ -871,7 +870,7 @@ void show_netgame_help()
 	int nitems = 0;
 	newmenu_item *m;
 
-	MALLOC(m, newmenu_item, 17);
+	MALLOC(m, newmenu_item, 18);
 	if (!m)
 		return;
 
@@ -883,6 +882,7 @@ void show_netgame_help()
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "Alt-F2/F3 (\x85-SHIFT-s/\x85-o)\t  SAVE/LOAD COOP GAME";
 #endif
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "ALT-F4\t  SHOW PLAYER NAMES ON HUD";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F6\t  TOGGLE CONNECTION STATS";	
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F7\t  TOGGLE KILL LIST";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "F8\t  SEND MESSAGE";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "(SHIFT-)F9 to F12\t  (DEFINE)SEND MACRO";
@@ -1384,6 +1384,7 @@ void GameProcessFrame(void)
 			FireLaser();				// Fire Laser!
 
 		delayed_autoselect(); /* SelectAfterFire */ 
+		do_shield_warnings(); 
 
 		if (Auto_fire_fusion_cannon_time) {
 			if (Primary_weapon != FUSION_INDEX)
@@ -1429,7 +1430,11 @@ void GameProcessFrame(void)
 		if ((Game_mode & GM_MULTI) && Netgame.InvulAppear)
 		{
 			Players[Player_num].flags |= PLAYER_FLAGS_INVULNERABLE;
-			Players[Player_num].invulnerable_time = GameTime64-i2f(27);
+			if(Netgame.ShortSpawnInvuln) {
+				Players[Player_num].invulnerable_time = GameTime64 - F1_0*30 + F1_0/2; // 500 ms invuln
+			} else {
+				Players[Player_num].invulnerable_time = GameTime64-i2f(27);
+			}
 			FakingInvul=1;
 		}
 #endif
@@ -1696,7 +1701,16 @@ void FireLaser()
 			if (Fusion_next_sound_time < GameTime64) {
 				if (Fusion_charge > F1_0*2) {
 					digi_play_sample( 11, F1_0 );
-					apply_damage_to_player(ConsoleObject, ConsoleObject, d_rand() * 4, 0);
+
+					fix damage = d_rand() * 4; 
+					#ifdef NETWORK
+					if(Game_mode & GM_MULTI) {
+						multi_send_play_sound(11, F1_0);
+						con_printf(CON_NORMAL, "You took %0.1f damage from overcharging fusion!\n", (double)(damage)/(double)(F1_0)); 
+					}
+					#endif
+					
+					apply_damage_to_player(ConsoleObject, ConsoleObject, damage, 0);
 				} else {
 					create_awareness_event(ConsoleObject, PA_WEAPON_ROBOT_COLLISION);
 					digi_play_sample( SOUND_FUSION_WARMUP, F1_0 );

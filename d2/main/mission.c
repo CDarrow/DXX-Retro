@@ -458,7 +458,8 @@ void add_d1_builtin_mission_to_list(mle *mission)
 		mission->anarchy_only_flag = 0;
 		break;
 	default:
-		Warning("Unknown D1 hogsize %d\n", size);
+		//Warning("Unknown D1 hogsize %d\n", size);
+		con_printf(CON_URGENT, "Unknown D1 hogsize %d\n", size);
 		Int3();
 		// fall through
 	case D1_MISSION_HOGSIZE:

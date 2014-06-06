@@ -11,7 +11,7 @@
 #include "event.h"
 #include "messagebox.h"
 
-void display_win32_alert(char *message, int error)
+void display_win32_alert(const char *message, int error)
 {
 	d_event	event;
 	window	*wind;

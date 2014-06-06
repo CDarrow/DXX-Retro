@@ -8,6 +8,7 @@
 #include "player.h"
 #include "byteswap.h"
 
+int RespawningConcussions[MAX_PLAYERS]; 
 
 void player_rw_swap(player_rw *p, int swap)
 {

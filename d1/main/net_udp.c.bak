@@ -5573,20 +5573,20 @@ void net_udp_process_pdata ( ubyte *data, int data_len, struct _sockaddr sender_
 
 	// Drop out of order packets
 
-	int last_received = last_pdata_received[pd.Player_num];
-	int modular_packet_num = packet_num - last_received; 
-	if(modular_packet_num < 0) {
-		modular_packet_num += MAX_LOSS_BUFFER; 
-	}
-	if(modular_packet_num > MAX_LOSS_BUFFER - 10) {
-		if(last_pdata_received_at != 0 && last_received != 0) {
-			received_pdata_num(pd.Player_num, packet_num);
-			char err_mess[200]; 
-			snprintf(err_mess, 200, "out-of-order packet %d (last received %d).", packet_num, last_received); 
-			drop_rx_packet(data, err_mess); 
-			return; 
+		int last_received = last_pdata_received[pd.Player_num];
+		int modular_packet_num = packet_num - last_received; 
+		if(modular_packet_num < 0) {
+			modular_packet_num += MAX_LOSS_BUFFER; 
 		}
-	}
+		if(modular_packet_num > MAX_LOSS_BUFFER - 10) {
+			if(last_pdata_received_at != 0 && last_received != 0) {
+				received_pdata_num(pd.Player_num, packet_num);
+				char err_mess[200]; 
+				snprintf(err_mess, 200, "out-of-order packet %d (last received %d).", packet_num, last_received); 
+				drop_rx_packet(data, err_mess); 
+				return; 
+			}
+		}
 	
 
 	received_pdata_num(pd.Player_num, packet_num); 
@@ -6347,6 +6347,7 @@ static int show_game_rules_handler(window *wind, d_event *event, netgame_info *n
 			gr_printf( FSPACX(130),FSPACY(110), netgame->AllowedItems&NETFLAG_DOLASER?"YES":"NO");
 			gr_printf( FSPACX(130),FSPACY(116), netgame->AllowedItems&NETFLAG_DOQUAD?"YES":"NO");
 			gr_printf( FSPACX(130),FSPACY(122), netgame->AllowedItems&NETFLAG_DOVULCAN?"YES":"NO");
+			gr_printf( FSPACX(130),FSPACY(122), netgame->AllowedItems&NETFLAG_DOVULCANAMMO?"YES":"NO");
 			gr_printf( FSPACX(130),FSPACY(128), netgame->AllowedItems&NETFLAG_DOSPREAD?"YES":"NO");
 			gr_printf( FSPACX(130),FSPACY(134), netgame->AllowedItems&NETFLAG_DOPLASMA?"YES":"NO");
 			gr_printf( FSPACX(130),FSPACY(140), netgame->AllowedItems&NETFLAG_DOFUSION?"YES":"NO");

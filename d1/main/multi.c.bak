@@ -3611,6 +3611,7 @@ void multi_do_kill_goal_counts(const ubyte *buf)
 		Netgame.TeamKillGoalCount[i]=*(char *)(buf+count);
 		count++;
 	}
+con_printf(CON_NORMAL, "Rx kill_goal_counts: %d %d\n", Netgame.TeamKillGoalCount[0], Netgame.TeamKillGoalCount[1]); 
 
 }
 

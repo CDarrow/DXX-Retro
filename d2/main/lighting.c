@@ -330,6 +330,9 @@ g3s_lrgb compute_light_emission(int objnum)
 	if (!PlayerCfg.DynLightColor) // colored lights not desired so use intensity only OR no intensity (== no light == no color) at all
 		return lemission;
 
+	if(Game_mode & GM_MULTI && ! Netgame.AllowColoredLighting)
+		return lemission;
+
 	switch (obj->type) // find out if given object should cast colored light and compute if so
 	{
 		case OBJ_FIREBALL:

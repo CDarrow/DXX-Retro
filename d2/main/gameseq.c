@@ -25,11 +25,6 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <unistd.h>
 #endif
 #include <time.h>
-
-#ifdef OGL
-#include "ogl_init.h"
-#endif
-
 #include "inferno.h"
 #include "game.h"
 #include "player.h"
@@ -100,6 +95,11 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #ifdef EDITOR
 #include "editor/editor.h"
 #endif
+
+#ifdef OGL
+#include "ogl_init.h"
+#endif
+
 #include "strutil.h"
 #include "rle.h"
 #include "byteswap.h"
@@ -423,6 +423,13 @@ void init_player_stats_new_ship(ubyte pnum)
 	Players[pnum].cloak_time = 0;
 	Players[pnum].invulnerable_time = 0;
 	Players[pnum].homing_object_dist = -F1_0; // Added by RH
+	RespawningConcussions[pnum] = 0; 	
+
+#ifdef NETWORK
+	if(Game_mode & GM_MULTI && Netgame.BornWithBurner) {
+		Players[pnum].flags |= PLAYER_FLAGS_AFTERBURNER; 
+	}
+#endif
 	digi_kill_sound_linked_to_object(Players[pnum].objnum);
 }
 

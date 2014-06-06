@@ -127,7 +127,11 @@ int new_player_config()
 	PlayerCfg.DynLightColor = 0;
 	PlayerCfg.DisableCockpit = 0;  /* DisableCockpit */ 
 	PlayerCfg.StickyRearview = 0; /* StickyRearview */ 
-	PlayerCfg.SelectAfterFire = 1;  /* SelectAfterFire */	
+	PlayerCfg.SelectAfterFire = 1;  /* SelectAfterFire */
+	PlayerCfg.VulcanAmmoWarnings = 1; 
+	PlayerCfg.ShieldWarnings = 0; 
+	PlayerCfg.QuietPlasma = 1; 
+	PlayerCfg.maxFps = GameArg.SysMaxFPS; 
 
 	// Default taunt macros
 	#ifdef NETWORK
@@ -349,6 +353,17 @@ int read_player_d2x(char *filename)
 					PlayerCfg.NoFireAutoselect = atoi(line);
 				if(!strcmp(word,"CYCLEAUTOSELECTONLY"))
 					PlayerCfg.CycleAutoselectOnly = atoi(line);
+				if(!strcmp(word,"VULCANAMMOWARNINGS"))
+					PlayerCfg.VulcanAmmoWarnings = atoi(line);	
+				if(!strcmp(word,"SHIELDWARNINGS"))
+					PlayerCfg.ShieldWarnings = atoi(line);	
+				if(!strcmp(word,"QUIETPLASMA"))
+					PlayerCfg.QuietPlasma = atoi(line);							
+				if(!strcmp(word,"MAXFPS")) {
+					PlayerCfg.maxFps = atoi(line);														
+					if(PlayerCfg.maxFps < 25) { PlayerCfg.maxFps = 25; }
+					if(PlayerCfg.maxFps > 200) { PlayerCfg.maxFps = 200; }
+				}				
 				d_free(word);
 				PHYSFSX_fgets(line,50,f);
 				word=splitword(line,'=');
@@ -512,6 +527,10 @@ int write_player_d2x(char *filename)
 		PHYSFSX_printf(fout,"selectafterfire=%i\n",PlayerCfg.SelectAfterFire); /* SelectAfterFire */ 		
 		PHYSFSX_printf(fout,"nofireautoselect=%i\n",PlayerCfg.NoFireAutoselect);
 		PHYSFSX_printf(fout,"cycleautoselectonly=%i\n",PlayerCfg.CycleAutoselectOnly);
+		PHYSFSX_printf(fout,"vulcanammowarnings=%i\n",PlayerCfg.VulcanAmmoWarnings);		
+		PHYSFSX_printf(fout,"shieldwarnings=%i\n",PlayerCfg.ShieldWarnings);	
+		PHYSFSX_printf(fout,"quietplasma=%i\n",PlayerCfg.QuietPlasma);	
+		PHYSFSX_printf(fout,"maxfps=%i\n",PlayerCfg.maxFps);	
 		PHYSFSX_printf(fout,"[end]\n");
 		PHYSFSX_printf(fout,"[graphics]\n");
 		PHYSFSX_printf(fout,"alphaeffects=%i\n",PlayerCfg.AlphaEffects);
@@ -992,6 +1011,8 @@ void read_netgame_profile(netgame_info *ng)
 				ng->BrightPlayers = strtol(value, NULL, 10);
 			else if (!strcmp(token, "InvulAppear"))
 				ng->InvulAppear = strtol(value, NULL, 10);
+			else if (!strcmp(token, "ShortInvuln"))
+				ng->ShortSpawnInvuln = strtol(value, NULL, 10);				
 			else if (!strcmp(token, "KillGoal"))
 				ng->KillGoal = strtol(value, NULL, 10);
 			else if (!strcmp(token, "PlayTimeAllowed"))
@@ -1004,6 +1025,18 @@ void read_netgame_profile(netgame_info *ng)
 				ng->ShortPackets = strtol(value, NULL, 10);
 			else if (!strcmp(token, "NoFriendlyFire"))
 				ng->NoFriendlyFire = strtol(value, NULL, 10);
+			else if (!strcmp(token, "RetroProtocol"))
+				ng->RetroProtocol = strtol(value, NULL, 10);
+			else if (!strcmp(token, "RespawnConcs"))
+				ng->RespawnConcs = strtol(value, NULL, 10);	
+			else if (!strcmp(token, "AllowColoredLighting"))
+				ng->AllowColoredLighting = strtol(value, NULL, 10);			
+			else if (!strcmp(token, "FairColors"))
+				ng->FairColors = strtol(value, NULL, 10);	
+			else if (!strcmp(token, "BlackAndWhitePyros"))
+				ng->BlackAndWhitePyros = strtol(value, NULL, 10);	
+			else if (!strcmp(token, "BornWithBurner"))
+				ng->BornWithBurner = strtol(value, NULL, 10);						
 #ifdef USE_TRACKER
 			else if (!strcmp(token, "Tracker"))
 				ng->Tracker = strtol(value, NULL, 10);
@@ -1038,12 +1071,20 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "ShowEnemyNames=%i\n", ng->ShowEnemyNames);
 	PHYSFSX_printf(file, "BrightPlayers=%i\n", ng->BrightPlayers);
 	PHYSFSX_printf(file, "InvulAppear=%i\n", ng->InvulAppear);
+	PHYSFSX_printf(file, "ShortInvuln=%i\n", ng->ShortSpawnInvuln);	
 	PHYSFSX_printf(file, "KillGoal=%i\n", ng->KillGoal);
 	PHYSFSX_printf(file, "PlayTimeAllowed=%i\n", ng->PlayTimeAllowed);
 	PHYSFSX_printf(file, "control_invul_time=%i\n", ng->control_invul_time);
 	PHYSFSX_printf(file, "PacketsPerSec=%i\n", ng->PacketsPerSec);
 	PHYSFSX_printf(file, "ShortPackets=%i\n", ng->ShortPackets);
 	PHYSFSX_printf(file, "NoFriendlyFire=%i\n", ng->NoFriendlyFire);
+	PHYSFSX_printf(file, "RetroProtocol=%i\n", ng->RetroProtocol);
+	PHYSFSX_printf(file, "RespawnConcs=%i\n", ng->RespawnConcs);
+	PHYSFSX_printf(file, "AllowColoredLighting=%i\n", ng->AllowColoredLighting);
+	PHYSFSX_printf(file, "FairColors=%i\n", ng->FairColors);
+	PHYSFSX_printf(file, "BlackAndWhitePyros=%i\n", ng->BlackAndWhitePyros);
+	PHYSFSX_printf(file, "BornWithBurner=%i\n", ng->BornWithBurner);
+	
 #ifdef USE_TRACKER
 	PHYSFSX_printf(file, "Tracker=%i\n", ng->Tracker);
 #else

@@ -1112,6 +1112,17 @@ void piggy_bitmap_page_in( bitmap_index bitmap )
 			*((int *) (Piggy_bitmap_cache_data + Piggy_bitmap_cache_next)) = INTEL_INT(zsize);
 			gr_set_bitmap_data(bmp, &Piggy_bitmap_cache_data[Piggy_bitmap_cache_next]);
 
+			//14:57:42 Player 5 has alt textures 103, 104
+			//14:57:42 Player 6 has alt textures 105, 106
+			//if(103 <= i && i <= 106) {
+			//con_printf(CON_NORMAL, "Loaded bitmap %d (plr %d), size %d x %d\n", i, (i - 103)/2 + 5, bmp->bm_w, bmp->bm_h);
+			//for(int j = 0; j < 128 && j < bmp->bm_w * bmp->bm_h; j++) {
+			//	con_printf(CON_NORMAL, "     %u\n", bmp->bm_data[j]); 
+			//}
+			//	con_printf(CON_NORMAL, "     Handle: %u\n", bmp->bm_handle); 
+			
+			//} 
+
 #ifndef MACDATA
 			switch (pigsize) {
 			default:
@@ -1896,10 +1907,7 @@ void load_d1_bitmap_replacements()
 		// OK, now we need to read d1_tmap_nums by emulating d1's gamedata_read_tbl()
 		read_d1_tmap_nums_from_hog(d1_Piggy_fp);
 		break;
-	default:
-		Warning("Unknown size for " D1_PIGFILE);
-		Int3();
-		// fall through
+
 	case D1_PIGSIZE:
 	case D1_OEM_PIGSIZE:
 	case D1_MAC_PIGSIZE:
@@ -1908,6 +1916,10 @@ void load_d1_bitmap_replacements()
 		bm_read_d1_tmap_nums(d1_Piggy_fp); //was: bm_read_all_d1(fp);
 		//for (i = 0; i < 1800; i++) GameBitmapXlat[i] = PHYSFSX_readShort(d1_Piggy_fp);
 		break;
+
+	default:
+		pig_data_start = PHYSFSX_readInt(d1_Piggy_fp );
+		bm_read_d1_tmap_nums(d1_Piggy_fp);	
 	}
 
 	PHYSFSX_fseek( d1_Piggy_fp, pig_data_start, SEEK_SET );

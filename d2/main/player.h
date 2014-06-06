@@ -198,6 +198,9 @@ extern int Player_num;  // The player number who is on the console.
 extern player Players[MAX_PLAYERS+4];   // Misc player info
 extern player_ship *Player_ship;
 
+// Probably should go in player struct, but I don't want to break savegames for this
+extern int RespawningConcussions[MAX_PLAYERS]; 
+
 extern struct object *Guided_missile[MAX_PLAYERS];
 extern int Guided_missile_sig[MAX_PLAYERS];
 

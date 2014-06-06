@@ -95,6 +95,7 @@ typedef struct Arg
 	int DbgSdlHWSurface;
 	int DbgSdlASyncBlit;
 #endif
+	int LogNetTraffic; 	
 } Arg;
 
 extern struct Arg GameArg;

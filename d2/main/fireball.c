@@ -232,8 +232,48 @@ object *object_create_explosion_sub(object *objp, short segnum, vms_vector * pos
 								phys_apply_rot(obj0p,&vforce2);
 								if (Difficulty_level == 0)
 									damage /= 4;
-								if ( obj0p->shields >= 0 )
+								
+								if ( obj0p->shields >= 0) {
+
+									if((obj0p != NULL) && (killer != NULL) && (obj0p->id == Player_num) && (! Player_is_dead)) {
+									
+										char* killer_name;
+										char* weapon_name; 
+
+										short parent_type = killer->type;
+										switch(parent_type) {
+											case OBJ_PLAYER: 
+												killer_name = Players[killer->id].callsign; 
+												if(objp != NULL && objp->type == OBJ_WEAPON) {
+													weapon_name = weapon_id_to_name(objp->id); 
+												} else if(objp != NULL && objp->type == OBJ_PLAYER) {
+													weapon_name = "death"; 
+												} else {
+													weapon_name = "unknown"; 
+												}
+												
+												break;
+
+											case OBJ_ROBOT:
+												killer_name = "a robot";
+												weapon_name = "weapon";
+												break;
+
+											case OBJ_CNTRLCEN:
+												killer_name = "the reactor";
+												weapon_name = "defenses";
+												break;
+
+											default:
+												killer_name = "something";
+												weapon_name = "unknown";
+										}
+										 
+										con_printf(CON_NORMAL, "You took %0.1f damage from %s's %s blast!\n", (double)(damage)/(double)(F1_0), killer_name, weapon_name); 
+									}
+
 									apply_damage_to_player(obj0p, killer, damage, 0 );
+								}
 							}
 								break;
 
@@ -612,8 +652,10 @@ void maybe_drop_net_powerup(int powerup_type)
 
 		if (Game_mode & GM_NETWORK)
 		{
-			if (PowerupsInMine[powerup_type]>=MaxPowerupsAllowed[powerup_type])
-				return;
+			if(Netgame.PrimaryDupFactor < 2 && Netgame.SecondaryDupFactor < 2 ) {
+				if (PowerupsInMine[powerup_type]>=MaxPowerupsAllowed[powerup_type]) 
+					return;
+			}
 		}
 
 
@@ -847,6 +889,9 @@ int drop_powerup(int type, int id, int num, vms_vector *init_vel, vms_vector *po
 				switch (obj->id) {
 					case POW_MISSILE_1:
 					case POW_MISSILE_4:
+						if(Game_mode & GM_MULTI && Netgame.RespawnConcs) {
+							break;
+						}
 					case POW_SHIELD_BOOST:
 					case POW_ENERGY:
 						obj->lifeleft = (d_rand() + F1_0*3) * 64;		//	Lives for 3 to 3.5 binary minutes (a binary minute is 64 seconds)

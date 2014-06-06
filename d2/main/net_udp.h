@@ -18,7 +18,7 @@ int net_udp_endlevel(int *secret);
 int net_udp_kmatrix_poll1( newmenu *menu, d_event *event, void *userdata );
 int net_udp_kmatrix_poll2( newmenu *menu, d_event *event, void *userdata );
 void net_udp_send_endlevel_packet();
-void net_udp_dump_player(struct _sockaddr dump_addr, int why);
+void net_udp_dump_player(struct _sockaddr dump_addr, int their_token, int why);
 void net_udp_disconnect_player(int playernum);
 int net_udp_level_sync();
 void net_udp_send_mdata_direct(ubyte *data, int data_len, int pnum, int priority);
@@ -39,8 +39,8 @@ void net_udp_send_netgame_update();
 #define UDP_MAX_NETGAMES 900
 #define UDP_NETGAMES_PPAGE 12 // Netgames on one page of Netlist
 #define UDP_NETGAMES_PAGES 75 // Pages available on Netlist (UDP_MAX_NETGAMES/UDP_NETGAMES_PPAGE)
-#define UDP_TIMEOUT (5*F1_0) // 5 seconds disconnect timeout
-#define UDP_MDATA_STOR_QUEUE_SIZE 500 // Store up to 500 MDATA packets
+#define UDP_TIMEOUT (15*F1_0) // 15 seconds disconnect timeout
+#define UDP_MDATA_STOR_QUEUE_SIZE 1500 // Store up to 500 MDATA packets
 
 // UDP-Packet identificators (ubyte) and their (max. sizes).
 #define UPID_VERSION_DENY			  1 // Netgame join or info has been denied due to version difference.
@@ -49,16 +49,16 @@ void net_udp_send_netgame_update();
 #define UPID_GAME_INFO_REQ_SIZE			 13
 #define UPID_GAME_INFO_LITE_REQ_SIZE		 11
 #define UPID_GAME_INFO				  3 // Packet containing all info about a netgame.
-#define UPID_GAME_INFO_SIZE			(360 + (NETGAME_NAME_LEN+1) + (MISSION_NAME_LEN+1) + ((MAX_PLAYERS+4)*(CALLSIGN_LEN+1)))
+#define UPID_GAME_INFO_SIZE			(6 + 4*2 + 360 + (NETGAME_NAME_LEN+1) + (MISSION_NAME_LEN+1) + ((MAX_PLAYERS+4)*(CALLSIGN_LEN+1)) + 16*12)
 #define UPID_GAME_INFO_LITE_REQ			  4 // Requesting lite info about a netgame. Used for discovering games.
 #define UPID_GAME_INFO_LITE			  5 // Packet containing lite netgame info.
 #define UPID_GAME_INFO_LITE_SIZE		 (31 + (NETGAME_NAME_LEN+1) + (MISSION_NAME_LEN+1))
 #define UPID_DUMP				  6 // Packet containing why player cannot join this game.
-#define UPID_DUMP_SIZE				  2
+#define UPID_DUMP_SIZE				  (2 + 4)
 #define UPID_ADDPLAYER				  7 // Packet from Host containing info about a new player.
 #define UPID_REQUEST				  8 // New player says: "I want to be inside of you!" (haha, sorry I could not resist) / Packet containing request to join the game actually.
 #define UPID_QUIT_JOINING			  9 // Packet from a player who suddenly quits joining.
-#define UPID_SEQUENCE_SIZE			 (3 + (CALLSIGN_LEN+1))
+#define UPID_SEQUENCE_SIZE			 (3 + 4 + (CALLSIGN_LEN+1) + sizeof(struct _sockaddr))
 #define UPID_SYNC				 10 // Packet from host containing full netgame info to sync players up.
 #define UPID_OBJECT_DATA			 11 // Packet from host containing object buffer.
 #define UPID_PING				 12 // Packet from host containing his GameTime and the Ping list. Client returns this time to host as UPID_PONG and adapts the ping list.
@@ -68,8 +68,9 @@ void net_udp_send_netgame_update();
 #define UPID_ENDLEVEL_H				 14 // Packet from Host to all Clients containing connect-states and kills information about everyone in the game.
 #define UPID_ENDLEVEL_C				 15 // Packet from Client to Host containing connect-state and kills information from this Client.
 #define UPID_PDATA				 16 // Packet from player containing his movement data.
-#define UPID_PDATA_S_SIZE			 26
-#define UPID_PDATA_Q_SIZE                        47
+#define UPID_PDATA_S_SIZE			 (26 + 4 + 1)
+#define UPID_PDATA_Q_SIZE                        (47 + 4 + 1)
+#define UPID_PDATA_U_SIZE			 (72 + 3 + 4 + 1)
 #define UPID_MDATA_PNORM			 17 // Packet containing multi buffer from a player. Priority 0,1 - no ACK needed.
 #define UPID_MDATA_PNEEDACK			 18 // Packet containing multi buffer from a player. Priority 2 - ACK needed. Also contains pkt_num
 #define UPID_MDATA_ACK				 19 // ACK packet for UPID_MDATA_P1.
@@ -79,6 +80,16 @@ void net_udp_send_netgame_update();
 #  define UPID_TRACKER_VERIFY			 21 // The tracker has successfully gotten a hold of us
 #  define UPID_TRACKER_INCGAME			 22 // The tracker is sending us some game info
 #endif
+
+#define UPID_P2P_PING	25
+#define UPID_P2P_PING_SIZE	(1 + 4 + 1 + 8 + 1 + 1) // pid, player_from, time sent, force_direct, detected loss %
+#define UPID_P2P_PONG	26
+#define UPID_P2P_PONG_SIZE	(1 + 4 + 1 + 8 + 1) // pid, player_from, time sent, initiate_connection
+#define UPID_PROXY    27
+#define UPID_PROXY_HEADER_SIZE (3 + 4)
+#define UPID_REATTEMPT_DIRECT 28
+#define UPID_REATTEMPT_DIRECT_SIZE (2 + 4 + sizeof(struct _sockaddr)) 
+
 
 // Structure keeping lite game infos (for netlist, etc.)
 typedef struct UDP_netgame_info_lite
@@ -102,6 +113,7 @@ typedef struct UDP_netgame_info_lite
 typedef struct UDP_sequence_packet
 {
 	ubyte           		type;
+	int                     token; 
 	netplayer_info  		player;
 } __pack__ UDP_sequence_packet;
 
@@ -112,9 +124,11 @@ typedef struct UDP_frame_info
 	ubyte				Player_num;
 	ubyte				connected;
 	union {
+		uncompressed_pos    upp;
 		quaternionpos		qpp;
 		shortpos		spp;
 	} __pack__ ptype;
+	ubyte serial; 
 } __pack__ UDP_frame_info;
 
 // packet structure for multi-buffer
@@ -147,3 +161,11 @@ typedef struct UDP_mdata_recv
 	int				cur_slot; // index we can use for a new pkt_num
 } __pack__ UDP_mdata_recv;
 	
+
+typedef enum {NONE, DIRECT, PROXY} connection_type;
+typedef struct connection_status {
+	connection_type type;
+	ubyte proxy_through;
+	ubyte holepunch_attempts; 
+	fix64 last_direct_pong; 
+} connection_status;

@@ -216,7 +216,7 @@ void show_netplayerinfo()
 	set_font_newline(); 
 	y+=LINE_SPACING;
 	if (Netgame.KillGoal)
-		gr_printf(x,y,"Kill goal: %d",Netgame.KillGoal*5);
+		gr_printf(x,y,"Kill goal: %d",Netgame.KillGoal*10);
 
 	gr_printf(base_flags_left, y, "Items: "); 
 	draw_flag("L", Netgame.AllowedItems & NETFLAG_DOLASER,     flags_x, y);  flags_x += letter_spacing; 

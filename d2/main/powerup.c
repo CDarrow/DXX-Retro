@@ -236,13 +236,15 @@ int do_powerup(object *obj)
 	if ((obj->ctype.powerup_info.flags & PF_SPAT_BY_PLAYER) && obj->ctype.powerup_info.creation_time>0 && GameTime64<obj->ctype.powerup_info.creation_time+i2f(2))
 		return 0;		//not enough time elapsed
 
-	if (Game_mode & GM_MULTI)
-	{
+	//if (Game_mode & GM_MULTI)
+	//{
 		/*
 		 * The fact: Collecting a powerup is decided Client-side and due to PING it takes time for other players to know if one collected a powerup actually. This may lead to the case two players collect the same powerup!
 		 * The solution: Let us check if someone else is closer to a powerup and if so, do not collect it.
 		 * NOTE: Player positions computed by 'shortpos' and PING can still cause a small margin of error.
 		 */
+		 // CED -- causes more problems than it solves.  
+		 /*
 		int i = 0;
 		vms_vector tvec;
 		fix mydist = vm_vec_normalized_dir(&tvec, &obj->pos, &ConsoleObject->pos);
@@ -256,7 +258,8 @@ int do_powerup(object *obj)
 			if (mydist > vm_vec_normalized_dir(&tvec, &obj->pos, &Objects[Players[i].objnum].pos))
 				return 0;
 		}
-	}
+		*/
+	//}
 
 	switch (obj->id) {
 		case POW_EXTRA_LIFE:
@@ -372,9 +375,9 @@ int do_powerup(object *obj)
 			//the amount in a powerup, and leave the rest.
 			if (! used)
 				if ((Game_mode & GM_MULTI) )
-					ammo -= VULCAN_AMMO_AMOUNT;	//don't let take all ammo
+					//ammo -= VULCAN_AMMO_AMOUNT;	//don't let take all ammo
 					// GAUSS AMMO BUG -- fix in 1.3! 
-					//ammo = 0; // Forgot to tell other players we took ammo, it dups, very bad
+					ammo = 0; // Forgot to tell other players we took ammo, it dups, very bad
 
 			if (ammo > 0) {
 				int ammo_used;

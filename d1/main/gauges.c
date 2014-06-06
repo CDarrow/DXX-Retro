@@ -2337,9 +2337,14 @@ void hud_show_kill_list()
 			else
 				gr_printf (x1,y,"%d%%",(int)((float)((float)Players[player_num].net_kills_total/((float)Players[player_num].net_killed_total+(float)Players[player_num].net_kills_total))*100.0));
 		}
-		else if (Show_kill_list == 3)
-			gr_printf(x1,y,"%3d",team_kills[i]);
-		else if (Game_mode & GM_MULTI_COOP)
+		else if (Show_kill_list == 3) {
+			if (Netgame.PlayTimeAllowed || Netgame.KillGoal)
+				gr_printf(x1,y,"%3d(%d)",team_kills[i],Netgame.TeamKillGoalCount[i]);
+			else
+				gr_printf(x1,y,"%3d",team_kills[i]);
+
+			
+		} else if (Game_mode & GM_MULTI_COOP)
 			gr_printf(x1,y,"%-6d",Players[player_num].score);
 		
 		else {

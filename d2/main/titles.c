@@ -21,10 +21,6 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#ifdef OGL
-#include "ogl_init.h"
-#endif
 #include "pstypes.h"
 #include "timer.h"
 #include "key.h"
@@ -53,6 +49,9 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "mouse.h"
 #include "console.h"
 #include "args.h"
+#ifdef OGL
+#include "ogl_init.h"
+#endif
 
 extern unsigned RobSX,RobSY,RobDX,RobDY; // Robot movie coords
 
