@@ -28,6 +28,7 @@ build
 *.sql
 *.sqlite
 *.dblite
+*.bak
 
 # OS generated files #
 ######################
