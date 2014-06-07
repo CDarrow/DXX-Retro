@@ -358,7 +358,7 @@ void init_player_stats_new_ship(ubyte pnum)
 
 		int delete_camera = 1; 
 #ifdef NETWORK	
-		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL) {	
+		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)) {	
 			delete_camera = 0; 
 		}	
 #endif
@@ -1229,7 +1229,7 @@ void InitPlayerPosition(int random)
 	if (! ((Game_mode & GM_MULTI) && !(Game_mode&GM_MULTI_COOP)) ) // If not deathmatch
 		NewPlayer = Player_num;
 #ifdef NETWORK	
-	else if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW))
+	else if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)  && Dead_player_camera != NULL)
 		NewPlayer = previewed_spawn_point; 
 #endif
 	else if (random == 1)
