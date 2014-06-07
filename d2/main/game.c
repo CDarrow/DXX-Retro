@@ -1427,10 +1427,10 @@ void GameProcessFrame(void)
 		create_player_appearance_effect(ConsoleObject);
 		Do_appearance_effect = 0;
 #ifdef NETWORK
-		if ((Game_mode & GM_MULTI) && Netgame.InvulAppear)
+		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_SHORT_INVUL || Netgame.SpawnStyle == SPAWN_STYLE_LONG_INVUL ))
 		{
 			Players[Player_num].flags |= PLAYER_FLAGS_INVULNERABLE;
-			if(Netgame.ShortSpawnInvuln) {
+			if(Netgame.SpawnStyle == SPAWN_STYLE_SHORT_INVUL ) {
 				Players[Player_num].invulnerable_time = GameTime64 - F1_0*30 + F1_0/2; // 500 ms invuln
 			} else {
 				Players[Player_num].invulnerable_time = GameTime64-i2f(27);

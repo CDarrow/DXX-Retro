@@ -397,7 +397,16 @@ void init_player_stats_new_ship(ubyte pnum)
 		Player_is_dead = 0;
 		Player_exploded = 0;
 		Player_eggs_dropped = 0;
-		Dead_player_camera = 0;
+
+		int delete_camera = 1; 
+#ifdef NETWORK	
+		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)) {	
+			delete_camera = 0; 
+		}	
+#endif
+		if(delete_camera)
+			Dead_player_camera = 0;
+
 		Global_laser_firing_count=0;
 		Afterburner_charge = 0;
 		Controls.afterburner_state = 0;
@@ -1700,6 +1709,8 @@ void StartNewLevel(int level_num)
 
 }
 
+int previewed_spawn_point = 0; 
+
 //initialize the player object position & orientation (at start of game, or new ship)
 void InitPlayerPosition(int random_flag)
 {
@@ -1707,6 +1718,10 @@ void InitPlayerPosition(int random_flag)
 
 	if (! ((Game_mode & GM_MULTI) && !(Game_mode&GM_MULTI_COOP)) ) // If not deathmatch
 		NewPlayer = Player_num;
+#ifdef NETWORK	
+	else if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW))
+		NewPlayer = previewed_spawn_point; 
+#endif	
 	else if (random_flag == 1)
 	{
 		int i, trys=0;
@@ -1741,6 +1756,12 @@ void InitPlayerPosition(int random_flag)
 	Assert(NewPlayer < NumNetPlayerPositions);
 	ConsoleObject->pos = Player_init[NewPlayer].pos;
 	ConsoleObject->orient = Player_init[NewPlayer].orient;
+#ifdef NETWORK	
+	if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL) {
+		ConsoleObject->orient = Dead_player_camera->orient;  
+		Dead_player_camera = NULL; 
+	}
+#endif		
 	obj_relink(ConsoleObject-Objects,Player_init[NewPlayer].segnum);
 	reset_player_object();
 	reset_cruise();

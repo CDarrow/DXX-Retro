@@ -1464,7 +1464,7 @@ void dead_player_end(void)
 	Player_is_dead = 0;
 	Player_exploded = 0;
 	obj_delete(Dead_player_camera-Objects);
-	Dead_player_camera = NULL;
+	//Dead_player_camera = NULL;
 	select_cockpit(PlayerCfg.CockpitMode[0]);
 	Viewer = Viewer_save;
 	ConsoleObject->type = OBJ_PLAYER;
@@ -1535,11 +1535,20 @@ extern void drop_player_eggs(object *objp);
 extern int get_explosion_vclip(object *obj,int stage);
 extern void multi_cap_objects();
 
+extern int previewed_spawn_point; 
+
 //	------------------------------------------------------------------------------------------------------------------
 void dead_player_frame(void)
 {
 	static fix	time_dead = 0;
 	vms_vector	fvec;
+
+	int turn_camera = 1;
+	#ifdef NETWORK
+		if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Player_exploded) {
+			turn_camera = 0;
+		}
+	#endif
 
 	if (Player_is_dead)
 	{
@@ -1565,14 +1574,18 @@ void dead_player_frame(void)
 
 		Camera_to_player_dist_goal = min(time_dead*8, F1_0*20) + ConsoleObject->size;
 
-		set_camera_pos(&Dead_player_camera->pos, ConsoleObject);
+		if(turn_camera)
+			set_camera_pos(&Dead_player_camera->pos, ConsoleObject);
 
 		// the following line uncommented by WraithX, 4-12-00
 		if (time_dead < DEATH_SEQUENCE_EXPLODE_TIME + F1_0 * 2)
 		{
 			vm_vec_sub(&fvec, &ConsoleObject->pos, &Dead_player_camera->pos);
-			vm_vector_2_matrix(&Dead_player_camera->orient, &fvec, NULL, NULL);
-			Dead_player_camera->mtype.phys_info = ConsoleObject->mtype.phys_info;
+
+			if(turn_camera) {
+				vm_vector_2_matrix(&Dead_player_camera->orient, &fvec, NULL, NULL);
+				Dead_player_camera->mtype.phys_info = ConsoleObject->mtype.phys_info;
+			}	
 
 			// the following "if" added by WraithX to get rid of camera "wiggle"
 			if (Dead_player_camera->mtype.phys_info.flags & PF_WIGGLE)
@@ -1625,6 +1638,20 @@ void dead_player_frame(void)
 				ConsoleObject->render_type = RT_NONE;				//..just make him disappear
 				ConsoleObject->type = OBJ_GHOST;						//..and kill intersections
 				Players[Player_num].flags &= ~PLAYER_FLAGS_HEADLIGHT_ON;
+
+#ifdef NETWORK
+				if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)) {
+					d_srand((fix)timer_query());
+					previewed_spawn_point = d_rand() % NumNetPlayerPositions;
+
+					Dead_player_camera->pos = Player_init[previewed_spawn_point].pos;
+					Dead_player_camera->orient = Player_init[previewed_spawn_point].orient;
+					obj_relink(Dead_player_camera-Objects,Player_init[previewed_spawn_point].segnum);	
+
+					Dead_player_camera->control_type = CT_FLYING;
+					Dead_player_camera->movement_type = MT_PHYSICS; 
+				}
+#endif					
 			}
 		} else {
 			if (d_rand() < FrameTime*4) {

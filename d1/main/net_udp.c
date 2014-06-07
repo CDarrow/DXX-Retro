@@ -2721,7 +2721,6 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		PUT_INTEL_SHORT(buf + len, Netgame.AlwaysLighting);				len += 2;
 		PUT_INTEL_SHORT(buf + len, Netgame.ShowEnemyNames);				len += 2;
 		PUT_INTEL_SHORT(buf + len, Netgame.BrightPlayers);				len += 2;
-		PUT_INTEL_SHORT(buf + len, Netgame.InvulAppear);				len += 2;
 		memcpy(&buf[len], Netgame.team_name, 2*(CALLSIGN_LEN+1));			len += 2*(CALLSIGN_LEN+1);
 		for (i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -2767,7 +2766,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.AllowColoredLighting; 				len++; 
 		buf[len] = Netgame.FairColors;			 				len++; 		
 		buf[len] = Netgame.BlackAndWhitePyros; 				len++; 
-		buf[len] = Netgame.ShortSpawnInvuln;                len++; 
+		buf[len] = Netgame.SpawnStyle;		                len++; 
 		buf[len] = Netgame.PrimaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
@@ -2930,7 +2929,6 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.AlwaysLighting = GET_INTEL_SHORT(&(data[len]));				len += 2;
 		Netgame.ShowEnemyNames = GET_INTEL_SHORT(&(data[len]));				len += 2;
 		Netgame.BrightPlayers = GET_INTEL_SHORT(&(data[len]));				len += 2;
-		Netgame.InvulAppear = GET_INTEL_SHORT(&(data[len]));				len += 2;
 		memcpy(Netgame.team_name, &(data[len]), 2*(CALLSIGN_LEN+1));			len += 2*(CALLSIGN_LEN+1);
 		for (i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -2976,7 +2974,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.AllowColoredLighting = data[len];				len++; 
 		Netgame.FairColors = data[len];							len++; 
 		Netgame.BlackAndWhitePyros = data[len];				len++; 
-		Netgame.ShortSpawnInvuln = data[len];				len++; 
+		Netgame.SpawnStyle = data[len];				len++; 
 		Netgame.PrimaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
@@ -3412,8 +3410,9 @@ int net_udp_start_poll( newmenu *menu, d_event *event, void *userdata )
 }
 
 static int opt_cinvul, opt_show_on_map;
-static int opt_show_on_map, opt_difficulty, opt_setpower, opt_playtime, opt_killgoal, opt_port, opt_packets, opt_shortpack, opt_show_names, opt_bright, opt_start_invul, opt_short_invul, opt_ffire, opt_retroproto, opt_respawnconcs, opt_allowcolor, opt_faircolors, opt_blackwhite;
+static int opt_show_on_map, opt_difficulty, opt_setpower, opt_playtime, opt_killgoal, opt_port, opt_packets, opt_shortpack, opt_show_names, opt_bright, opt_ffire, opt_retroproto, opt_respawnconcs, opt_allowcolor, opt_faircolors, opt_blackwhite;
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
+static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 #ifdef USE_TRACKER
 static int opt_tracker;
 #endif
@@ -3444,9 +3443,9 @@ void net_udp_more_game_options ()
 	char PlayText[80],KillText[80],srinvul[50],packstring[5];
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 #ifdef USE_TRACKER
-	newmenu_item m[28];
+	newmenu_item m[32];
 #else
- 	newmenu_item m[26];
+ 	newmenu_item m[30];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3486,11 +3485,18 @@ void net_udp_more_game_options ()
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
-	opt_start_invul=opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Invulnerable when reappearing"; m[opt].value=Netgame.InvulAppear; opt++;
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Spawn Style"; opt++;
+	opt_spawn_no_invul = opt; 
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "No Invuln"; m[opt].value = Netgame.SpawnStyle == SPAWN_STYLE_NO_INVUL; m[opt].group = 0; opt++;
+	opt_spawn_short_invul = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Half Second Invuln"; m[opt].value = Netgame.SpawnStyle == SPAWN_STYLE_SHORT_INVUL; m[opt].group = 0; opt++;
+	opt_spawn_long_invul = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Two Second Invuln"; m[opt].value = Netgame.SpawnStyle == SPAWN_STYLE_LONG_INVUL; m[opt].group = 0; opt++;
+	opt_spawn_preview = opt; 
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Preview"; m[opt].value = Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW; m[opt].group = 0; opt++;
+		
 
-	opt_short_invul=opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Short spawn invulns"; m[opt].value=Netgame.ShortSpawnInvuln; opt++;	
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
 	opt_respawnconcs = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Respawn Concussions"; m[opt].value = Netgame.RespawnConcs; opt++;	
@@ -3576,8 +3582,6 @@ menu:
 		nm_messagebox(TXT_ERROR, 1, TXT_OK, "Illegal port");
 	}
 
-	Netgame.InvulAppear=m[opt_start_invul].value;	
-	Netgame.ShortSpawnInvuln=m[opt_short_invul].value; 
 	Netgame.BrightPlayers=m[opt_bright].value;
 	Netgame.ShowEnemyNames=m[opt_show_names].value;
 	Netgame.difficulty=Difficulty_level = m[opt_difficulty].value;
@@ -3655,6 +3659,14 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 
 				sprintf( menus[opt_secondary_cap].text, "Cap Secondaries: %s", Netgame.SecondaryCapFactor == 0 ? "Uncapped" : (Netgame.SecondaryCapFactor == 1 ? "Max Six" : "Max Two"));
 
+			} else if (citem == opt_spawn_no_invul) {
+				Netgame.SpawnStyle = SPAWN_STYLE_NO_INVUL;
+			} else if (citem == opt_spawn_short_invul) {
+				Netgame.SpawnStyle = SPAWN_STYLE_SHORT_INVUL;
+			} else if (citem == opt_spawn_long_invul) {
+				Netgame.SpawnStyle = SPAWN_STYLE_LONG_INVUL;
+			} else if (citem == opt_spawn_preview) {
+				Netgame.SpawnStyle = SPAWN_STYLE_PREVIEW;
 			}
 
 
@@ -3846,14 +3858,13 @@ int net_udp_setup_game()
 	else
 		snprintf (UDP_MyPort, sizeof(UDP_MyPort), "%d", UDP_PORT_DEFAULT);
 	Netgame.BrightPlayers = 1;
-	Netgame.InvulAppear = 0;
+	Netgame.SpawnStyle = SPAWN_STYLE_PREVIEW;
 	Netgame.AllowedItems = 0;
 	Netgame.AllowedItems |= NETFLAG_DOPOWERUP;
 	Netgame.PacketLossPrevention = 1;
 	Netgame.NoFriendlyFire = 0;
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
-	Netgame.ShortSpawnInvuln = 1; 
 
 #ifdef USE_TRACKER
 	Netgame.Tracker = 1;
@@ -6314,7 +6325,7 @@ static int show_game_rules_handler(window *wind, d_event *event, netgame_info *n
 			gr_printf( FSPACX( 25),FSPACY( 61), "Max Time:");
 			gr_printf( FSPACX( 25),FSPACY( 67), "Kill Goal:");
 			gr_printf( FSPACX( 25),FSPACY( 73), "Packets per sec.:");
-			gr_printf( FSPACX(155),FSPACY( 55), "Invul when reappearing:");
+			gr_printf( FSPACX(155),FSPACY( 55), "Spawn Style:");
 			gr_printf( FSPACX(155),FSPACY( 61), "Bright player ships:");
 			gr_printf( FSPACX(155),FSPACY( 67), "Show enemy names on hud:");
 			gr_printf( FSPACX(155),FSPACY( 73), "Show players on automap:");
@@ -6338,7 +6349,9 @@ static int show_game_rules_handler(window *wind, d_event *event, netgame_info *n
 			gr_printf( FSPACX(115),FSPACY( 61), "%i Min", netgame->PlayTimeAllowed*5);
 			gr_printf( FSPACX(115),FSPACY( 67), "%i", netgame->KillGoal*10);
 			gr_printf( FSPACX(115),FSPACY( 73), "%i", netgame->PacketsPerSec);
-			gr_printf( FSPACX(275),FSPACY( 55), netgame->InvulAppear?"ON":"OFF");
+			gr_printf( FSPACX(275),FSPACY( 55), netgame->SpawnStyle == SPAWN_STYLE_NO_INVUL ? "NoInv" : (
+												netgame->SpawnStyle == SPAWN_STYLE_SHORT_INVUL ? "Short" : (
+												netgame->SpawnStyle == SPAWN_STYLE_LONG_INVUL ? "Long" : "Preview")));
 			gr_printf( FSPACX(275),FSPACY( 61), netgame->BrightPlayers?"ON":"OFF");
 			gr_printf( FSPACX(275),FSPACY( 67), netgame->ShowEnemyNames?"ON":"OFF");
 			gr_printf( FSPACX(275),FSPACY( 73), netgame->game_flags&NETGAME_FLAG_SHOW_MAP?"ON":"OFF");

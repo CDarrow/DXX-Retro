@@ -60,7 +60,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2939 // Retromod 1.3 RC1
+#define MULTI_PROTO_VERSION 2832 // Retromod 1.3 RC1
 
 // PROTOCOL VARIABLES AND DEFINES - END
 
@@ -179,6 +179,11 @@ for_each_multiplayer_command(enum {, define_multiplayer_command, });
 #define DUMP_LEVEL      6
 #define DUMP_KICKED     7
 #define DUMP_PKTTIMEOUT 8
+
+#define SPAWN_STYLE_NO_INVUL 0
+#define SPAWN_STYLE_SHORT_INVUL 1
+#define SPAWN_STYLE_LONG_INVUL 2
+#define SPAWN_STYLE_PREVIEW 3
 
 #define for_each_netflag_value(VALUE)	\
 	VALUE(NETFLAG_DOLASER, "Laser upgrade")	\
@@ -479,7 +484,6 @@ typedef struct netgame_info
 	short						AlwaysLighting;
 	short						ShowEnemyNames;
 	short						BrightPlayers;
-	short						InvulAppear;
 	char						team_name[2][CALLSIGN_LEN+1];
 	ubyte						TeamKillGoalCount[2]; 
 	int						locations[MAX_PLAYERS];
@@ -508,6 +512,7 @@ typedef struct netgame_info
 	ubyte						PrimaryDupFactor;
 	ubyte						SecondaryDupFactor;
 	ubyte						SecondaryCapFactor;	
+	ubyte						SpawnStyle; 
 	ubyte						BornWithBurner;
 #ifdef USE_TRACKER
 	ubyte						Tracker;

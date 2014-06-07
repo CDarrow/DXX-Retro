@@ -1009,10 +1009,8 @@ void read_netgame_profile(netgame_info *ng)
 				ng->ShowEnemyNames = strtol(value, NULL, 10);
 			else if (!strcmp(token, "BrightPlayers"))
 				ng->BrightPlayers = strtol(value, NULL, 10);
-			else if (!strcmp(token, "InvulAppear"))
-				ng->InvulAppear = strtol(value, NULL, 10);
-			else if (!strcmp(token, "ShortInvuln"))
-				ng->ShortSpawnInvuln = strtol(value, NULL, 10);				
+			else if (!strcmp(token, "SpawnStyle"))
+				ng->SpawnStyle = strtol(value, NULL, 10);	
 			else if (!strcmp(token, "KillGoal"))
 				ng->KillGoal = strtol(value, NULL, 10);
 			else if (!strcmp(token, "PlayTimeAllowed"))
@@ -1070,8 +1068,7 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "AlwaysLighting=%i\n", ng->AlwaysLighting);
 	PHYSFSX_printf(file, "ShowEnemyNames=%i\n", ng->ShowEnemyNames);
 	PHYSFSX_printf(file, "BrightPlayers=%i\n", ng->BrightPlayers);
-	PHYSFSX_printf(file, "InvulAppear=%i\n", ng->InvulAppear);
-	PHYSFSX_printf(file, "ShortInvuln=%i\n", ng->ShortSpawnInvuln);	
+	PHYSFSX_printf(file, "SpawnStyle=%i\n", ng->SpawnStyle);
 	PHYSFSX_printf(file, "KillGoal=%i\n", ng->KillGoal);
 	PHYSFSX_printf(file, "PlayTimeAllowed=%i\n", ng->PlayTimeAllowed);
 	PHYSFSX_printf(file, "control_invul_time=%i\n", ng->control_invul_time);

@@ -69,8 +69,7 @@ void read_flying_controls( object * obj )
 //	}
 // end of section to be moved.
 
-	if ((obj->type!=OBJ_PLAYER) || (obj->id!=Player_num)) return;	//references to player_ship require that this obj be the player
-
+	
 	if (Guided_missile[Player_num] && Guided_missile[Player_num]->signature==Guided_missile_sig[Player_num]) {
 		vms_angvec rotangs;
 		vms_matrix rotmat,tempm;
@@ -105,6 +104,21 @@ void read_flying_controls( object * obj )
 		obj->mtype.phys_info.rotthrust.y = Controls.heading_time;
 		obj->mtype.phys_info.rotthrust.z = Controls.bank_time;
 	}
+
+#ifdef NETWORK
+	if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Player_is_dead && Player_exploded) {
+		fix	ft = FrameTime;
+
+		if ((ft < F1_0/2) && (ft << 15 <= Player_ship->max_rotthrust)) {
+			ft = (Player_ship->max_thrust >> 15) + 1;
+		}
+
+		vm_vec_scale( &obj->mtype.phys_info.rotthrust, fixdiv(Player_ship->max_rotthrust,ft) );
+	}
+#endif
+	
+	if ((obj->type!=OBJ_PLAYER) || (obj->id!=Player_num)) return;	//references to player_ship require that this obj be the player
+
 
 	forward_thrust_time = Controls.forward_thrust_time;
 

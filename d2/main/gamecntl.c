@@ -445,6 +445,8 @@ int HandleEndlevelKey(int key)
 	return 0;
 }
 
+int is_key_rotate_event(d_event *event); 
+
 int HandleDeathInput(d_event *event)
 {
 	if (event->type == EVENT_KEY_COMMAND)
@@ -460,6 +462,14 @@ int HandleDeathInput(d_event *event)
 
 	if (Player_exploded && (event->type == EVENT_JOYSTICK_BUTTON_UP || event->type == EVENT_MOUSE_BUTTON_UP))
 		Death_sequence_aborted = 1;
+
+#ifdef NETWORK
+	if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)) {
+		if(is_key_rotate_event(event)) {
+			Death_sequence_aborted = 0; 
+		}		
+	}
+#endif
 
 	if (Death_sequence_aborted)
 	{
@@ -1861,7 +1871,22 @@ int ReadControls(d_event *event)
 			return 1;
 	}
 
-	if (!Endlevel_sequence && !Player_is_dead && (Newdemo_state != ND_STATE_PLAYBACK))
+	int should_read_controls;
+	if (!Endlevel_sequence && !Player_is_dead && (Newdemo_state != ND_STATE_PLAYBACK)) {
+		should_read_controls = 1;
+	} else {
+		should_read_controls = 0; 
+	}
+
+	#ifdef NETWORK
+	if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Player_is_dead && Player_exploded) {
+		if (!Endlevel_sequence && (Newdemo_state != ND_STATE_PLAYBACK)) {
+			should_read_controls = 1; 
+		}
+	}
+	#endif
+
+	if (should_read_controls)
 	{
 
 		kconfig_read_controls(event, 0);

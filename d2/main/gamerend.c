@@ -188,12 +188,14 @@ void show_netplayerinfo()
 	sprintf(pps_string, "PPS %d", Netgame.PacketsPerSec); 
 	draw_flag(pps_string, 1,                         						 base_flags_left + word_spacing*1, y);
 
-	if(Netgame.InvulAppear & Netgame.ShortSpawnInvuln) {
-		draw_flag("ShortInv", Netgame.InvulAppear & Netgame.ShortSpawnInvuln, base_flags_left + word_spacing*2, y); 
-	} else if (Netgame.InvulAppear) {
-		draw_flag("LongInv", Netgame.InvulAppear,                            base_flags_left + word_spacing*2, y); 
+	if(Netgame.SpawnStyle == SPAWN_STYLE_NO_INVUL ) {
+		draw_flag("NoInvul", 1,                            base_flags_left + word_spacing*2, y); 
+	} else if (Netgame.SpawnStyle == SPAWN_STYLE_SHORT_INVUL ) {
+		draw_flag("ShortInv", 1, base_flags_left + word_spacing*2, y); 
+	}  else if (Netgame.SpawnStyle == SPAWN_STYLE_LONG_INVUL ) {
+		draw_flag("LongInv", 1,                            base_flags_left + word_spacing*2, y); 
 	} else {
-		draw_flag("NoInvul", Netgame.InvulAppear,                            base_flags_left + word_spacing*2, y); 
+		draw_flag("Preview", 1,                            base_flags_left + word_spacing*2, y); 
 	}
 	
 

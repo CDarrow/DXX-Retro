@@ -41,19 +41,29 @@ void read_flying_controls( object * obj )
 {
 	Assert(FrameTime > 0); 		//Get MATT if hit this!
 
+	int no_thrust = 0; 
+#ifdef NETWORK
+	if((Game_mode & GM_NETWORK) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Player_is_dead && Player_exploded) {
+		no_thrust = 1; 
+	}
+#endif
+
 	//	Couldn't the "50" in the next three lines be changed to "64" with no ill effect?
 	obj->mtype.phys_info.rotthrust.x = Controls.pitch_time;
 	obj->mtype.phys_info.rotthrust.y = Controls.heading_time;
 	obj->mtype.phys_info.rotthrust.z = Controls.bank_time;
 
-	// Set object's thrust vector for forward/backward
-	vm_vec_copy_scale(&obj->mtype.phys_info.thrust,&obj->orient.fvec, Controls.forward_thrust_time );
-	
-	// slide left/right
-	vm_vec_scale_add2(&obj->mtype.phys_info.thrust,&obj->orient.rvec, Controls.sideways_thrust_time );
+	if(! no_thrust) {
 
-	// slide up/down
-	vm_vec_scale_add2(&obj->mtype.phys_info.thrust,&obj->orient.uvec, Controls.vertical_thrust_time );
+		// Set object's thrust vector for forward/backward
+		vm_vec_copy_scale(&obj->mtype.phys_info.thrust,&obj->orient.fvec, Controls.forward_thrust_time );
+		
+		// slide left/right
+		vm_vec_scale_add2(&obj->mtype.phys_info.thrust,&obj->orient.rvec, Controls.sideways_thrust_time );
+
+		// slide up/down
+		vm_vec_scale_add2(&obj->mtype.phys_info.thrust,&obj->orient.uvec, Controls.vertical_thrust_time );
+	}
 
 	// CED
 	//if(PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL) {

@@ -1163,6 +1163,97 @@ void kconfig(int n, char * title)
 	}
 }
 
+int is_key_rotate_event(d_event *event) {
+	switch(event->type) {
+		case EVENT_KEY_COMMAND:
+			for (int i = 0; i < NUM_KEY_CONTROLS; i++)
+			{
+				if (kc_keyboard[i].value < 255 && kc_keyboard[i].value == event_key_get_raw(event))
+				{
+					if (kc_keyboard[i].ci_state_ptr != NULL)
+					{
+						if(kc_keyboard[i].ci_state_ptr == &Controls.key_bank_left_state) {
+							return 1; 
+						} else if(kc_keyboard[i].ci_state_ptr == &Controls.key_bank_right_state) {
+							return 1; 
+						} else if(kc_keyboard[i].ci_state_ptr == &Controls.key_pitch_forward_state) {
+							return 1; 
+						} else if(kc_keyboard[i].ci_state_ptr == &Controls.key_pitch_backward_state) {
+							return 1; 
+						} else if(kc_keyboard[i].ci_state_ptr == &Controls.key_heading_left_state) {
+							return 1; 
+						} else if(kc_keyboard[i].ci_state_ptr == &Controls.key_heading_right_state) {
+							return 1; 
+						}
+					}
+				}
+			}
+
+			return 0; 
+
+		case EVENT_JOYSTICK_BUTTON_DOWN:
+			if (!(PlayerCfg.ControlType & CONTROL_USING_JOYSTICK))
+				break;
+			for (int i = 0; i < NUM_JOYSTICK_CONTROLS; i++)
+			{
+				if (kc_joystick[i].value < 255 && kc_joystick[i].type == BT_JOY_BUTTON && kc_joystick[i].value == event_joystick_get_button(event))
+				{
+					if (kc_joystick[i].ci_state_ptr != NULL)
+					{
+						if(kc_joystick[i].ci_state_ptr == &Controls.key_bank_left_state) {
+							return 1; 
+						} else if(kc_joystick[i].ci_state_ptr == &Controls.key_bank_right_state) {
+							return 1; 
+						} else if(kc_joystick[i].ci_state_ptr == &Controls.key_pitch_forward_state) {
+							return 1; 
+						} else if(kc_joystick[i].ci_state_ptr == &Controls.key_pitch_backward_state) {
+							return 1; 
+						} else if(kc_joystick[i].ci_state_ptr == &Controls.key_heading_left_state) {
+							return 1; 
+						} else if(kc_joystick[i].ci_state_ptr == &Controls.key_heading_right_state) {
+							return 1; 
+						}
+					}
+				}
+			}
+
+			return 0; 
+
+		case EVENT_MOUSE_BUTTON_DOWN:
+			if (!(PlayerCfg.ControlType & CONTROL_USING_MOUSE))
+				break;
+			for (int i = 0; i < NUM_MOUSE_CONTROLS; i++)
+			{
+				if (kc_mouse[i].value < 255 && kc_mouse[i].type == BT_MOUSE_BUTTON && kc_mouse[i].value == event_mouse_get_button(event))
+				{
+					if (kc_mouse[i].ci_state_ptr != NULL)
+					{
+						if(kc_mouse[i].ci_state_ptr == &Controls.key_bank_left_state) {
+							return 1; 
+						} else if(kc_mouse[i].ci_state_ptr == &Controls.key_bank_right_state) {
+							return 1; 
+						} else if(kc_mouse[i].ci_state_ptr == &Controls.key_pitch_forward_state) {
+							return 1; 
+						} else if(kc_mouse[i].ci_state_ptr == &Controls.key_pitch_backward_state) {
+							return 1; 
+						} else if(kc_mouse[i].ci_state_ptr == &Controls.key_heading_left_state) {
+							return 1; 
+						} else if(kc_mouse[i].ci_state_ptr == &Controls.key_heading_right_state) {
+							return 1; 
+						}						
+					}
+				}
+			}
+
+			return 0;
+
+		default: return 0; 
+	}
+
+	return 0; 
+}
+
+
 fix Last_angles_p = 0;
 fix Last_angles_b = 0;
 fix Last_angles_h = 0;
