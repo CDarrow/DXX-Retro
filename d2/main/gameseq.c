@@ -1719,7 +1719,7 @@ void InitPlayerPosition(int random_flag)
 	if (! ((Game_mode & GM_MULTI) && !(Game_mode&GM_MULTI_COOP)) ) // If not deathmatch
 		NewPlayer = Player_num;
 #ifdef NETWORK	
-	else if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW))
+	else if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL)
 		NewPlayer = previewed_spawn_point; 
 #endif	
 	else if (random_flag == 1)

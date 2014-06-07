@@ -358,7 +358,7 @@ void init_player_stats_new_ship(ubyte pnum)
 
 		int delete_camera = 1; 
 #ifdef NETWORK	
-		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW)) {	
+		if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL) {	
 			delete_camera = 0; 
 		}	
 #endif
