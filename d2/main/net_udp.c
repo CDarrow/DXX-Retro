@@ -3554,6 +3554,9 @@ void net_udp_more_game_options ()
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
+	opt_burner_spawn = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Spawn With Burner"; m[opt].value=Netgame.BornWithBurner; opt++;	
+
 	opt_respawnconcs = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Respawn Concussions"; m[opt].value = Netgame.RespawnConcs; opt++;	
 
@@ -5919,18 +5922,19 @@ void net_udp_process_p2p_ping(ubyte *data, struct _sockaddr sender_addr, int dat
 
 	// If I can hear a direct ping, I can probably reply
 	if(direct_ping) {
-
 		// Don't update master, non-existent player, or me
 		if( (from_player == multi_who_is_master()) || 
 			(from_player > MAX_PLAYERS) || 
 			(from_player == Player_num)) {
-			update_address_for_player(from_player, sender_addr);
-		} else {
+
 			char log_comment[100];
 			snprintf(log_comment, 100, "Cannot update address -- illegal player num %d (==%d, >%d, == %d)", from_player,
 				multi_who_is_master(), MAX_PLAYERS, Player_num); 
 			net_log_comment(log_comment); 
+		} else {
+			update_address_for_player(from_player, sender_addr);
 		}
+
 
 		// Restablish direct attempt, if we aren't already doing that
 		if(connection_statuses[from_player].type == PROXY) {
