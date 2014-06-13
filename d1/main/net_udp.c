@@ -598,7 +598,7 @@ int udp_tracker_unregister()
 int udp_tracker_register()
 {
 	// Variables
-	int iLen = 14;
+	int iLen = 15; // Thanks Adam Gensler
 	ubyte pBuf[iLen];
 	
 	// Reset the last tracker message
@@ -2674,6 +2674,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		PUT_INTEL_SHORT(buf + len, DXX_VERSION_MAJORi); 						len += 2;
 		PUT_INTEL_SHORT(buf + len, DXX_VERSION_MINORi); 						len += 2;
 		PUT_INTEL_SHORT(buf + len, DXX_VERSION_MICROi); 						len += 2;
+		//PUT_INTEL_INT(buf + len, Netgame.protocol.udp.GameID);				len += 4;
 		int to_player = -1; 
 		for (i = 0; i < MAX_PLAYERS+4; i++)
 		{
@@ -2721,6 +2722,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		PUT_INTEL_SHORT(buf + len, Netgame.AlwaysLighting);				len += 2;
 		PUT_INTEL_SHORT(buf + len, Netgame.ShowEnemyNames);				len += 2;
 		PUT_INTEL_SHORT(buf + len, Netgame.BrightPlayers);				len += 2;
+		len += 2; // Spawn invul -- no longer used, but don't break tools
 		memcpy(&buf[len], Netgame.team_name, 2*(CALLSIGN_LEN+1));			len += 2*(CALLSIGN_LEN+1);
 		for (i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -2888,6 +2890,8 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.protocol.udp.program_iver[1] = GET_INTEL_SHORT(&(data[len]));		len += 2;
 		Netgame.protocol.udp.program_iver[2] = GET_INTEL_SHORT(&(data[len]));		len += 2;
 
+		//Netgame.GameID = GET_INTEL_INT(&(data[len]));					len += 4;
+
 		for (i = 0; i < MAX_PLAYERS+4; i++)
 		{
 			memcpy(&Netgame.players[i].callsign, &(data[len]), CALLSIGN_LEN+1);	len += CALLSIGN_LEN+1;
@@ -2929,6 +2933,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.AlwaysLighting = GET_INTEL_SHORT(&(data[len]));				len += 2;
 		Netgame.ShowEnemyNames = GET_INTEL_SHORT(&(data[len]));				len += 2;
 		Netgame.BrightPlayers = GET_INTEL_SHORT(&(data[len]));				len += 2;
+		len += 2; // Spawn invul -- no longer used, but don't break tools
 		memcpy(Netgame.team_name, &(data[len]), 2*(CALLSIGN_LEN+1));			len += 2*(CALLSIGN_LEN+1);
 		for (i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -4413,6 +4418,7 @@ int net_udp_start_game(void)
 
 	N_players = 0;
 
+	Endlevel_sequence = Control_center_destroyed = 0; 
     Netgame.game_status = NETSTAT_STARTING;
 	Netgame.numplayers = 0;
 	net_udp_set_game_mode(Netgame.gamemode);
@@ -5629,7 +5635,6 @@ void net_udp_read_pdata_packet(UDP_frame_info *pd)
 	TheirObjnum = Players[pd->Player_num].objnum;
 
 
-//con_printf(CON_NORMAL, "Received pdata from %d . . . \n", TheirPlayernum); 
 	if (multi_i_am_master())
 	{
 		// latecoming player seems to successfully have synced
@@ -6145,38 +6150,48 @@ void net_udp_do_refuse_stuff (UDP_sequence_packet *their)
 
 	if (!WaitForRefuseAnswer)
 	{
-		for (i=0;i<MAX_PLAYERS;i++)
-		{
-			if ((!d_stricmp(Players[i].callsign, their->player.callsign )) && !memcmp((struct _sockaddr *)&their->player.protocol.udp.addr, (struct _sockaddr *)&Netgame.players[i].protocol.udp.addr, sizeof(struct _sockaddr)))
+		int activeplayers = 0; 
+		for (i = 0; i < Netgame.numplayers; i++)
+			if (Netgame.players[i].connected)
+				activeplayers++;
+
+		if(activeplayers < Netgame.max_numplayers) {
+
+			for (i=0;i<MAX_PLAYERS;i++)
 			{
-				net_udp_welcome_player(their);
-				return;
+				if ((!d_stricmp(Players[i].callsign, their->player.callsign )) && !memcmp((struct _sockaddr *)&their->player.protocol.udp.addr, (struct _sockaddr *)&Netgame.players[i].protocol.udp.addr, sizeof(struct _sockaddr)))
+				{
+					net_udp_welcome_player(their);
+					return;
+				}
 			}
-		}
-	
-		digi_play_sample (SOUND_CONTROL_CENTER_WARNING_SIREN,F1_0*2);
-	
-		if (Game_mode & GM_TEAM)
-		{
-			if (!PlayerCfg.NoRankings)
+		
+			digi_play_sample (SOUND_CONTROL_CENTER_WARNING_SIREN,F1_0*2);
+		
+			if (Game_mode & GM_TEAM)
 			{
-				HUD_init_message(HM_MULTI, "%s %s wants to join",RankStrings[their->player.rank],their->player.callsign);
+				if (!PlayerCfg.NoRankings)
+				{
+					HUD_init_message(HM_MULTI, "%s %s wants to join",RankStrings[their->player.rank],their->player.callsign);
+				}
+				else
+				{
+					HUD_init_message(HM_MULTI, "%s wants to join",their->player.callsign);
+				}
+				HUD_init_message(HM_MULTI, "Alt-1 assigns to team %s. Alt-2 to team %s",Netgame.team_name[0],Netgame.team_name[1]);
 			}
 			else
 			{
-				HUD_init_message(HM_MULTI, "%s wants to join",their->player.callsign);
+				HUD_init_message(HM_MULTI, "%s wants to join (accept: F6)",their->player.callsign);
 			}
-			HUD_init_message(HM_MULTI, "Alt-1 assigns to team %s. Alt-2 to team %s",Netgame.team_name[0],Netgame.team_name[1]);
+		
+			strcpy (RefusePlayerName,their->player.callsign);
+			RefuseTimeLimit=timer_query();
+			RefuseThisPlayer=0;
+			WaitForRefuseAnswer=1;
+		} else {			
+			net_udp_dump_player(their->player.protocol.udp.addr, their->token, DUMP_FULL);
 		}
-		else
-		{
-			HUD_init_message(HM_MULTI, "%s wants to join (accept: F6)",their->player.callsign);
-		}
-	
-		strcpy (RefusePlayerName,their->player.callsign);
-		RefuseTimeLimit=timer_query();
-		RefuseThisPlayer=0;
-		WaitForRefuseAnswer=1;
 	}
 	else
 	{

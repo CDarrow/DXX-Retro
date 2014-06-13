@@ -388,7 +388,6 @@ void init_editor()
 	ui_pad_read( 8, "test.pad" );
 
 	medkey_init();
-
 	game_flush_inputs();
 	
 	editor_font = gr_init_font( "pc8x16.fnt" );

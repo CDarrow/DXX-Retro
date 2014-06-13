@@ -822,8 +822,6 @@ void multi_compute_kill(int killer, int killed)
 			if(Netgame.TeamKillGoalCount[get_team(killer_pnum)] >= TheGoal) {
 				HUD_init_message(HM_MULTI, "Kill goal reached by %s!",Netgame.team_name[get_team(killer_pnum)]);
 				someone_won = 1; 
-			} else {
-				con_printf(CON_NORMAL, "No winner yet: %d < %d\n",  Netgame.TeamKillGoalCount[get_team(killer_pnum)], TheGoal);
 			}
 		} else {
 			if (Players[killer_pnum].KillGoalCount>=TheGoal)

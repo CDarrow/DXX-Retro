@@ -1585,6 +1585,14 @@ void dead_player_frame(void)
 			if(turn_camera) {
 				vm_vector_2_matrix(&Dead_player_camera->orient, &fvec, NULL, NULL);
 				Dead_player_camera->mtype.phys_info = ConsoleObject->mtype.phys_info;
+
+				Dead_player_camera->mtype.phys_info.velocity.x = 0; 
+				Dead_player_camera->mtype.phys_info.velocity.y = 0; 
+				Dead_player_camera->mtype.phys_info.velocity.z = 0; 
+
+				Dead_player_camera->mtype.phys_info.thrust.x = 0; 
+				Dead_player_camera->mtype.phys_info.thrust.y = 0; 
+				Dead_player_camera->mtype.phys_info.thrust.z = 0; 					
 			}	
 
 			// the following "if" added by WraithX to get rid of camera "wiggle"

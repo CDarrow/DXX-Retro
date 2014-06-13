@@ -65,10 +65,6 @@ void read_flying_controls( object * obj )
 		vm_vec_scale_add2(&obj->mtype.phys_info.thrust,&obj->orient.uvec, Controls.vertical_thrust_time );
 	}
 
-	// CED
-	//if(PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL) {
-	//	Controls.pitch_time = Controls.vertical_thrust_time = Controls.heading_time = Controls.sideways_thrust_time = Controls.bank_time = Controls.forward_thrust_time = 0;
-	//}
 	
 	if (obj->mtype.phys_info.flags & PF_WIGGLE) {
 		fix swiggle;

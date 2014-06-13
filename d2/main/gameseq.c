@@ -1351,7 +1351,15 @@ void AdvanceLevel(int secret_flag)
 
 void DoPlayerDead()
 {
-	if (Game_wind)
+
+	int cycle_window_vis = 1;
+#ifdef NETWORK
+	if ( (Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW))  {
+		cycle_window_vis = 0; 
+	}
+#endif
+
+	if (Game_wind && cycle_window_vis)
 		window_set_visible(Game_wind, 0);
 
 	reset_palette_add();
@@ -1450,7 +1458,7 @@ void DoPlayerDead()
 
 	digi_sync_sounds();
 
-	if (Game_wind)
+	if (Game_wind && cycle_window_vis)
 		window_set_visible(Game_wind, 1);
 	reset_time();
 }

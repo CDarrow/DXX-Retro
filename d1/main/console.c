@@ -247,7 +247,6 @@ static int con_handler(window *wind, d_event *event)
 void con_showup(void)
 {
 	window *wind;
-
 	game_flush_inputs();
 	con_state = CON_STATE_OPENING;
 	wind = window_create(&grd_curscreen->sc_canvas, 0, 0, SWIDTH, SHEIGHT, (int (*)(window *, d_event *, void *))con_handler, NULL);

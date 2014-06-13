@@ -792,9 +792,7 @@ void multi_compute_kill(int killer, int killed)
 			if(Netgame.TeamKillGoalCount[get_team(killer_pnum)] >= TheGoal) {
 				HUD_init_message(HM_MULTI, "Kill goal reached by %s!",Netgame.team_name[get_team(killer_pnum)]);
 				someone_won = 1; 
-			} else {
-				con_printf(CON_NORMAL, "No winner yet: %d < %d\n",  Netgame.TeamKillGoalCount[get_team(killer_pnum)], TheGoal);
-			}
+			} 
 		} else {
 			if (Players[killer_pnum].KillGoalCount>=TheGoal)
 			{
@@ -3172,6 +3170,21 @@ int is_dupable_secondary(int id) {
 
 int multi_received_objects = 0; 
 
+char original_object_types[MAX_OBJECTS];
+void save_original_objects() {
+	for (int i=0; i<=MAX_OBJECTS; i++) {
+		original_object_types[i] = Objects[i].type; 
+	}
+}
+
+int was_original_object(int i) {
+	if(original_object_types[i] != OBJ_NONE) {
+		return 1;
+	}
+
+	return 0; 
+}
+
 void
 multi_prep_level(void)
 {
@@ -3333,8 +3346,11 @@ multi_prep_level(void)
 
 	if(! multi_received_objects ) {
 		int old_highest_object = Highest_object_index;
+		save_original_objects(); 
+
 		for (i=0; i<=old_highest_object; i++)
 		{
+			if(! was_original_object(i)) { continue; }			
 			int objnum;
 
 			if ((Objects[i].type == OBJ_HOSTAGE) && !(Game_mode & GM_MULTI_COOP))
@@ -3359,6 +3375,7 @@ multi_prep_level(void)
 					if(is_dupable_primary(Objects[i].id)) {
 						for(int dup = 0; dup < Netgame.PrimaryDupFactor - 1; dup++) {
 							objnum = obj_create(OBJ_POWERUP, Objects[i].id, Objects[i].segnum, &Objects[i].pos, &vmd_identity_matrix, Powerup_info[Objects[i].id].size, CT_POWERUP, MT_PHYSICS, RT_POWERUP);
+							// con_printf(CON_NORMAL, "Duped %d (%d) as %d\n", i, objnum, Objects[i].id); 							
 							if (objnum != -1)
 							{
 								Objects[objnum].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;

@@ -1222,6 +1222,7 @@ int is_key_rotate_event(d_event *event) {
 
 void kconfig_read_controls(d_event *event, int automap_flag)
 {
+
 	int i = 0, j = 0, speed_factor = cheats.turbo?2:1;
 	static fix64 mouse_delta_time = 0;
 
@@ -1234,10 +1235,7 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	}
 #endif
 
-	// CED
-	//if(! (PlayerCfg.MouseControlStyle == MOUSE_CONTROL_OLDSCHOOL)) {
-		Controls.pitch_time = Controls.vertical_thrust_time = Controls.heading_time = Controls.sideways_thrust_time = Controls.bank_time = Controls.forward_thrust_time = 0;
-	//}
+	Controls.pitch_time = Controls.vertical_thrust_time = Controls.heading_time = Controls.sideways_thrust_time = Controls.bank_time = Controls.forward_thrust_time = 0;
 
 	switch (event->type)
 	{
@@ -1258,6 +1256,7 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 						*kc_keyboard[i].ci_count_ptr += 1;
 				}
 			}
+		
 			if (!automap_flag && event->type == EVENT_KEY_COMMAND)
 				for (i = 0, j = 0; i < 28; i += 3, j++)
 					if (kc_d1x[i].value < 255 && kc_d1x[i].value == event_key_get_raw(event))
@@ -1697,6 +1696,7 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	if (Controls.sideways_thrust_time < -FrameTime ) Controls.sideways_thrust_time = -FrameTime;
 	if (Controls.bank_time < -FrameTime ) Controls.bank_time = -FrameTime;
 	if (Controls.forward_thrust_time < -FrameTime ) Controls.forward_thrust_time = -FrameTime;
+
 }
 
 void reset_cruise(void)
