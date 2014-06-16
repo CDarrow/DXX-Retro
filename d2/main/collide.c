@@ -1997,7 +1997,10 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 
 
 		//	If player has vulcan ammo, but no vulcan cannon, drop the ammo.
-		if (!(Players[playerobj->id].primary_weapon_flags & HAS_VULCAN_FLAG)) {
+		if (!(
+			  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) ||
+			  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX))
+		   ) ) {
 			int	amount = Players[playerobj->id].primary_ammo[VULCAN_INDEX];
 			if (amount > 200) {
 				amount = 200;
