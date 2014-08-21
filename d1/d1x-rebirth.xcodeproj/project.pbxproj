@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,7 +14,6 @@
 		6710AAFF066B2D6100DB0F68 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6710AAFE066B2D6100DB0F68 /* SDL.framework */; };
 		6710AB00066B2D6100DB0F68 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6710AAFE066B2D6100DB0F68 /* SDL.framework */; };
 		6710AB69066B2E0400DB0F68 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6710AB68066B2E0400DB0F68 /* OpenGL.framework */; };
-		675ED149066B198A00E42AA7 /* d1x-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 675ED123066B196700E42AA7 /* d1x-Info.plist */; };
 		676032E0066B399A008A67A3 /* multi.c in Sources */ = {isa = PBXBuildFile; fileRef = 676032DC066B399A008A67A3 /* multi.c */; };
 		676032E1066B399A008A67A3 /* multibot.c in Sources */ = {isa = PBXBuildFile; fileRef = 676032DD066B399A008A67A3 /* multibot.c */; };
 		676032E4066B399A008A67A3 /* multi.c in Sources */ = {isa = PBXBuildFile; fileRef = 676032DC066B399A008A67A3 /* multi.c */; };
@@ -261,6 +260,9 @@
 		67F6FED3066B13B400443922 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 67F6FED1066B13B400443922 /* SDLMain.m */; };
 		67F6FED4066B13B400443922 /* SDLMain.h in Headers */ = {isa = PBXBuildFile; fileRef = 67F6FED0066B13B400443922 /* SDLMain.h */; };
 		67F6FED5066B13B400443922 /* SDLMain.m in Sources */ = {isa = PBXBuildFile; fileRef = 67F6FED1066B13B400443922 /* SDLMain.m */; };
+		E8423BD91981DD1900FEC3FE /* libphysfs.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB91A41212617084009E0095 /* libphysfs.dylib */; };
+		E8CBB03F1981AB54000E8A41 /* SDL_mixer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB92BEC40CDD6B4B0045A32C /* SDL_mixer.framework */; };
+		E8CBB0401981AB57000E8A41 /* SDL.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6710AAFE066B2D6100DB0F68 /* SDL.framework */; };
 		EB0929F912A10889004D9A79 /* messagebox.h in Headers */ = {isa = PBXBuildFile; fileRef = EB0929F712A10889004D9A79 /* messagebox.h */; };
 		EB0929FA12A10889004D9A79 /* messagebox.c in Sources */ = {isa = PBXBuildFile; fileRef = EB0929F812A10889004D9A79 /* messagebox.c */; };
 		EB0929FB12A10889004D9A79 /* messagebox.h in Headers */ = {isa = PBXBuildFile; fileRef = EB0929F712A10889004D9A79 /* messagebox.h */; };
@@ -296,12 +298,9 @@
 		EB61426C1501EDC9004E2AE8 /* segsize.pad in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB6142501501EDC9004E2AE8 /* segsize.pad */; };
 		EB61426D1501EDC9004E2AE8 /* test.pad in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB6142511501EDC9004E2AE8 /* test.pad */; };
 		EB61426E1501EDC9004E2AE8 /* texture.pad in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB6142521501EDC9004E2AE8 /* texture.pad */; };
-		EB61427E1501F2FB004E2AE8 /* d1xgl-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 67F6FEEA066B13D900443922 /* d1xgl-Info.plist */; };
 		EB775A7A105611720036C348 /* extractD1Data.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB775A79105611720036C348 /* extractD1Data.cpp */; };
 		EB8BE84F1071FBE00069486E /* player.c in Sources */ = {isa = PBXBuildFile; fileRef = EB8BE84E1071FBE00069486E /* player.c */; };
 		EB8BE8501071FBE00069486E /* player.c in Sources */ = {isa = PBXBuildFile; fileRef = EB8BE84E1071FBE00069486E /* player.c */; };
-		EB91A41012617070009E0095 /* libphysfs.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EB91A40F12617070009E0095 /* libphysfs.dylib */; };
-		EB91A41112617070009E0095 /* libphysfs.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EB91A40F12617070009E0095 /* libphysfs.dylib */; };
 		EB91A41312617084009E0095 /* libphysfs.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EB91A41212617084009E0095 /* libphysfs.dylib */; };
 		EB91A41412617084009E0095 /* libphysfs.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EB91A41212617084009E0095 /* libphysfs.dylib */; };
 		EB92BE600CDD693C0045A32C /* digi_audio.c in Sources */ = {isa = PBXBuildFile; fileRef = EB92BE5C0CDD693C0045A32C /* digi_audio.c */; };
@@ -502,6 +501,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		E8CBB03D1981AB3F000E8A41 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				E8CBB03F1981AB54000E8A41 /* SDL_mixer.framework in CopyFiles */,
+				E8CBB0401981AB57000E8A41 /* SDL.framework in CopyFiles */,
+				E8423BD91981DD1900FEC3FE /* libphysfs.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EB6142761501EFAB004E2AE8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -557,7 +568,7 @@
 		17DFA6AF10C1A29500674D11 /* net_udp.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = net_udp.c; sourceTree = "<group>"; };
 		17DFA6B210C1A2A300674D11 /* net_udp.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = net_udp.h; sourceTree = "<group>"; };
 		670E3796066C50C30085B671 /* CHANGELOG.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = CHANGELOG.txt; sourceTree = "<group>"; };
-		6710AAFE066B2D6100DB0F68 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
+		6710AAFE066B2D6100DB0F68 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = "../osx-frameworks/SDL.framework"; sourceTree = SOURCE_ROOT; };
 		6710AB68066B2E0400DB0F68 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		675ED123066B196700E42AA7 /* d1x-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; path = "d1x-Info.plist"; sourceTree = "<group>"; };
 		676032DC066B399A008A67A3 /* multi.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = multi.c; sourceTree = "<group>"; };
@@ -789,15 +800,14 @@
 		EB775A79105611720036C348 /* extractD1Data.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = extractD1Data.cpp; sourceTree = "<group>"; };
 		EB8BE84E1071FBE00069486E /* player.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = player.c; sourceTree = "<group>"; };
 		EB9181090DABA47B0010CB39 /* console.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = console.h; sourceTree = "<group>"; };
-		EB91A40F12617070009E0095 /* libphysfs.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.dylib; path = ../physfs/build/Debug/libphysfs.dylib; sourceTree = SOURCE_ROOT; };
-		EB91A41212617084009E0095 /* libphysfs.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.dylib; path = ../physfs/build/Release/libphysfs.dylib; sourceTree = SOURCE_ROOT; };
+		EB91A41212617084009E0095 /* libphysfs.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.dylib; path = "../osx-frameworks/physfs/build/Release/libphysfs.dylib"; sourceTree = SOURCE_ROOT; };
 		EB92BE5C0CDD693C0045A32C /* digi_audio.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = digi_audio.c; sourceTree = "<group>"; };
 		EB92BE5D0CDD693C0045A32C /* digi_mixer_music.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = digi_mixer_music.c; sourceTree = "<group>"; };
 		EB92BE5E0CDD693C0045A32C /* digi_mixer.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = digi_mixer.c; sourceTree = "<group>"; };
 		EB92BE5F0CDD693C0045A32C /* jukebox.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = jukebox.c; sourceTree = "<group>"; };
 		EB92BE680CDD69830045A32C /* dl_list.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = dl_list.h; sourceTree = "<group>"; };
 		EB92BEA40CDD6A570045A32C /* dl_list.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = dl_list.c; sourceTree = "<group>"; };
-		EB92BEC40CDD6B4B0045A32C /* SDL_mixer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_mixer.framework; path = /Library/Frameworks/SDL_mixer.framework; sourceTree = "<absolute>"; };
+		EB92BEC40CDD6B4B0045A32C /* SDL_mixer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_mixer.framework; path = "../osx-frameworks/SDL_mixer.framework"; sourceTree = SOURCE_ROOT; };
 		EBAC98F90D42497F0017D4BC /* ignorecase.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = ignorecase.c; sourceTree = "<group>"; };
 		EBAC994E0D4250320017D4BC /* ignorecase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ignorecase.h; sourceTree = "<group>"; };
 		EBAC99500D4250320017D4BC /* physfsx.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = physfsx.h; sourceTree = "<group>"; };
@@ -922,7 +932,6 @@
 				6710AB00066B2D6100DB0F68 /* SDL.framework in Frameworks */,
 				EB92BEC60CDD6B4B0045A32C /* SDL_mixer.framework in Frameworks */,
 				EBC858F5122E165800FA437D /* ApplicationServices.framework in Frameworks */,
-				EB91A41112617070009E0095 /* libphysfs.dylib in Frameworks */,
 				EB91A41412617084009E0095 /* libphysfs.dylib in Frameworks */,
 				EB092A4B12A21A14004D9A79 /* Carbon.framework in Frameworks */,
 			);
@@ -937,7 +946,6 @@
 				6710AB69066B2E0400DB0F68 /* OpenGL.framework in Frameworks */,
 				17A707EB10C1B5FA002D1680 /* SDL_mixer.framework in Frameworks */,
 				EBC858F4122E165800FA437D /* ApplicationServices.framework in Frameworks */,
-				EB91A41012617070009E0095 /* libphysfs.dylib in Frameworks */,
 				EB91A41312617084009E0095 /* libphysfs.dylib in Frameworks */,
 				EB092A4A12A21A14004D9A79 /* Carbon.framework in Frameworks */,
 			);
@@ -967,7 +975,6 @@
 			isa = PBXGroup;
 			children = (
 				EB91A41212617084009E0095 /* libphysfs.dylib */,
-				EB91A40F12617070009E0095 /* libphysfs.dylib */,
 				EBC858F3122E165800FA437D /* ApplicationServices.framework */,
 				EB92BEC40CDD6B4B0045A32C /* SDL_mixer.framework */,
 				6710AB68066B2E0400DB0F68 /* OpenGL.framework */,
@@ -1660,6 +1667,7 @@
 				676AC29B0668A939007173EB /* Sources */,
 				676AC31C0668A939007173EB /* Frameworks */,
 				EBAC9A701525C67500F6C779 /* CopyFiles */,
+				E8CBB03D1981AB3F000E8A41 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -1691,8 +1699,11 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+			};
 			buildConfigurationList = EBBAD49E0B2D0F7E00080BBF /* Build configuration list for PBXProject "d1x-rebirth" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -1717,7 +1728,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				675ED149066B198A00E42AA7 /* d1x-Info.plist in Resources */,
 				EB9E8DF30D66C2570099B0B5 /* d1x-rebirth.icns in Resources */,
 				EB380D7E0E168B1900EBD9AD /* InfoPlist.strings in Resources */,
 			);
@@ -1727,7 +1737,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EB61427E1501F2FB004E2AE8 /* d1xgl-Info.plist in Resources */,
 				EBAEB74C0BF4A86F00FC6E13 /* d1x-rebirth.icns in Resources */,
 				EB380D7D0E168B1900EBD9AD /* InfoPlist.strings in Resources */,
 				EBAC9A3D1525C5E800F6C779 /* curve.pad in Resources */,
@@ -2196,6 +2205,7 @@
 		EBBAD4930B2D0F7E00080BBF /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(HOME)/Library/Frameworks",
@@ -2231,6 +2241,7 @@
 		EBBAD4940B2D0F7E00080BBF /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(HOME)/Library/Frameworks",
@@ -2266,6 +2277,7 @@
 		EBBAD4950B2D0F7E00080BBF /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework/Versions/A/Frameworks\"";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					HAVE_CONFIG_H,
@@ -2296,6 +2308,8 @@
 		EBBAD4970B2D0F7E00080BBF /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(HOME)/Library/Frameworks",
@@ -2323,8 +2337,12 @@
 					/Library/Frameworks/SDL.framework/Headers,
 				);
 				INFOPLIST_FILE = "d1xgl-Info.plist";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../physfs/build/Debug\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = d1xgl;
+				SDKROOT = macosx;
 				WARNING_CFLAGS = "-Wall";
 				ZERO_LINK = NO;
 			};
@@ -2333,10 +2351,13 @@
 		EBBAD4980B2D0F7E00080BBF /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(HOME)/Library/Frameworks",
 					/Library/Frameworks,
+					"../osx-frameworks",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework/Versions/A/Frameworks\"";
@@ -2349,18 +2370,30 @@
 					RELEASE,
 				);
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
+				GCC_VERSION_i386 = "";
+				GCC_VERSION_ppc = "";
 				HEADER_SEARCH_PATHS = (
 					include,
 					main,
 					arch/sdl/include,
 					arch/ogl/include,
-					../physfs,
+					"../osx-frameworks/SDL.framework/Headers",
 					"$(HOME)/Library/Frameworks/SDL.framework/Headers",
 					/Library/Frameworks/SDL.framework/Headers,
+					"../osx-frameworks/physfs",
 				);
 				INFOPLIST_FILE = "d1xgl-Info.plist";
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../physfs/build/Release\"";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../osx-frameworks/physfs/build/Release\"",
+					"../osx-frameworks/physfs/build/Release",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET_i386 = "";
+				MACOSX_DEPLOYMENT_TARGET_ppc = "";
 				PRODUCT_NAME = d1xgl;
+				SDKROOT = macosx;
 				SKIP_INSTALL = NO;
 				WARNING_CFLAGS = "-Wall";
 				ZERO_LINK = NO;
@@ -2370,6 +2403,8 @@
 		EBBAD4990B2D0F7E00080BBF /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYSTEM_LIBRARY_DIR)/Frameworks/ApplicationServices.framework/Versions/A/Frameworks\"";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					no_cpp_precomp,
@@ -2386,7 +2421,8 @@
 					"$(HOME)/Library/Frameworks/SDL.framework/Headers",
 				);
 				INFOPLIST_FILE = "d1xgl-Info.plist";
-				INSTALL_PATH = "$(USER_APPS_DIR)";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
@@ -2400,7 +2436,9 @@
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)/../physfs/build/Release\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_3 = "\"$(SRCROOT)/../physfs/build/Release\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_4 = "\"$(SRCROOT)/../physfs/build/Debug\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = d1xgl;
+				SDKROOT = macosx;
 				WARNING_CFLAGS = "-Wall";
 			};
 			name = Default;
@@ -2427,7 +2465,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.1;
 				OTHER_CFLAGS = "-lSystemStubs";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 			};
 			name = Deployment;
 		};
@@ -2438,7 +2476,7 @@
 					"$(HOME)/Library/Frameworks",
 					/Library/Frameworks,
 				);
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 			};
 			name = Default;
 		};

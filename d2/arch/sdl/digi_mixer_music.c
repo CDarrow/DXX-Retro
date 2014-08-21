@@ -10,7 +10,7 @@
 #if !(defined(__APPLE__) && defined(__MACH__))
 #include <SDL/SDL_mixer.h>
 #else
-#include <SDL/SDL_mixer/SDL_mixer.h>
+#include <SDL_mixer/SDL_mixer.h>
 #endif
 #include <string.h>
 #include <stdlib.h>
