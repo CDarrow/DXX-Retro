@@ -604,7 +604,7 @@ int udp_tracker_unregister()
 int udp_tracker_register()
 {
 	// Variables
-	int iLen = 14;
+	int iLen = 15;
 	ubyte pBuf[iLen];
 	
 	// Reset the last tracker message
