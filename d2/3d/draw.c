@@ -65,7 +65,7 @@ bool must_clip_line(g3s_point *p0,g3s_point *p1,ubyte codes_or)
 }
 
 //draws a line. takes two points.  returns true if drew
-bool g3_draw_line(g3s_point *p0,g3s_point *p1)
+bool g3_draw_line(const g3s_point *p0,const g3s_point *p1)
 {
 	ubyte codes_or;
 
@@ -194,7 +194,7 @@ free_points:
 #ifndef OGL
 //draw a flat-shaded face.
 //returns 1 if off screen, 0 if drew
-bool g3_draw_poly(int nv,g3s_point **pointlist)
+bool g3_draw_poly(int nv,const g3s_point **pointlist)
 {
 	int i;
 	g3s_point **bufptr;
@@ -242,7 +242,7 @@ bool must_clip_tmap_face(int nv,g3s_codes cc,grs_bitmap *bm);
 
 //draw a texture-mapped face.
 //returns 1 if off screen, 0 if drew
-bool g3_draw_tmap(int nv,g3s_point **pointlist,g3s_uvl *uvl_list,g3s_lrgb *light_rgb,grs_bitmap *bm)
+bool g3_draw_tmap(int nv,const g3s_point **pointlist,g3s_uvl *uvl_list,g3s_lrgb *light_rgb,grs_bitmap *bm)
 {
 	int i;
 	g3s_point **bufptr;

@@ -1272,7 +1272,7 @@ void graphics_config()
 	newmenu_item m[18];
 	int i = 0;
 #else
-	newmenu_item m[3];
+	newmenu_item m[6];
 #endif
 	int nitems = 0;
 

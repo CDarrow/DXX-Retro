@@ -1249,7 +1249,7 @@ void graphics_config()
 	newmenu_item m[16];
 	int i = 0;
 #else
-	newmenu_item m[5];
+	newmenu_item m[6];
 #endif
 	int nitems = 0;
 
@@ -1308,7 +1308,7 @@ void graphics_config()
 	GameCfg.GammaLevel = m[opt_gr_brightness].value;
 	GameCfg.FPSIndicator = m[opt_gr_fpsindi].value;
 	PlayerCfg.DisableCockpit = m[opt_gr_disablecockpit].value; 
-#ifdef OGL
+
 
 	PlayerCfg.maxFps=atoi(framerate_string);
 
@@ -1318,6 +1318,7 @@ void graphics_config()
 		PlayerCfg.maxFps = 200; 
 	}
 
+#ifdef OGL
 	gr_set_attributes();
 	gr_set_mode(Game_screen_mode);
 #endif
