@@ -1140,8 +1140,6 @@ void GameProcessFrame(void)
 		if (allowed_to_fire_laser())
 			FireLaser();				// Fire Laser!
 
-		delayed_autoselect(); /* SelectAfterFire */ 
-		do_shield_warnings(); 
 
 		if (Auto_fire_fusion_cannon_time) {
 			if (Primary_weapon != FUSION_INDEX)
@@ -1178,6 +1176,9 @@ void GameProcessFrame(void)
 
 		if (Global_laser_firing_count < 0)
 			Global_laser_firing_count = 0;
+
+		delayed_autoselect(); /* SelectAfterFire */ 
+		do_shield_warnings(); 
 	}
 
 	if (Do_appearance_effect) {
