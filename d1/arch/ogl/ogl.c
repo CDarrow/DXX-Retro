@@ -1021,7 +1021,8 @@ bool g3_draw_tmap_2(int nv, g3s_point **pointlist, g3s_uvl *uvl_list, g3s_lrgb *
 /*
  * 2d Sprites (Fireaballs, powerups, explosions). NOT hostages
  */
-bool g3_draw_bitmap(vms_vector *pos,fix width,fix height,grs_bitmap *bm)
+bool g3_draw_bitmap_full(vms_vector *pos,fix width,fix height,grs_bitmap *bm,
+	GLfloat r, GLfloat g, GLfloat b)
 {
 	vms_vector pv,v1;
 	int i;
@@ -1070,9 +1071,9 @@ bool g3_draw_bitmap(vms_vector *pos,fix width,fix height,grs_bitmap *bm)
 				break;
 		}
 
-		color_array[i*4]    = 1.0;
-		color_array[i*4+1]  = 1.0;
-		color_array[i*4+2]  = 1.0;
+		color_array[i*4]    = r;//1.0;
+		color_array[i*4+1]  = g; //1.0; // 0.0 makes it all purple
+		color_array[i*4+2]  = b; //1.0;
 		color_array[i*4+3]  = (grd_curcanv->cv_fade_level >= GR_FADE_OFF)?1.0:(1.0 - (float)grd_curcanv->cv_fade_level / ((float)GR_FADE_LEVELS - 1.0));
 		
 		vertex_array[i*3]   = f2glf(pv.x);
@@ -1088,6 +1089,18 @@ bool g3_draw_bitmap(vms_vector *pos,fix width,fix height,grs_bitmap *bm)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	return 0;
+}
+
+
+bool g3_draw_bitmap_colorwarp(vms_vector *pos,fix width,fix height,grs_bitmap *bm,
+	   float r, float g, float b) 
+{
+	return g3_draw_bitmap_full(pos, width, height, bm, r, g, b); 
+}
+
+bool g3_draw_bitmap(vms_vector *pos,fix width,fix height,grs_bitmap *bm)
+{
+	return g3_draw_bitmap_full(pos, width, height, bm, 1.0, 1.0, 1.0); 
 }
 
 /*
