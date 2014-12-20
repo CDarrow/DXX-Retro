@@ -204,7 +204,8 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 		obj->id == PLAYER_SMART_HOMING_ID &&
 		obj->ctype.laser_info.parent_num == Players[Player_num].objnum) {
 		
-		g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.75, 0.75, 0.75);
+		g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.0, 0.65, 1.0);
+		//g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 1.0, 0.5, 0.0);
 
 	} else {
 		if (bm->bm_w > bm->bm_h)
