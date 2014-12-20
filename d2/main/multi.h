@@ -485,7 +485,7 @@ typedef struct netgame_info
 	short						ShowEnemyNames;
 	short						BrightPlayers;
 	char						team_name[2][CALLSIGN_LEN+1];
-	ubyte						TeamKillGoalCount[2]; 
+	signed char						TeamKillGoalCount[2]; 
 	int						locations[MAX_PLAYERS];
 	short						kills[MAX_PLAYERS][MAX_PLAYERS];
 	ushort						segments_checksum;
