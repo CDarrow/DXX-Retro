@@ -363,7 +363,32 @@ int door_is_openable_by_player(segment *segp, int sidenum)
 
 }
 
+int door_is_really_openable_by_player(segment *segp, int sidenum)
+{
+	int	wall_num, wall_type;
+
+	wall_num = segp->sides[sidenum].wall_num;
+	wall_type = Walls[wall_num].type;
+
+	if (wall_num == -1)
+		return 0;						//	no wall here.
+
+	//	Can't open locked doors.
+	if((wall_type == WALL_DOOR) && (Walls[wall_num].flags & WALL_DOOR_LOCKED))
+		return 0; 
+
+	if(wall_type == WALL_CLOSED)
+		return 0;
+
+	if(wall_type == WALL_NORMAL)
+		return 0;
+
+	return 1;
+}
+
+
 #define	QUEUE_SIZE	64
+int segment_is_really_connected(object *objp, int target_segment); 
 
 // --------------------------------------------------------------------------------------------------------------------
 //	Return a segment %i segments away from initial segment.
@@ -387,6 +412,8 @@ int pick_connected_segment(object *objp, int max_depth)
 	head = 0;
 	tail = 0;
 
+	//con_printf(CON_NORMAL, "Spawning from %d at depth %d\n", start_seg, max_depth);
+	
 	seg_queue[head++] = start_seg;
 	cur_depth = 0;
 
@@ -410,7 +437,9 @@ int pick_connected_segment(object *objp, int max_depth)
 		int		ind1, ind2, temp;
 
 		if (cur_depth >= max_depth) {
-			return seg_queue[tail];
+			//if(segment_is_really_connected(objp, seg_queue[tail])) {
+				return seg_queue[tail];
+			//}
 		}
 
 		segp = &Segments[seg_queue[tail++]];
@@ -458,6 +487,62 @@ int pick_connected_segment(object *objp, int max_depth)
 	}
 
 	return -1;
+}
+
+
+int segment_is_really_connected(object *objp, int target_segment)
+{
+	int		start_seg;
+	int		head, tail;
+	int		seg_queue[MAX_SEGMENTS];
+	sbyte   visited[MAX_SEGMENTS];
+
+	if(target_segment < 0)
+		return 0;
+
+	memset(visited, 0, Highest_segment_index+1);
+	memset(seg_queue,0,MAX_SEGMENTS);
+
+	start_seg = objp->segnum;
+	head = 0;
+	tail = 0;
+	//con_printf(CON_NORMAL, "  Is segment %d really connected to %d?\n", start_seg, target_segment); 
+	seg_queue[head++] = start_seg;
+
+	while (tail != head) {
+		int		sidenum;
+		segment	*segp;
+
+		segp = &Segments[seg_queue[tail++]];
+
+		for (sidenum=0; sidenum<MAX_SIDES_PER_SEGMENT; sidenum++) {
+			int	wall_num;
+
+			wall_num = segp->sides[sidenum].wall_num;
+
+			if ((wall_num == -1 || door_is_really_openable_by_player(segp, sidenum)) && 
+				segp->children[sidenum] > -1)
+			{
+				if (visited[segp->children[sidenum]] == 0) {
+					int new_seg = segp->children[sidenum];
+
+					//con_printf(CON_NORMAL, "    Checking segment %d\n", new_seg); 
+
+					if(new_seg == target_segment)
+						return 1; 
+
+
+					seg_queue[head++] = new_seg;
+					visited[new_seg] = 1;
+
+					if(head > MAX_SEGMENTS)
+						return 0; // Must've checked 'em all, right?
+				}
+			}
+		}
+	}
+	//con_printf(CON_NORMAL, "  No.\n"); 
+	return 0;
 }
 
 #define BASE_NET_DROP_DEPTH 10
@@ -528,8 +613,14 @@ int choose_drop_segment()
 			}
 		}
 
+		if(! segment_is_really_connected(&Objects[Players[pnum].objnum], segnum)) {
+			segnum = -1; 
+		}
+
 		cur_drop_depth--;
 	}
+
+	int my_segment = Objects[Players[Player_num].objnum].segnum; 
 
 	if (segnum == -1) {
 		//con_printf(CON_NORMAL, "Attempting to spawn under reduced constraints.\n");
@@ -554,9 +645,14 @@ int choose_drop_segment()
 					}
 				}
 			}
+
+			if(! segment_is_really_connected(&Objects[Players[Player_num].objnum], segnum)) {
+				segnum = -1; 
+			}
 		}
-		//con_printf(CON_NORMAL, "Selected %d (final).\n", segnum);
-		return ((segnum == -1)?((d_rand() * Highest_segment_index) >> 15):segnum); // basically it should be impossible segnum == -1 now... but oh well...
+		// If we get this desperate, just give it to me
+		int final_choice = ((segnum == -1) ? my_segment : segnum); 
+		return final_choice; //((segnum == -1)?((d_rand() * Highest_segment_index) >> 15):segnum); // basically it should be impossible segnum == -1 now... but oh well...
 	} else
 		return segnum;
 
