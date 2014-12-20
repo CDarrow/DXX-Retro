@@ -1271,6 +1271,9 @@ int ReadControls(d_event *event)
 		if (HandleDeathInput(event)) {
 			if( (Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) ) {
 				// fall through to normal key handler
+
+				// Make sure flares/shots go in direction of preview
+				ConsoleObject->orient = Dead_player_camera->orient;
 			} else {
 
 				return 1;

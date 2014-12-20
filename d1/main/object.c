@@ -1524,6 +1524,10 @@ void dead_player_frame(void)
 
 					Dead_player_camera->control_type = CT_FLYING;
 					Dead_player_camera->movement_type = MT_PHYSICS; 
+
+					// Avoid first shot coming out at death site
+					ConsoleObject->pos = Player_init[previewed_spawn_point].pos;
+					ConsoleObject->orient = Player_init[previewed_spawn_point].orient;
 				}
 #endif				
 			}
