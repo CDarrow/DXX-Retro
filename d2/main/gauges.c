@@ -1192,7 +1192,8 @@ void hud_show_weapons_mode(int type,int vertical,int x,int y){
 					sprintf(weapon_str," ");
 					break;
 				case 6:
-					sprintf(weapon_str,"G%i", f2i((unsigned int)Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
+					sprintf(weapon_str,"G");
+					//sprintf(weapon_str,"G%i", f2i((unsigned int)Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
 					//sprintf(weapon_str,"G");
 					break;
 				case 7:
@@ -1214,8 +1215,27 @@ void hud_show_weapons_mode(int type,int vertical,int x,int y){
 				x-=w+FSPACX(3);
 
 			gr_string(x, y, weapon_str);
+
 			if (i == 6 && Primary_weapon == i && PlayerCfg.CockpitMode[1]==CM_FULL_SCREEN)
 				gr_printf(x+FSPACX(9),y-(LINE_SPACING*2),"G:%i",f2i((unsigned int)Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
+
+			// Deal with vulcan ammo uniformly here
+			if (i == 6) {
+				sprintf(weapon_str,"%i", f2i((unsigned int)Players[Player_num].primary_ammo[1] * VULCAN_AMMO_SCALE));
+
+				if (Primary_weapon==1 || Primary_weapon == 6) {
+					gr_set_fontcolor(BM_XRGB(20,0,0),-1);
+				} else if (  (player_has_weapon(1,0) & HAS_WEAPON_FLAG) ||
+					         (player_has_weapon(6,0) & HAS_WEAPON_FLAG)) {
+					gr_set_fontcolor(BM_XRGB(0,15,0),-1);
+				} else {
+					gr_set_fontcolor(BM_XRGB(3,3,3),-1);
+				}
+
+				gr_string(x + FSPACX(6), y, weapon_str);
+			}
+
+			
 		}
 	} else {
 		for (i=9;i>=5;i--){
