@@ -204,6 +204,7 @@ int pick_up_vulcan_ammo(void)
 
 	int	pwsave = Primary_weapon;		// Ugh, save selected primary weapon around the picking up of the ammo.  I apologize for this code.  Matthew A. Toschlog
 	if (pick_up_ammo(CLASS_PRIMARY, VULCAN_INDEX, VULCAN_AMMO_AMOUNT)) {
+		VulcanAmmoBoxesOnBoard[Player_num] += 1; 
 		powerup_basic(7, 14, 21, VULCAN_AMMO_SCORE, "%s!", TXT_VULCAN_AMMO);
 		used = 1;
 	} else {
@@ -374,11 +375,13 @@ int do_powerup(object *obj)
 			//and remove the powerup.  If multi-player take ammo in excess of
 			//the amount in a powerup, and leave the rest.
 			if (! used)
-				if ((Game_mode & GM_MULTI) )
-					//ammo -= VULCAN_AMMO_AMOUNT;	//don't let take all ammo
-					// GAUSS AMMO BUG -- fix in 1.3! 
-					ammo = 0; // Forgot to tell other players we took ammo, it dups, very bad
-
+				if ((Game_mode & GM_MULTI) ) {
+					if(Netgame.GaussAmmoStyle == GAUSS_STYLE_DUPLICATING) {
+						ammo -= VULCAN_AMMO_AMOUNT;
+					} else {
+						ammo = 0; // Forgot to tell other players we took ammo, it dups, very bad
+					}
+				}
 			if (ammo > 0) {
 				int ammo_used;
 				ammo_used = pick_up_ammo(CLASS_PRIMARY, VULCAN_INDEX, ammo);

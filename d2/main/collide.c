@@ -1951,18 +1951,31 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 		}
 #endif
 
+		
+
+
 		//Drop the vulcan, gauss, and ammo
 		vulcan_ammo = Players[pnum].primary_ammo[VULCAN_INDEX];
+		if( (Game_mode & GM_MULTI) && ! (Game_mode & GM_MULTI_COOP)) {
+			if (vulcan_ammo < VULCAN_AMMO_AMOUNT*2) {
+				vulcan_ammo = VULCAN_AMMO_AMOUNT*2; // Min 2500
+			}
+			if(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+				vulcan_ammo = VULCAN_AMMO_AMOUNT*2;
+			}
+		}
 		if ((Players[pnum].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) && (Players[pnum].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX)))
 			vulcan_ammo /= 2;		//if both vulcan & gauss, each gets half
-		if (vulcan_ammo < VULCAN_AMMO_AMOUNT)
-			vulcan_ammo = VULCAN_AMMO_AMOUNT;	//make sure gun has at least as much as a powerup
+		if (vulcan_ammo < VULCAN_AMMO_AMOUNT) {
+			vulcan_ammo = VULCAN_AMMO_AMOUNT; // Min 2500
+		}		
 		objnum = maybe_drop_primary_weapon_egg(playerobj, VULCAN_INDEX);
 		if (objnum!=-1)
 			Objects[objnum].ctype.powerup_info.count = vulcan_ammo;
 		objnum = maybe_drop_primary_weapon_egg(playerobj, GAUSS_INDEX);
 		if (objnum!=-1)
 			Objects[objnum].ctype.powerup_info.count = vulcan_ammo;
+
 
 		//	Drop the rest of the primary weapons
 		maybe_drop_primary_weapon_egg(playerobj, SPREADFIRE_INDEX);
@@ -1995,21 +2008,48 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 		drop_missile_1_or_4(playerobj,SMISSILE1_INDEX, remote);
 		drop_missile_1_or_4(playerobj,SMISSILE4_INDEX, remote);
 
+		// If multi
+		// 		If steady -- just drop the boxes
+		//      If duplicating -- drop ammo even if gauss on board
+		//      If depleting   -- drop ammo unless gauss or vulcan
+		// coop or sp -- drop ammo unless gauss or vulcan
 
-		//	If player has vulcan ammo, but no vulcan cannon, drop the ammo.
-		if (!(
-			  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) ||
-			  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX))
-		   ) ) {
-			int	amount = Players[playerobj->id].primary_ammo[VULCAN_INDEX];
-			if (amount > 200) {
-				amount = 200;
+		if( (! (Game_mode & GM_MULTI))  ||
+			  (  Game_mode & GM_MULTI_COOP)   || 
+			  ( Netgame.GaussAmmoStyle == GAUSS_STYLE_DEPLETING)) {
+
+			if (! (
+				  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) ||
+				  (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX))
+			   ) ) {
+				int	amount = Players[playerobj->id].primary_ammo[VULCAN_INDEX];
+				if (amount > 200) {
+					amount = 200;
+				}
+				while (amount > 0) {
+					call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_VULCAN_AMMO);
+					amount -= VULCAN_AMMO_AMOUNT;
+				}
 			}
-			while (amount > 0) {
+		} else if (Netgame.GaussAmmoStyle == GAUSS_STYLE_DUPLICATING) {
+			if (! (Players[playerobj->id].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) ) {
+				int	amount = Players[playerobj->id].primary_ammo[VULCAN_INDEX];
+				if (amount > 200) {
+					amount = 200;
+				}
+				while (amount > 0) {
+					call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_VULCAN_AMMO);
+					amount -= VULCAN_AMMO_AMOUNT;
+				}
+			}			
+		} else if (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+			int boxes = VulcanAmmoBoxesOnBoard[playerobj->id];
+			while (boxes > 0) {
 				call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_VULCAN_AMMO);
-				amount -= VULCAN_AMMO_AMOUNT;
+				boxes -= 1;
 			}
 		}
+
 
 		//	Always drop a shield and energy powerup.
 		if (Game_mode & GM_MULTI) {

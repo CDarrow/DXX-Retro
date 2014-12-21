@@ -185,6 +185,10 @@ for_each_multiplayer_command(enum {, define_multiplayer_command, });
 #define SPAWN_STYLE_LONG_INVUL 2
 #define SPAWN_STYLE_PREVIEW 3
 
+#define GAUSS_STYLE_DUPLICATING 0
+#define GAUSS_STYLE_DEPLETING 1
+#define GAUSS_STYLE_STEADY 2
+
 #define for_each_netflag_value(VALUE)	\
 	VALUE(NETFLAG_DOLASER, "Laser upgrade")	\
 	VALUE(NETFLAG_DOQUAD, "Quad Lasers")	\
@@ -514,6 +518,7 @@ typedef struct netgame_info
 	ubyte						SecondaryCapFactor;	
 	ubyte						SpawnStyle; 
 	ubyte						BornWithBurner;
+	ubyte						GaussAmmoStyle;
 #ifdef USE_TRACKER
 	ubyte						Tracker;
 #endif

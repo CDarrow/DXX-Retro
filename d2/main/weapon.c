@@ -1259,16 +1259,27 @@ void DropCurrentWeapon ()
 		return;
 
 	if (Primary_weapon == VULCAN_INDEX || Primary_weapon == GAUSS_INDEX) {
+		if( (Game_mode & GM_MULTI) && 
+		   (!(Game_mode & GM_MULTI_COOP)) &&
+		    Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
 
-		//if it's one of these, drop some ammo with the weapon
 
-		ammo = Players[Player_num].primary_ammo[VULCAN_INDEX];
+			ammo = Players[Player_num].primary_ammo[VULCAN_INDEX];
+			if(ammo > VULCAN_AMMO_AMOUNT*2) {
+				ammo = VULCAN_AMMO_AMOUNT*2; 
+			} 
+		}  else {
+			//if it's one of these, drop some ammo with the weapon
 
-		if ((Players[Player_num].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) && (Players[Player_num].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX)))
-			ammo /= 2;		//if both vulcan & gauss, drop half
+			ammo = Players[Player_num].primary_ammo[VULCAN_INDEX];
+
+			if ((Players[Player_num].primary_weapon_flags & HAS_FLAG(VULCAN_INDEX)) && (Players[Player_num].primary_weapon_flags & HAS_FLAG(GAUSS_INDEX)))
+				ammo /= 2;		//if both vulcan & gauss, drop half
+
+			
+		}
 
 		Players[Player_num].primary_ammo[VULCAN_INDEX] -= ammo;
-
 		if (objnum!=-1)
 			Objects[objnum].ctype.powerup_info.count = ammo;
 	}

@@ -2805,6 +2805,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
 		buf[len] = Netgame.BornWithBurner;						len++; 
+		buf[len] = Netgame.GaussAmmoStyle;						len++; 
 
 		if(info_upid == UPID_SYNC) {
 			PUT_INTEL_INT(buf + len, player_tokens[to_player]); len += 4; 
@@ -3032,6 +3033,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
 		Netgame.BornWithBurner = data[len];                len++; 		
+		Netgame.GaussAmmoStyle = data[len];                len++; 
 
 		if(is_sync && ! multi_i_am_master()) {
 			uint my_token = GET_INTEL_INT(data + len);  len += 4;
@@ -3468,6 +3470,7 @@ static int opt_difficulty,opt_packets,opt_shortpack,opt_bright, opt_show_names, 
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 static int opt_burner_spawn; 
+static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady; 
 
 #ifdef USE_TRACKER
 static int opt_tracker;
@@ -3500,9 +3503,9 @@ void net_udp_more_game_options ()
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 	
 #ifdef USE_TRACKER
-	newmenu_item m[34];
+	newmenu_item m[39];
 #else
- 	newmenu_item m[33];
+ 	newmenu_item m[38];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3553,6 +3556,16 @@ void net_udp_more_game_options ()
 	opt_spawn_preview = opt; 
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Preview"; m[opt].value = Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW; m[opt].group = 0; opt++;
 		
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
+
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Gauss Ammo Style"; opt++;
+	opt_gauss_duplicating = opt; 
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Original (Duplicating)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DUPLICATING; m[opt].group = 1; opt++;
+	opt_gauss_depleting = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "D1 (Depleting)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DEPLETING; m[opt].group = 1; opt++;
+	opt_gauss_steady = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY; m[opt].group = 1; opt++;
+
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
@@ -3736,7 +3749,7 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 
 				sprintf( menus[opt_secondary_cap].text, "Cap Secondaries: %s", Netgame.SecondaryCapFactor == 0 ? "Uncapped" : (Netgame.SecondaryCapFactor == 1 ? "Max Six" : "Max Two"));
 
-			}else if (citem == opt_spawn_no_invul) {
+			} else if (citem == opt_spawn_no_invul) {
 				Netgame.SpawnStyle = SPAWN_STYLE_NO_INVUL;
 			} else if (citem == opt_spawn_short_invul) {
 				Netgame.SpawnStyle = SPAWN_STYLE_SHORT_INVUL;
@@ -3744,8 +3757,13 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 				Netgame.SpawnStyle = SPAWN_STYLE_LONG_INVUL;
 			} else if (citem == opt_spawn_preview) {
 				Netgame.SpawnStyle = SPAWN_STYLE_PREVIEW;
-			}
-
+			} else if (citem == opt_gauss_duplicating) {
+				Netgame.GaussAmmoStyle = GAUSS_STYLE_DUPLICATING;
+			}  else if (citem == opt_gauss_depleting) {
+				Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
+			}  else if (citem == opt_gauss_steady) {
+				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY;
+			} 
 
 			break;
 			
@@ -3929,13 +3947,14 @@ int net_udp_setup_game()
 	else
 		snprintf (UDP_MyPort, sizeof(UDP_MyPort), "%d", UDP_PORT_DEFAULT);
 	Netgame.BrightPlayers = 1;
-	Netgame.SpawnStyle = SPAWN_STYLE_PREVIEW;
+	Netgame.SpawnStyle = SPAWN_STYLE_SHORT_INVUL;
 	Netgame.AllowedItems = 0;
 	Netgame.AllowedItems |= NETFLAG_DOPOWERUP;
 	Netgame.PacketLossPrevention = 1;
 	Netgame.NoFriendlyFire = 0;
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
+	Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
 
 #ifdef USE_TRACKER
 	Netgame.Tracker = 1;
