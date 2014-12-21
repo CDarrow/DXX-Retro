@@ -1158,7 +1158,7 @@ int do_laser_firing_player(void)
 				//	digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
 				//}
 
-				if(pre_ammo > warning_increment*4 && post_ammo <= warning_increment*4) {
+				if(pre_ammo >= warning_increment*4 && post_ammo < warning_increment*4) {
 					HUD_init_message_literal(HM_MULTI, "Vulcan ammo warning."); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}
@@ -1168,7 +1168,7 @@ int do_laser_firing_player(void)
 				//}		
 
 
-				if(pre_ammo > warning_increment*2 && post_ammo <= warning_increment*2) {
+				if(pre_ammo >= warning_increment*2 && post_ammo < warning_increment*2) {
 					HUD_init_message_literal(HM_MULTI, "Vulcan ammo low."); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}		
@@ -1178,7 +1178,7 @@ int do_laser_firing_player(void)
 				//}		
 
 
-				if(pre_ammo > warning_increment*1 && post_ammo <= warning_increment*1) {
+				if(pre_ammo >= warning_increment*1 && post_ammo < warning_increment*1) {
 					HUD_init_message_literal(HM_MULTI, "Vulcan ammo critical!"); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}							
@@ -1189,19 +1189,19 @@ int do_laser_firing_player(void)
 			warning_increment = 5; 
 			if(Primary_weapon != VULCAN_INDEX && PlayerCfg.VulcanAmmoWarnings) {
 			
-				if(pre_ammo > warning_increment*4 && post_ammo <= warning_increment*4) {
+				if(pre_ammo >= warning_increment*4 && post_ammo < warning_increment*4) {
 					HUD_init_message_literal(HM_MULTI, "Energy warning."); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}
 
 
-				if(pre_ammo > warning_increment*2 && post_ammo <= warning_increment*2) {
+				if(pre_ammo >= warning_increment*2 && post_ammo < warning_increment*2) {
 					HUD_init_message_literal(HM_MULTI, "Energy low."); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}		
 
 
-				if(pre_ammo > warning_increment*1 && post_ammo <= warning_increment*1) {
+				if(pre_ammo >= warning_increment*1 && post_ammo < warning_increment*1) {
 					HUD_init_message_literal(HM_MULTI, "Energy critical!"); 
 					digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				}					

@@ -1071,9 +1071,9 @@ bool g3_draw_bitmap_full(vms_vector *pos,fix width,fix height,grs_bitmap *bm,
 				break;
 		}
 
-		color_array[i*4]    = r;//1.0;
-		color_array[i*4+1]  = g; //1.0; // 0.0 makes it all purple
-		color_array[i*4+2]  = b; //1.0;
+		color_array[i*4]    = r;
+		color_array[i*4+1]  = g;
+		color_array[i*4+2]  = b;
 		color_array[i*4+3]  = (grd_curcanv->cv_fade_level >= GR_FADE_OFF)?1.0:(1.0 - (float)grd_curcanv->cv_fade_level / ((float)GR_FADE_LEVELS - 1.0));
 		
 		vertex_array[i*3]   = f2glf(pv.x);
@@ -1090,7 +1090,6 @@ bool g3_draw_bitmap_full(vms_vector *pos,fix width,fix height,grs_bitmap *bm,
 
 	return 0;
 }
-
 
 bool g3_draw_bitmap_colorwarp(vms_vector *pos,fix width,fix height,grs_bitmap *bm,
 	   float r, float g, float b) 

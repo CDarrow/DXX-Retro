@@ -204,10 +204,8 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 		obj->type == OBJ_WEAPON && 
 		obj->id == PLAYER_SMART_HOMING_ID &&
 		obj->ctype.laser_info.parent_num == Players[Player_num].objnum) {
-// green homers		
+
 		g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.0, 0.4, 0.0);
-		//g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.0, 0.65, 1.0);
-		//g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 1.0, 0.5, 0.0);
 
 	} else {
 		if (bm->bm_w > bm->bm_h)
