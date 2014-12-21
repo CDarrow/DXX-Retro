@@ -2804,6 +2804,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.PrimaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
+		buf[len] = Netgame.DarkSmartBlobs;					len++;
 		buf[len] = Netgame.BornWithBurner;						len++; 
 		buf[len] = Netgame.GaussAmmoStyle;						len++; 
 
@@ -3032,6 +3033,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.PrimaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
+		Netgame.DarkSmartBlobs = data[len];                len++; 
 		Netgame.BornWithBurner = data[len];                len++; 		
 		Netgame.GaussAmmoStyle = data[len];                len++; 
 
@@ -3470,6 +3472,7 @@ static int opt_difficulty,opt_packets,opt_shortpack,opt_bright, opt_show_names, 
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 static int opt_burner_spawn; 
+static int opt_dark_smarts;
 static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady; 
 
 #ifdef USE_TRACKER
@@ -3503,9 +3506,9 @@ void net_udp_more_game_options ()
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 	
 #ifdef USE_TRACKER
-	newmenu_item m[39];
+	newmenu_item m[40];
 #else
- 	newmenu_item m[38];
+ 	newmenu_item m[39];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3580,6 +3583,9 @@ void net_udp_more_game_options ()
 
 	opt_allowcolor = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Colored Dynamic Lighting"; m[opt].value = Netgame.AllowColoredLighting; opt++;	
+
+	opt_dark_smarts = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Dark Smart Blobs"; m[opt].value = Netgame.DarkSmartBlobs; opt++;	
 
 	opt_marker_view = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Marker camera views"; m[opt].value=Netgame.Allow_marker_view; opt++;
@@ -3689,6 +3695,7 @@ menu:
 	Netgame.AllowColoredLighting  = m[opt_allowcolor].value;
 	Netgame.FairColors  = m[opt_faircolors].value;
 	Netgame.BlackAndWhitePyros  = m[opt_blackwhite].value;	
+	Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )

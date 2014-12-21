@@ -453,5 +453,6 @@ typedef struct netgame_info
 	ubyte						SecondaryDupFactor;
 	ubyte						SecondaryCapFactor;
 	ubyte						SpawnStyle; 
+	ubyte						DarkSmartBlobs;
 } __pack__ netgame_info;
 #endif /* _MULTI_H */

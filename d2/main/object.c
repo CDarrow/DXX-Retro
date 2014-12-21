@@ -236,6 +236,7 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 	}
 
 	if( (Game_mode & GM_MULTI) && 
+		Netgame.DarkSmartBlobs &&
 		obj->type == OBJ_WEAPON && 
 		obj->id == PLAYER_SMART_HOMING_ID &&
 		obj->ctype.laser_info.parent_num == Players[Player_num].objnum) {

@@ -2772,6 +2772,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.PrimaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
+		buf[len] = Netgame.DarkSmartBlobs;					len++;
 
 		if(info_upid == UPID_SYNC) {
 			PUT_INTEL_INT(buf + len, player_tokens[to_player]); len += 4; 
@@ -2983,6 +2984,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.PrimaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
+		Netgame.DarkSmartBlobs = data[len];                    len++; 
 
 		if(is_sync && ! multi_i_am_master()) {
 			uint my_token = GET_INTEL_INT(data + len);  len += 4;
@@ -3418,6 +3420,7 @@ static int opt_cinvul, opt_show_on_map;
 static int opt_show_on_map, opt_difficulty, opt_setpower, opt_playtime, opt_killgoal, opt_port, opt_packets, opt_shortpack, opt_show_names, opt_bright, opt_ffire, opt_retroproto, opt_respawnconcs, opt_allowcolor, opt_faircolors, opt_blackwhite;
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
+static int opt_dark_smarts;
 #ifdef USE_TRACKER
 static int opt_tracker;
 #endif
@@ -3448,9 +3451,9 @@ void net_udp_more_game_options ()
 	char PlayText[80],KillText[80],srinvul[50],packstring[5];
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 #ifdef USE_TRACKER
-	newmenu_item m[32];
+	newmenu_item m[33];
 #else
- 	newmenu_item m[30];
+ 	newmenu_item m[32];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3511,6 +3514,9 @@ void net_udp_more_game_options ()
 
 	opt_allowcolor = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Colored Dynamic Lighting"; m[opt].value = Netgame.AllowColoredLighting; opt++;	
+
+	opt_dark_smarts = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Dark Smart Blobs"; m[opt].value = Netgame.DarkSmartBlobs; opt++;	
 
 
 
@@ -3604,6 +3610,7 @@ menu:
 	Netgame.AllowColoredLighting  = m[opt_allowcolor].value;
 	Netgame.FairColors  = m[opt_faircolors].value;
 	Netgame.BlackAndWhitePyros  = m[opt_blackwhite].value;
+	Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )
@@ -3870,6 +3877,7 @@ int net_udp_setup_game()
 	Netgame.NoFriendlyFire = 0;
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
+	Netgame.DarkSmartBlobs = 0;
 
 #ifdef USE_TRACKER
 	Netgame.Tracker = 1;
