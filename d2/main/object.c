@@ -235,10 +235,22 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 		vm_vec_scale_add2(&pos,&offs_vec,F1_0);
 	}
 
-	if (bm->bm_w > bm->bm_h)
-		g3_draw_bitmap(&pos,obj->size,fixmuldiv(obj->size,bm->bm_h,bm->bm_w),bm);
-	else
-		g3_draw_bitmap(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm);
+	if( (Game_mode & GM_MULTI) && 
+		obj->type == OBJ_WEAPON && 
+		obj->id == PLAYER_SMART_HOMING_ID &&
+		obj->ctype.laser_info.parent_num == Players[Player_num].objnum) {
+
+		g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.0, 0.4, 0.0);
+
+	} else {
+		if (bm->bm_w > bm->bm_h)
+			g3_draw_bitmap(&pos,obj->size,fixmuldiv(obj->size,bm->bm_h,bm->bm_w),bm);
+		
+		else
+			g3_draw_bitmap(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm);
+			
+
+	}
 }
 
 //draw an object that is a texture-mapped rod

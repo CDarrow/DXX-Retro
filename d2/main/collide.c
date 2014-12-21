@@ -2102,15 +2102,15 @@ void do_shield_warnings() {
 		
 		if(PlayerCfg.ShieldWarnings) {
 			
-			if(pre_shields > warning_increment*1 && post_shields <= warning_increment*1) {
+			if(pre_shields >= warning_increment*1 && post_shields < warning_increment*1) {
 				HUD_init_message_literal(HM_MULTI, "Shield critical!"); 
 				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				reset_shield_warning_damage();
-			} else if(pre_shields > warning_increment*2 && post_shields <= warning_increment*2) {
+			} else if(pre_shields >= warning_increment*2 && post_shields < warning_increment*2) {
 				HUD_init_message_literal(HM_MULTI, "Shields low."); 
 				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				reset_shield_warning_damage();
-			} else if(pre_shields > warning_increment*4 && post_shields <= warning_increment*4) {
+			} else if(pre_shields >= warning_increment*4 && post_shields < warning_increment*4) {
 				HUD_init_message_literal(HM_MULTI, "Shield warning."); 
 				digi_play_sample(SOUND_BAD_SELECTION, F1_0);
 				reset_shield_warning_damage();
