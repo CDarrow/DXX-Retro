@@ -3420,7 +3420,7 @@ static int opt_cinvul, opt_show_on_map;
 static int opt_show_on_map, opt_difficulty, opt_setpower, opt_playtime, opt_killgoal, opt_port, opt_packets, opt_shortpack, opt_show_names, opt_bright, opt_ffire, opt_retroproto, opt_respawnconcs, opt_allowcolor, opt_faircolors, opt_blackwhite;
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
-static int opt_dark_smarts;
+//static int opt_dark_smarts;
 #ifdef USE_TRACKER
 static int opt_tracker;
 #endif
@@ -3515,8 +3515,8 @@ void net_udp_more_game_options ()
 	opt_allowcolor = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Allow Colored Dynamic Lighting"; m[opt].value = Netgame.AllowColoredLighting; opt++;	
 
-	opt_dark_smarts = opt;
-	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Dark Smart Blobs"; m[opt].value = Netgame.DarkSmartBlobs; opt++;	
+	//opt_dark_smarts = opt;
+	//m[opt].type = NM_TYPE_CHECK; m[opt].text = "Dark Smart Blobs"; m[opt].value = Netgame.DarkSmartBlobs; opt++;	
 
 
 
@@ -3610,7 +3610,7 @@ menu:
 	Netgame.AllowColoredLighting  = m[opt_allowcolor].value;
 	Netgame.FairColors  = m[opt_faircolors].value;
 	Netgame.BlackAndWhitePyros  = m[opt_blackwhite].value;
-	Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
+	//Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )
