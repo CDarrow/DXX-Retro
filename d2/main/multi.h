@@ -520,6 +520,7 @@ typedef struct netgame_info
 	ubyte						BornWithBurner;
 	ubyte						GaussAmmoStyle;
 	ubyte						DarkSmartBlobs;
+	ubyte						LowVulcan;
 #ifdef USE_TRACKER
 	ubyte						Tracker;
 #endif

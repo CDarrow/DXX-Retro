@@ -2804,7 +2804,8 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.PrimaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
-		buf[len] = Netgame.DarkSmartBlobs;					len++;
+		buf[len] = Netgame.DarkSmartBlobs;					len++; 
+		buf[len] = Netgame.LowVulcan;					len++;
 		buf[len] = Netgame.BornWithBurner;						len++; 
 		buf[len] = Netgame.GaussAmmoStyle;						len++; 
 
@@ -3034,6 +3035,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
 		Netgame.DarkSmartBlobs = data[len];                len++; 
+		Netgame.LowVulcan = data[len];                len++; 
 		Netgame.BornWithBurner = data[len];                len++; 		
 		Netgame.GaussAmmoStyle = data[len];                len++; 
 
@@ -3473,6 +3475,7 @@ static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap;
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 static int opt_burner_spawn; 
 //static int opt_dark_smarts;
+static int opt_low_vulcan;
 static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady; 
 
 #ifdef USE_TRACKER
@@ -3568,6 +3571,9 @@ void net_udp_more_game_options ()
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "D1 (Depleting)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DEPLETING; m[opt].group = 1; opt++;
 	opt_gauss_steady = opt;
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY; m[opt].group = 1; opt++;
+
+	opt_low_vulcan = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Low Vulcan Ammo"; m[opt].value = Netgame.LowVulcan; opt++;	
 
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
@@ -3689,13 +3695,16 @@ menu:
 	Netgame.Tracker = m[opt_tracker].value;
 #endif
 
-
 	Netgame.RetroProtocol = m[opt_retroproto].value;
 	Netgame.RespawnConcs  = m[opt_respawnconcs].value;
 	Netgame.AllowColoredLighting  = m[opt_allowcolor].value;
 	Netgame.FairColors  = m[opt_faircolors].value;
 	Netgame.BlackAndWhitePyros  = m[opt_blackwhite].value;	
 	//Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
+	Netgame.LowVulcan = m[opt_low_vulcan].value;
+
+
+
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )
@@ -3962,6 +3971,7 @@ int net_udp_setup_game()
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
 	Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
+	Netgame.LowVulcan = 0; 
 
 #ifdef USE_TRACKER
 	Netgame.Tracker = 1;

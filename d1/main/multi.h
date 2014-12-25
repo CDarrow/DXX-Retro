@@ -454,5 +454,6 @@ typedef struct netgame_info
 	ubyte						SecondaryCapFactor;
 	ubyte						SpawnStyle; 
 	ubyte						DarkSmartBlobs;
+	ubyte						LowVulcan;
 } __pack__ netgame_info;
 #endif /* _MULTI_H */

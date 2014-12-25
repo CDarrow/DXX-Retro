@@ -1030,7 +1030,9 @@ void read_netgame_profile(netgame_info *ng)
 			else if (!strcmp(token, "RespawnConcs"))
 				ng->RespawnConcs = strtol(value, NULL, 10);	
 			//else if (!strcmp(token, "DarkSmartBlobs"))
-			//	ng->DarkSmartBlobs = strtol(value, NULL, 10);	
+			//	ng->DarkSmartBlobs = strtol(value, NULL, 10);
+			else if (!strcmp(token, "LowVulcan"))
+				ng->LowVulcan = strtol(value, NULL, 10);		
 			else if (!strcmp(token, "AllowColoredLighting"))
 				ng->AllowColoredLighting = strtol(value, NULL, 10);			
 			else if (!strcmp(token, "FairColors"))
@@ -1083,6 +1085,7 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "RetroProtocol=%i\n", ng->RetroProtocol);
 	PHYSFSX_printf(file, "RespawnConcs=%i\n", ng->RespawnConcs);
 	//PHYSFSX_printf(file, "DarkSmartBlobs=%i\n", ng->DarkSmartBlobs);
+	PHYSFSX_printf(file, "LowVulcan=%i\n", ng->LowVulcan);
 	PHYSFSX_printf(file, "AllowColoredLighting=%i\n", ng->AllowColoredLighting);
 	PHYSFSX_printf(file, "FairColors=%i\n", ng->FairColors);
 	PHYSFSX_printf(file, "BlackAndWhitePyros=%i\n", ng->BlackAndWhitePyros);

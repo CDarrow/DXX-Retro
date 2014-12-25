@@ -1165,8 +1165,15 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 
 		//Drop the vulcan, gauss, and ammo
 		vulcan_ammo = Players[pnum].primary_ammo[VULCAN_INDEX];
-		if (vulcan_ammo < VULCAN_AMMO_AMOUNT)
-			vulcan_ammo = VULCAN_AMMO_AMOUNT;	//make sure gun has at least as much as a powerup
+		int min_vulcan_ammo = VULCAN_WEAPON_AMMO_AMOUNT;
+		if ( (Game_mode & GM_MULTI) &&
+			 (!(Game_mode & GM_MULTI_COOP)) &&
+			 Netgame.LowVulcan )
+		{
+			min_vulcan_ammo = VULCAN_WEAPON_AMMO_AMOUNT /2;
+		}
+		if (vulcan_ammo < min_vulcan_ammo)
+			vulcan_ammo = min_vulcan_ammo;	//make sure gun has at least as much as a powerup
 		objnum = maybe_drop_primary_weapon_egg(playerobj, VULCAN_INDEX);
 		if (objnum!=-1)
 			Objects[objnum].ctype.powerup_info.count = vulcan_ammo;

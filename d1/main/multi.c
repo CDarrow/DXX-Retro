@@ -3325,11 +3325,17 @@ multi_prep_level(void)
 				bash_to_shield (i,"smartmissile");
 			if (Objects[i].id == POW_VULCAN_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOVULCAN))
 				bash_to_shield (i,"vulcan");
+			if (Objects[i].id == POW_VULCAN_WEAPON && Netgame.LowVulcan)
+				Objects[i].ctype.powerup_info.count = VULCAN_WEAPON_AMMO_AMOUNT/2; //1250		
 			if (Objects[i].id == POW_PLASMA_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOPLASMA))
 				bash_to_shield (i,"plasma");
 			if (Objects[i].id == POW_PROXIMITY_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOPROXIM))
 				bash_to_shield (i,"proximity");
-			if (Objects[i].id==POW_VULCAN_AMMO && (!(Netgame.AllowedItems & NETFLAG_DOVULCANAMMO)))
+			if (Objects[i].id==POW_VULCAN_AMMO && 
+				( (!(Netgame.AllowedItems & NETFLAG_DOVULCANAMMO)) ||
+				  Netgame.LowVulcan 
+				)
+			   )
 				bash_to_shield(i,"vulcan ammo");
 			if (Objects[i].id == POW_SPREADFIRE_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOSPREAD))
 				bash_to_shield (i,"spread");

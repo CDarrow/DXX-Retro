@@ -335,6 +335,13 @@ int do_powerup(object *obj)
 			if ((used = pick_up_primary(VULCAN_INDEX)) != 0) {
 				vulcan_ammo_to_add_with_cannon = obj->ctype.powerup_info.count;
 				if (vulcan_ammo_to_add_with_cannon < VULCAN_WEAPON_AMMO_AMOUNT) vulcan_ammo_to_add_with_cannon = VULCAN_WEAPON_AMMO_AMOUNT;
+				if ( (Game_mode & GM_MULTI) &&
+					 (!(Game_mode & GM_MULTI_COOP)) &&
+					 Netgame.LowVulcan &&
+					 vulcan_ammo_to_add_with_cannon > VULCAN_WEAPON_AMMO_AMOUNT/2) 
+				{
+					vulcan_ammo_to_add_with_cannon = VULCAN_WEAPON_AMMO_AMOUNT/2;
+				}
 				pick_up_ammo(CLASS_PRIMARY, VULCAN_INDEX, vulcan_ammo_to_add_with_cannon);
 			}
 

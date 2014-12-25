@@ -2772,7 +2772,8 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.PrimaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryDupFactor;                len++; 
 		buf[len] = Netgame.SecondaryCapFactor;                len++; 
-		buf[len] = Netgame.DarkSmartBlobs;					len++;
+		buf[len] = Netgame.DarkSmartBlobs;					len++; 
+		buf[len] = Netgame.LowVulcan;					len++;
 
 		if(info_upid == UPID_SYNC) {
 			PUT_INTEL_INT(buf + len, player_tokens[to_player]); len += 4; 
@@ -2985,6 +2986,8 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.SecondaryDupFactor = data[len];                len++; 
 		Netgame.SecondaryCapFactor = data[len];                len++; 
 		Netgame.DarkSmartBlobs = data[len];                    len++; 
+		Netgame.LowVulcan = data[len];                    len++; 
+
 
 		if(is_sync && ! multi_i_am_master()) {
 			uint my_token = GET_INTEL_INT(data + len);  len += 4;
@@ -3421,6 +3424,7 @@ static int opt_show_on_map, opt_difficulty, opt_setpower, opt_playtime, opt_kill
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 //static int opt_dark_smarts;
+static int opt_low_vulcan;
 #ifdef USE_TRACKER
 static int opt_tracker;
 #endif
@@ -3487,6 +3491,10 @@ void net_udp_more_game_options ()
 	opt_secondary_cap=opt;
 	sprintf( SecCapText, "Cap Secondaries: %s", Netgame.SecondaryCapFactor == 0 ? "Uncapped" : (Netgame.SecondaryCapFactor == 1 ? "Max Six" : "Max Two"));
 	m[opt].type = NM_TYPE_SLIDER; m[opt].value=Netgame.SecondaryCapFactor; m[opt].text= SecCapText; m[opt].min_value=0; m[opt].max_value=2; opt++;
+
+	opt_low_vulcan = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Low Vulcan Ammo"; m[opt].value = Netgame.LowVulcan; opt++;	
+
 
 	opt_setpower = opt;
 	m[opt].type = NM_TYPE_MENU;  m[opt].text = "Set Objects allowed..."; opt++;
@@ -3611,6 +3619,7 @@ menu:
 	Netgame.FairColors  = m[opt_faircolors].value;
 	Netgame.BlackAndWhitePyros  = m[opt_blackwhite].value;
 	//Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
+	Netgame.LowVulcan = m[opt_low_vulcan].value;
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )
@@ -3878,6 +3887,7 @@ int net_udp_setup_game()
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
 	Netgame.DarkSmartBlobs = 0;
+	Netgame.LowVulcan = 0;
 
 #ifdef USE_TRACKER
 	Netgame.Tracker = 1;

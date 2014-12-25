@@ -3676,8 +3676,14 @@ void multi_prep_level(void)
 			if (Objects[i].id == POW_SMARTBOMB_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOSMART))
 				bash_to_shield (i,"smartmissile");
 
+			if (Objects[i].id == POW_GAUSS_WEAPON && Netgame.LowVulcan)
+				Objects[i].ctype.powerup_info.count = VULCAN_WEAPON_AMMO_AMOUNT/2; //1250
+
 			if (Objects[i].id == POW_GAUSS_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOGAUSS))
 				bash_to_shield (i,"gauss");
+
+			if (Objects[i].id == POW_VULCAN_WEAPON && Netgame.LowVulcan)
+				Objects[i].ctype.powerup_info.count = VULCAN_WEAPON_AMMO_AMOUNT/2; //1250
 
 			if (Objects[i].id == POW_VULCAN_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOVULCAN))
 				bash_to_shield (i,"vulcan");
@@ -3701,7 +3707,11 @@ void multi_prep_level(void)
 			if (Objects[i].id == POW_PROXIMITY_WEAPON && (Game_mode & GM_HOARD))
 				bash_to_shield (i,"proximity");
 
-			if (Objects[i].id==POW_VULCAN_AMMO && (!(Netgame.AllowedItems & NETFLAG_DOVULCANAMMO)))
+			if (Objects[i].id==POW_VULCAN_AMMO && 
+				( (!(Netgame.AllowedItems & NETFLAG_DOVULCANAMMO)) ||
+				  Netgame.LowVulcan 
+				)
+			   )	
 				bash_to_shield(i,"vulcan ammo");
 
 			if (Objects[i].id == POW_SPREADFIRE_WEAPON && !(Netgame.AllowedItems & NETFLAG_DOSPREAD))

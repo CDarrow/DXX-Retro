@@ -1279,6 +1279,16 @@ void DropCurrentWeapon ()
 			
 		}
 
+		if( (Game_mode & GM_MULTI) && 
+		   (!(Game_mode & GM_MULTI_COOP)) &&
+		    Netgame.LowVulcan) {
+
+			if(ammo > VULCAN_WEAPON_AMMO_AMOUNT/2) {
+				ammo = VULCAN_WEAPON_AMMO_AMOUNT/2; 
+			} 
+
+		}
+
 		Players[Player_num].primary_ammo[VULCAN_INDEX] -= ammo;
 		if (objnum!=-1)
 			Objects[objnum].ctype.powerup_info.count = ammo;
