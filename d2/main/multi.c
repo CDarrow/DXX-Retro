@@ -1758,7 +1758,9 @@ multi_do_player_explode(const ubyte *buf)
 	Players[pnum].secondary_ammo[SMISSILE4_INDEX] = buf[count]; count++;
 	Players[pnum].secondary_ammo[SMISSILE5_INDEX] = buf[count]; count++;
 
-	if(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+	if( (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RECHARGING) ||
+		(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING) )
+	 {
 		VulcanAmmoBoxesOnBoard[pnum] = GET_INTEL_SHORT(buf + count); count += 2;
 		VulcanAmmoBoxesOnBoard[pnum] = GET_INTEL_SHORT(buf + count); count += 2;
 	} else {
@@ -2694,7 +2696,9 @@ multi_send_player_explode(char type)
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[SMISSILE4_INDEX];
 	multibuf[count++] = (char)Players[Player_num].secondary_ammo[SMISSILE5_INDEX];
 
-	if(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+	if( (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RECHARGING) ||
+		(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING) )
+	{
 		PUT_INTEL_SHORT(multibuf+count, (short)(VulcanAmmoBoxesOnBoard[Player_num]) );
 		count += 2;
 		PUT_INTEL_SHORT(multibuf+count, (short)(VulcanAmmoBoxesOnBoard[Player_num]) );

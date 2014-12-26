@@ -10,6 +10,7 @@
 
 int RespawningConcussions[MAX_PLAYERS]; 
 int VulcanAmmoBoxesOnBoard[MAX_PLAYERS];
+int VulcanBoxAmmo[MAX_PLAYERS]; 
 
 void player_rw_swap(player_rw *p, int swap)
 {

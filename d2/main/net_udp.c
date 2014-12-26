@@ -3476,7 +3476,7 @@ static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_
 static int opt_burner_spawn; 
 //static int opt_dark_smarts;
 static int opt_low_vulcan;
-static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady; 
+static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady_recharge, opt_gauss_steady_respawn; 
 
 #ifdef USE_TRACKER
 static int opt_tracker;
@@ -3509,9 +3509,9 @@ void net_udp_more_game_options ()
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 	
 #ifdef USE_TRACKER
-	newmenu_item m[40];
+	newmenu_item m[41];
 #else
- 	newmenu_item m[39];
+ 	newmenu_item m[40];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3569,8 +3569,10 @@ void net_udp_more_game_options ()
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Original (Duplicating)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DUPLICATING; m[opt].group = 1; opt++;
 	opt_gauss_depleting = opt;
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "D1 (Depleting)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DEPLETING; m[opt].group = 1; opt++;
-	opt_gauss_steady = opt;
-	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY; m[opt].group = 1; opt++;
+	opt_gauss_steady_recharge = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady (Recharging)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RECHARGING; m[opt].group = 1; opt++;
+	opt_gauss_steady_respawn = opt;
+	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady (Respawning)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING; m[opt].group = 1; opt++;
 
 	opt_low_vulcan = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Low Vulcan Ammo"; m[opt].value = Netgame.LowVulcan; opt++;	
@@ -3777,8 +3779,10 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_DUPLICATING;
 			}  else if (citem == opt_gauss_depleting) {
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
-			}  else if (citem == opt_gauss_steady) {
-				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY;
+			}  else if (citem == opt_gauss_steady_recharge) {
+				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RECHARGING;
+			}  else if (citem == opt_gauss_steady_respawn) {
+				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RESPAWNING;
 			} 
 
 			break;

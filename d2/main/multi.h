@@ -187,7 +187,8 @@ for_each_multiplayer_command(enum {, define_multiplayer_command, });
 
 #define GAUSS_STYLE_DUPLICATING 0
 #define GAUSS_STYLE_DEPLETING 1
-#define GAUSS_STYLE_STEADY 2
+#define GAUSS_STYLE_STEADY_RECHARGING 2
+#define GAUSS_STYLE_STEADY_RESPAWNING 3
 
 #define for_each_netflag_value(VALUE)	\
 	VALUE(NETFLAG_DOLASER, "Laser upgrade")	\

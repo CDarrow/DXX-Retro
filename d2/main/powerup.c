@@ -205,6 +205,7 @@ int pick_up_vulcan_ammo(void)
 	int	pwsave = Primary_weapon;		// Ugh, save selected primary weapon around the picking up of the ammo.  I apologize for this code.  Matthew A. Toschlog
 	if (pick_up_ammo(CLASS_PRIMARY, VULCAN_INDEX, VULCAN_AMMO_AMOUNT)) {
 		VulcanAmmoBoxesOnBoard[Player_num] += 1; 
+		VulcanBoxAmmo[Player_num] += VULCAN_AMMO_AMOUNT;
 		powerup_basic(7, 14, 21, VULCAN_AMMO_SCORE, "%s!", TXT_VULCAN_AMMO);
 		used = 1;
 	} else {

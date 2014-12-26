@@ -1967,7 +1967,9 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 			vulcan_ammo = min_vulcan_ammo; 
 		}
 		if( (Game_mode & GM_MULTI) && ! (Game_mode & GM_MULTI_COOP)) {
-			if(Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+			if( (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RECHARGING) ||
+			    (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING) )
+			{
 				vulcan_ammo = min_vulcan_ammo;
 			}
 		}
@@ -2046,7 +2048,9 @@ void drop_player_eggs_remote(object *playerobj, ubyte remote)
 					amount -= VULCAN_AMMO_AMOUNT;
 				}
 			}			
-		} else if (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY) {
+		} else if ( (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RECHARGING) ||
+			        (Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING) )
+		{
 			int boxes = VulcanAmmoBoxesOnBoard[playerobj->id];
 			while (boxes > 0) {
 				call_object_create_egg(playerobj, 1, OBJ_POWERUP, POW_VULCAN_AMMO);

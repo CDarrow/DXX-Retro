@@ -433,7 +433,8 @@ void init_player_stats_new_ship(ubyte pnum)
 	Players[pnum].invulnerable_time = 0;
 	Players[pnum].homing_object_dist = -F1_0; // Added by RH
 	RespawningConcussions[pnum] = 0; 	
-	VulcanAmmoBoxesOnBoard[pnum] = 0; 
+	VulcanAmmoBoxesOnBoard[pnum] = 0; 		
+	VulcanBoxAmmo[pnum] = 0; 
 
 #ifdef NETWORK
 	if(Game_mode & GM_MULTI && Netgame.BornWithBurner) {
