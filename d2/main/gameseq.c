@@ -1605,6 +1605,7 @@ void bash_to_shield (int i,char *s)
 	Objects[i].id = POW_SHIELD_BOOST;
 	Objects[i].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
 	Objects[i].rtype.vclip_info.frametime = Vclip[Objects[i].rtype.vclip_info.vclip_num].frame_time;
+	Objects[i].size = Powerup_info[POW_SHIELD_BOOST].size;
 }
 
 
