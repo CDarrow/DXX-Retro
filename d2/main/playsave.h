@@ -90,7 +90,8 @@ typedef struct player_config
 	ubyte DisableCockpit;  /* DisableCockpit */ 
 	ubyte StickyRearview; /* StickyRearview */ 
 	ubyte SelectAfterFire; /* SelectAfterFire */ 	
-	int maxFps;	
+	int maxFps;
+	int ShipColor;	
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;

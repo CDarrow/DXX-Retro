@@ -1626,7 +1626,7 @@ multi_do_message(const ubyte *cbuf)
 		if (Game_mode & GM_TEAM)
 			color = get_team((int)buf[1]);
 		else
-			color = (int)buf[1];
+			color = Netgame.players[(int)buf[1]].color;//(int)buf[1]
 		mesbuf[1] = BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b);
 		strcpy(&mesbuf[2], Players[(int)buf[1]].callsign);
 		t = strlen(mesbuf);
@@ -2502,6 +2502,8 @@ void multi_reset_object_texture (object *objp)
 
 	if(Game_mode & GM_MULTI && Netgame.FairColors) {
 		id = 0;
+	} else {
+		id = Netgame.players[objp->id].color;
 	}
 
 	if (id == 0)

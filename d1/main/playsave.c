@@ -110,6 +110,7 @@ int new_player_config()
 	PlayerCfg.ShieldWarnings = 0; 
 	PlayerCfg.QuietPlasma = 1; 
 	PlayerCfg.maxFps = GameArg.SysMaxFPS; 
+	PlayerCfg.ShipColor = 8;
 	
 
 	// Default taunt macros
@@ -387,6 +388,8 @@ int read_player_d1x(char *filename)
 					PlayerCfg.VulcanAmmoWarnings = atoi(line);	
 				if(!strcmp(word,"SHIELDWARNINGS"))
 					PlayerCfg.ShieldWarnings = atoi(line);	
+				if(!strcmp(word,"SHIPCOLOR"))
+					PlayerCfg.ShipColor = atoi(line);					
 				//if(!strcmp(word,"QUIETPLASMA"))
 				//	PlayerCfg.QuietPlasma = atoi(line);							
 				if(!strcmp(word,"MAXFPS")) {
@@ -743,7 +746,8 @@ int write_player_d1x(char *filename)
 		PHYSFSX_printf(fout,"nofireautoselect=%i\n",PlayerCfg.NoFireAutoselect);
 		PHYSFSX_printf(fout,"cycleautoselectonly=%i\n",PlayerCfg.CycleAutoselectOnly);
 		PHYSFSX_printf(fout,"vulcanammowarnings=%i\n",PlayerCfg.VulcanAmmoWarnings);		
-		PHYSFSX_printf(fout,"shieldwarnings=%i\n",PlayerCfg.ShieldWarnings);	
+		PHYSFSX_printf(fout,"shieldwarnings=%i\n",PlayerCfg.ShieldWarnings);			
+		PHYSFSX_printf(fout,"shipcolor=%i\n",PlayerCfg.ShipColor);	
 		//PHYSFSX_printf(fout,"quietplasma=%i\n",PlayerCfg.QuietPlasma);	
 		PHYSFSX_printf(fout,"maxfps=%i\n",PlayerCfg.maxFps);	
 		PHYSFSX_printf(fout,"[end]\n");
@@ -1193,7 +1197,9 @@ void read_netgame_profile(netgame_info *ng)
 			//else if (!strcmp(token, "DarkSmartBlobs"))
 			//	ng->DarkSmartBlobs = strtol(value, NULL, 10);
 			else if (!strcmp(token, "LowVulcan"))
-				ng->LowVulcan = strtol(value, NULL, 10);		
+				ng->LowVulcan = strtol(value, NULL, 10);
+			else if (!strcmp(token, "AllowPreferredColors"))
+				ng->AllowPreferredColors = strtol(value, NULL, 10);		
 			else if (!strcmp(token, "AllowColoredLighting"))
 				ng->AllowColoredLighting = strtol(value, NULL, 10);			
 			else if (!strcmp(token, "FairColors"))
@@ -1242,6 +1248,7 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "RespawnConcs=%i\n", ng->RespawnConcs);
 	//PHYSFSX_printf(file, "DarkSmartBlobs=%i\n", ng->DarkSmartBlobs);
 	PHYSFSX_printf(file, "LowVulcan=%i\n", ng->LowVulcan);
+	PHYSFSX_printf(file, "AllowPreferredColors=%i\n", ng->AllowPreferredColors);
 	PHYSFSX_printf(file, "AllowColoredLighting=%i\n", ng->AllowColoredLighting);
 	PHYSFSX_printf(file, "FairColors=%i\n", ng->FairColors);
 	PHYSFSX_printf(file, "BlackAndWhitePyros=%i\n", ng->BlackAndWhitePyros);

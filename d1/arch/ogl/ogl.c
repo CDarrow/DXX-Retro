@@ -1737,7 +1737,7 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 		}
 		buf=decodebuf;
 
-		if(Game_mode & GM_MULTI && (!Netgame.FairColors) && Netgame.BlackAndWhitePyros) {
+		if(Game_mode & GM_MULTI && Netgame.BlackAndWhitePyros) {
 			char is_black_tex1 = 1; 
 			char is_black_tex2 = 1; 
 			for(i = 0; i < 8; i++) {

@@ -141,7 +141,7 @@ void kmatrix_draw_names(int *sorted)
 		if (Game_mode & GM_TEAM)
 			color = get_team(sorted[j]);
 		else
-			color = sorted[j];
+			color = Netgame.players[sorted[j]].color;//sorted[j];
 
 		x = FSPACX (70 + CENTERING_OFFSET(N_players) + j*25);
 

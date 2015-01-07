@@ -376,6 +376,7 @@ typedef struct netplayer_info
 	char						callsign[CALLSIGN_LEN+1];
 	sbyte						connected;
 	ubyte						rank;
+	ubyte						color;
 	fix							ping;
 	ubyte						loss; 
 	ubyte						rx_loss; 
@@ -455,5 +456,6 @@ typedef struct netgame_info
 	ubyte						SpawnStyle; 
 	ubyte						DarkSmartBlobs;
 	ubyte						LowVulcan;
+	ubyte						AllowPreferredColors;
 } __pack__ netgame_info;
 #endif /* _MULTI_H */

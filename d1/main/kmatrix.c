@@ -138,7 +138,7 @@ void kmatrix_draw_names(int *sorted)
 		if (Game_mode & GM_TEAM)
 			color = get_team(sorted[j]);
 		else
-			color = sorted[j];
+			color = Netgame.players[sorted[j]].color;//sorted[j];
 
 		x = FSPACX (70 + CENTERING_OFFSET(N_players) + j*25);
 
@@ -219,7 +219,7 @@ void kmatrix_redraw(kmatrix_screen *km)
 			if (Game_mode & GM_TEAM)
 				color = get_team(sorted[i]);
 			else
-				color = sorted[i];
+				color = Netgame.players[sorted[i]].color;//sorted[i];
 
 			if (Players[sorted[i]].connected==CONNECT_DISCONNECTED)
 				gr_set_fontcolor(gr_find_closest_color(31,31,31),-1);

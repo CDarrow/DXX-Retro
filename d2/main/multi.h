@@ -443,6 +443,7 @@ typedef struct netplayer_info
 	char						callsign[CALLSIGN_LEN+1];
 	sbyte						connected;
 	ubyte						rank;
+	ubyte						color;
 	fix							ping;
 	ubyte						loss; 
 	ubyte						rx_loss; 
@@ -522,6 +523,7 @@ typedef struct netgame_info
 	ubyte						GaussAmmoStyle;
 	ubyte						DarkSmartBlobs;
 	ubyte						LowVulcan;
+	ubyte						AllowPreferredColors;
 #ifdef USE_TRACKER
 	ubyte						Tracker;
 #endif

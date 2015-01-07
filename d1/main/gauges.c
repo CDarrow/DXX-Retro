@@ -1563,8 +1563,10 @@ void draw_player_ship(int cloak_state,int x, int y)
 	else
 #endif
 	{
-		PIGGY_PAGE_IN(Gauges[GAUGE_SHIPS+Player_num]);
-		bm = &GameBitmaps[Gauges[GAUGE_SHIPS+Player_num].index];
+		int color = Netgame.players[Player_num].color; 
+		
+		PIGGY_PAGE_IN(Gauges[GAUGE_SHIPS+color]);
+		bm = &GameBitmaps[Gauges[GAUGE_SHIPS+color].index];
 	}
 
 	//for(int i = 0; i < 8; i++) {
@@ -2308,7 +2310,7 @@ void hud_show_kill_list()
 				gr_set_fontcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 			}
 			else {
-				color = player_num;
+				color = Netgame.players[player_num].color;//player_num;
 				gr_set_fontcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 			}
 		}
@@ -2509,7 +2511,7 @@ void show_HUD_names()
 					y = player_point.p3_sy;
 					dy = -fixmuldiv(fixmul(Objects[objnum].size,Matrix_scale.y),i2f(grd_curcanv->cv_bitmap.bm_h)/2,player_point.p3_z);
 					dx = fixmul(dy,grd_curscreen->sc_aspect);
-					color_num = (Game_mode & GM_TEAM)?get_team(pnum):pnum;
+					color_num = (Game_mode & GM_TEAM)?get_team(pnum):Netgame.players[pnum].color;//pnum;
 					memset(&s, '\0', CALLSIGN_LEN+10);
 					/* Set the text to show */
 					if( Game_mode & GM_BOUNTY && pnum == Bounty_target )

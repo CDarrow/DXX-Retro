@@ -1934,9 +1934,30 @@ void do_sound_menu()
 
 #define ADD_CHECK(n,txt,v)  do { m[n].type=NM_TYPE_CHECK; m[n].text=txt; m[n].value=v;} while (0)
 
+int menu_misc_options_handler ( newmenu *menu, d_event *event, void *userdata );
+
+void print_ship_color(char* color_string, int color_value) {
+	char color[10];
+	switch(color_value) {
+		case 0:  sprintf(color, "%s", "Blue"); break;
+		case 1:  sprintf(color, "%s", "Red"); break;
+		case 2:  sprintf(color, "%s", "Green"); break;
+		case 3:  sprintf(color, "%s", "Pink"); break;
+		case 4:  sprintf(color, "%s", "Orange"); break;
+		case 5:  sprintf(color, "%s", "Purple"); break;
+		case 6:  sprintf(color, "%s", "White"); break;
+		case 7:  sprintf(color, "%s", "Yellow"); break;
+		case 8:  sprintf(color, "%s", "None"); break;
+		default: sprintf(color, "%s", "???"); 
+	}
+
+
+	sprintf( color_string, "Ship Color: %s", color);
+}
+
 void do_misc_menu()
 {
-	newmenu_item m[17];
+	newmenu_item m[18];
 	int i = 0;
 
 	do {
@@ -1958,7 +1979,15 @@ void do_misc_menu()
 		ADD_CHECK(15, "Ammo Warnings",PlayerCfg.VulcanAmmoWarnings);
 		ADD_CHECK(16, "Shield Warnings",PlayerCfg.ShieldWarnings);		
 
-		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, NULL, NULL, i );
+		char preferred_color[30];
+		print_ship_color(preferred_color, PlayerCfg.ShipColor); 
+		m[17].type = NM_TYPE_SLIDER; 
+		m[17].value= PlayerCfg.ShipColor; 
+		m[17].text= preferred_color; 
+		m[17].min_value=0; 
+		m[17].max_value=8; 
+
+		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, menu_misc_options_handler, NULL, i );
 
 		PlayerCfg.AutoLeveling			= m[0].value;
 		PlayerCfg.MissileViewEnabled   		= m[1].value;
@@ -1980,6 +2009,24 @@ void do_misc_menu()
 
 	} while( i>-1 );
 
+}
+
+int menu_misc_options_handler ( newmenu *menu, d_event *event, void *userdata )
+{
+	newmenu_item *menus = newmenu_get_items(menu);
+	int citem = newmenu_get_citem(menu);
+	
+	if (event->type == EVENT_NEWMENU_CHANGED)
+	{
+		if (citem == 17) {
+			PlayerCfg.ShipColor = menus[17].value;
+			print_ship_color(menus[17].text, PlayerCfg.ShipColor);
+			
+		}
+
+	}
+
+	return 0;
 }
 
 #if defined(USE_UDP)

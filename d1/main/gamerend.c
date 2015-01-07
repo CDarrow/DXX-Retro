@@ -268,7 +268,7 @@ void show_netplayerinfo()
 		if (Game_mode & GM_TEAM)
 			color=get_team(i);
 		else
-			color=i;
+			color=Netgame.players[i].color;//i;
 		gr_set_fontcolor( BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b),-1 );
 		gr_printf(x,y,"%s\n",Players[i].callsign);
 		if (Game_mode & GM_MULTI_COOP)

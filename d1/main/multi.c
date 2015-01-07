@@ -1552,7 +1552,7 @@ multi_do_message(const ubyte *cbuf)
 		if (Game_mode & GM_TEAM)
 			color = get_team((int)buf[1]);
 		else
-			color = (int)buf[1];
+			color = Netgame.players[(int)buf[1]].color; //(int)buf[1];
 		mesbuf[1] = BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b);
 		strcpy(&mesbuf[2], Players[(int)buf[1]].callsign);
 		t = strlen(mesbuf);
@@ -2367,6 +2367,8 @@ void multi_reset_object_texture (object *objp)
 
 	if(Game_mode & GM_MULTI && Netgame.FairColors) {
 		id = 0;
+	} else {
+		id = Netgame.players[objp->id].color;
 	}
 
 	if (id == 0)
@@ -3848,9 +3850,11 @@ void multi_new_bounty_target( int pnum )
 	else
 		selected_player_rgb = player_rgb;
 
+	int color = Netgame.players[pnum].color;
+
 	/* Send a message */
 	HUD_init_message( HM_MULTI, "%c%c%s is the new target!", CC_COLOR,
-		BM_XRGB( selected_player_rgb[Bounty_target].r, selected_player_rgb[Bounty_target].g, selected_player_rgb[Bounty_target].b ),
+		BM_XRGB( selected_player_rgb[color].r, selected_player_rgb[color].g, selected_player_rgb[color].b ),
 		Players[Bounty_target].callsign );
 
 	digi_play_sample( SOUND_CONTROL_CENTER_WARNING_SIREN, F1_0 * 3 );

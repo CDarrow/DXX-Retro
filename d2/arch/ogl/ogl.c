@@ -1744,7 +1744,7 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 		buf=decodebuf;
 
 
-		if(Game_mode & GM_MULTI && (!Netgame.FairColors) && Netgame.BlackAndWhitePyros) {
+		if(Game_mode & GM_MULTI && Netgame.BlackAndWhitePyros) {
 			if(bm->bm_w == 64 && bm->bm_h == 64) {
 				char is_black_tex1 = 1; 
 				char is_black_tex2 = 1; 
