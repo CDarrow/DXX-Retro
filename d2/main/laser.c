@@ -678,6 +678,21 @@ int Laser_create_new( vms_vector * direction, vms_vector * position, int segnum,
 		obj->mtype.phys_info.flags |= PF_STICK;		//this obj sticks to walls
 
 	obj->shields = Weapon_info[obj->id].strength[Difficulty_level];
+	if( (Game_mode & GM_MULTI) && Netgame.OriginalD1Weapons) {
+		if(obj->id == 0) {        // Laser 1
+			obj->shields = 10 * F1_0; 
+		} else if(obj->id == 1) { // Laser 2
+			obj->shields = 11 * F1_0; 
+		} else if(obj->id == 2) { // Laser 3
+			obj->shields = 12 * F1_0; 
+		} else if(obj->id == 3 || obj->id == 30 || obj->id == 31) { // Laser 4
+			obj->shields = 13 * F1_0; 
+		} else if(obj->id == 12) { // Spread
+			obj->shields = 10 * F1_0; 
+		} else if(obj->id == 14) { // Fusion
+			obj->shields = 60 * F1_0; 
+		}
+	}
 
 	// Fill in laser-specific data
 
@@ -788,6 +803,12 @@ int Laser_create_new( vms_vector * direction, vms_vector * position, int segnum,
 
 	if (Weapon_info[obj->id].thrust != 0)
 		weapon_speed /= 2;
+
+	if( (Game_mode & GM_MULTI) && Netgame.OriginalD1Weapons) {
+		if(obj->id == 12) { // Spread
+			weapon_speed = 200 * F1_0; 
+		} 
+	}
 
 	vm_vec_copy_scale( &obj->mtype.phys_info.velocity, direction, weapon_speed + parent_speed );
 
@@ -1238,11 +1259,18 @@ void Laser_player_fire_spread_delay(object *obj, int laser_type, int gun_num, fi
 
 	vm_vec_add(&LaserPos,&obj->pos,&gun_point);
 
+	fix weapon_speed = Weapon_info[laser_type].speed[Difficulty_level];
+	if( (Game_mode & GM_MULTI) && Netgame.OriginalD1Weapons) {
+		if(laser_type == 12) { // Spread
+			weapon_speed = 200 * F1_0; 
+		} 
+	}
+
 	//	If supposed to fire at a delayed time (delay_time), then move this point backwards.
 	if (delay_time)
 		/* CED sniperpackets */
 		//vm_vec_scale_add2(&LaserPos, &obj->orient.fvec, -fixmul(delay_time, Weapon_info[laser_type].speed[Difficulty_level]));
-		vm_vec_scale_add2(&LaserPos, &shot_orientation, -fixmul(delay_time, Weapon_info[laser_type].speed[Difficulty_level]));
+		vm_vec_scale_add2(&LaserPos, &shot_orientation, -fixmul(delay_time, weapon_speed));
 
 //	do_muzzle_stuff(obj, &Pos);
 
@@ -1492,6 +1520,11 @@ void Laser_do_weapon_sequence(object *obj, int doHomerFrame, fix idealHomerFrame
 				temp_vec = obj->mtype.phys_info.velocity;
 				speed = vm_vec_normalize(&temp_vec);
 				max_speed = Weapon_info[obj->id].speed[Difficulty_level];
+				if( (Game_mode & GM_MULTI) && Netgame.OriginalD1Weapons) {
+					if(obj->id == 12) { // Spread
+						max_speed = 200 * F1_0; 
+					} 
+				}
 				if (speed+F1_0 < max_speed) {
 					speed += fixmul(max_speed, FrameTime/2);
 					if (speed > max_speed)
@@ -1569,13 +1602,20 @@ void Laser_do_weapon_sequence(object *obj, int doHomerFrame, fix idealHomerFrame
 	{
 		fix	weapon_speed;
 
+		fix max_weapon_speed = Weapon_info[obj->id].speed[Difficulty_level];
+		if( (Game_mode & GM_MULTI) && Netgame.OriginalD1Weapons) {
+			if(obj->id == 12) { // Spread
+				max_weapon_speed = 200 * F1_0; 
+			} 
+		}
+
 		weapon_speed = vm_vec_mag_quick(&obj->mtype.phys_info.velocity);
-		if (weapon_speed > Weapon_info[obj->id].speed[Difficulty_level]) {
+		if (weapon_speed > max_weapon_speed) {
 			//	Only slow down if not allowed to move.  Makes sense, huh?  Allows proxbombs to get moved by physics force. --MK, 2/13/96
-			if (Weapon_info[obj->id].speed[Difficulty_level]) {
+			if (max_weapon_speed) {
 				fix	scale_factor;
 
-				scale_factor = fixdiv(Weapon_info[obj->id].speed[Difficulty_level], weapon_speed);
+				scale_factor = fixdiv(max_weapon_speed, weapon_speed);
 				vm_vec_scale(&obj->mtype.phys_info.velocity, scale_factor);
 			}
 		}

@@ -2832,6 +2832,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 		buf[len] = Netgame.AllowPreferredColors;                len++;
 		buf[len] = Netgame.BornWithBurner;						len++; 
 		buf[len] = Netgame.GaussAmmoStyle;						len++; 
+		buf[len] = Netgame.OriginalD1Weapons;                   len++;
 
 
 		if(info_upid == UPID_SYNC) {
@@ -3065,6 +3066,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.AllowPreferredColors = data[len];                len++; 
 		Netgame.BornWithBurner = data[len];                len++; 		
 		Netgame.GaussAmmoStyle = data[len];                len++; 
+		Netgame.OriginalD1Weapons = data[len];             len++; 
 
 		if(is_sync && ! multi_i_am_master()) {
 			uint my_token = GET_INTEL_INT(data + len);  len += 4;
@@ -3501,7 +3503,7 @@ static int opt_difficulty,opt_packets,opt_shortpack,opt_bright, opt_show_names, 
 static int opt_primary_dup, opt_secondary_dup, opt_secondary_cap; 
 static int opt_spawn_no_invul, opt_spawn_short_invul, opt_spawn_long_invul, opt_spawn_preview; 
 static int opt_burner_spawn; 
-static int opt_allowprefcolor;
+static int opt_allowprefcolor, opt_ow;
 //static int opt_dark_smarts;
 static int opt_low_vulcan;
 static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady_recharge, opt_gauss_steady_respawn; 
@@ -3537,9 +3539,9 @@ void net_udp_more_game_options ()
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 	
 #ifdef USE_TRACKER
-	newmenu_item m[42];
+	newmenu_item m[44];
 #else
- 	newmenu_item m[41];
+ 	newmenu_item m[43];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3602,8 +3604,13 @@ void net_udp_more_game_options ()
 	opt_gauss_steady_respawn = opt;
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady (Respawning)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING; m[opt].group = 1; opt++;
 
+	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
+
 	opt_low_vulcan = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Low Vulcan Ammo"; m[opt].value = Netgame.LowVulcan; opt++;	
+
+	opt_ow = opt;
+	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Original D1 Weapons"; m[opt].value = Netgame.OriginalD1Weapons; opt++;	
 
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
@@ -3738,7 +3745,7 @@ menu:
 	//Netgame.DarkSmartBlobs = m[opt_dark_smarts].value;
 	Netgame.LowVulcan = m[opt_low_vulcan].value;
 	Netgame.AllowPreferredColors = m[opt_allowprefcolor].value;
-
+	Netgame.OriginalD1Weapons = m[opt_ow].value;
 }
 
 int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata )

@@ -825,6 +825,25 @@ int weapon_info_read_n(weapon_info *wi, int n, PHYSFS_file *fp, int file_version
 		wi[i].lifetime = PHYSFSX_readFix(fp);
 		wi[i].damage_radius = PHYSFSX_readFix(fp);
 		bitmap_index_read(&wi[i].picture, fp);
+
+		/*
+		con_printf(CON_NORMAL, "\n\nWeapon %d\n", i); 
+		con_printf(CON_NORMAL, "    fire_wait: %f\n", (float)(wi[i].fire_wait)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    blob_size: %f\n", (float)(wi[i].blob_size)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    mass: %f\n", (float)(wi[i].mass)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    drag: %f\n", (float)(wi[i].drag)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    thrust: %f\n", (float)(wi[i].thrust)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    lifetime: %f\n", (float)(wi[i].lifetime)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    damage_radius: %f\n", (float)(wi[i].damage_radius)/(float)(F1_0));
+		con_printf(CON_NORMAL, "    strength: \n"); 
+		for (j = 0; j < NDL; j++) {
+			con_printf(CON_NORMAL, "        %f\n", (float)(wi[i].strength[j])/(float)(F1_0));
+		}
+		con_printf(CON_NORMAL, "    speed: \n"); 
+		for (j = 0; j < NDL; j++) {
+			con_printf(CON_NORMAL, "        %f\n", (float)(wi[i].speed[j])/(float)(F1_0));
+		}
+		*/
 	}
 	return i;
 }

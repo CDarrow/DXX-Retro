@@ -524,6 +524,7 @@ typedef struct netgame_info
 	ubyte						DarkSmartBlobs;
 	ubyte						LowVulcan;
 	ubyte						AllowPreferredColors;
+	ubyte						OriginalD1Weapons;
 #ifdef USE_TRACKER
 	ubyte						Tracker;
 #endif
