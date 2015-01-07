@@ -3621,10 +3621,10 @@ menu:
 		nm_messagebox(TXT_ERROR, 1, TXT_OK, "Packet value out of range\nSetting value to 30");
 	}
 
-	if (Netgame.PacketsPerSec<2)
+	if (Netgame.PacketsPerSec<10)
 	{
-		nm_messagebox(TXT_ERROR, 1, TXT_OK, "Packet value out of range\nSetting value to 2");
-		Netgame.PacketsPerSec=2;
+		nm_messagebox(TXT_ERROR, 1, TXT_OK, "Packet value out of range\nSetting value to 10");
+		Netgame.PacketsPerSec=10;
 	}
 	Netgame.ShortPackets=m[opt_shortpack].value;
 
@@ -3906,7 +3906,7 @@ int net_udp_setup_game()
 	Netgame.RefusePlayers=0;
 	sprintf( Netgame.game_name, "%s%s", Players[Player_num].callsign, TXT_S_GAME );
 	Netgame.difficulty=PlayerCfg.DefaultDifficulty;
-	Netgame.PacketsPerSec=10;
+	Netgame.PacketsPerSec=20;
 	Netgame.ShortPackets=0;
 	if (GameArg.MplUdpMyPort != 0)
 		snprintf (UDP_MyPort, sizeof(UDP_MyPort), "%d", GameArg.MplUdpMyPort);
