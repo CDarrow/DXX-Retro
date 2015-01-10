@@ -3127,7 +3127,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 		Netgame.LowVulcan = data[len];                len++; 
 		Netgame.AllowPreferredColors = data[len];                len++; 
 		Netgame.BornWithBurner = data[len];                len++; 		
-		Netgame.GaussAmmoStyle = data[len];                len++; 
+		Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RECHARGING;    len++; 
 		Netgame.OriginalD1Weapons = data[len];             len++; 
 
 		if(is_sync && ! multi_i_am_master()) {
@@ -3568,7 +3568,7 @@ static int opt_burner_spawn;
 static int opt_allowprefcolor, opt_ow;
 //static int opt_dark_smarts;
 static int opt_low_vulcan;
-static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady_recharge, opt_gauss_steady_respawn; 
+//static int opt_gauss_duplicating, opt_gauss_depleting, opt_gauss_steady_recharge, opt_gauss_steady_respawn; 
 
 #ifdef USE_TRACKER
 static int opt_tracker;
@@ -3601,9 +3601,9 @@ void net_udp_more_game_options ()
 	char PrimDupText[80],SecDupText[80],SecCapText[80]; 
 	
 #ifdef USE_TRACKER
-	newmenu_item m[44];
+	newmenu_item m[38];
 #else
- 	newmenu_item m[43];
+ 	newmenu_item m[37];
 #endif
 
 	snprintf(packstring,sizeof(char)*4,"%d",Netgame.PacketsPerSec);
@@ -3656,6 +3656,7 @@ void net_udp_more_game_options ()
 		
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
 
+	/*
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = "Gauss Ammo Style"; opt++;
 	opt_gauss_duplicating = opt; 
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Original (Duplicating)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_DUPLICATING; m[opt].group = 1; opt++;
@@ -3667,6 +3668,7 @@ void net_udp_more_game_options ()
 	m[opt].type = NM_TYPE_RADIO; m[opt].text = "Steady (Respawning)"; m[opt].value = Netgame.GaussAmmoStyle == GAUSS_STYLE_STEADY_RESPAWNING; m[opt].group = 1; opt++;
 
 	m[opt].type = NM_TYPE_TEXT; m[opt].text = ""; opt++;
+	*/
 
 	opt_low_vulcan = opt;
 	m[opt].type = NM_TYPE_CHECK; m[opt].text = "Low Vulcan Ammo"; m[opt].value = Netgame.LowVulcan; opt++;	
@@ -3876,7 +3878,7 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 				Netgame.SpawnStyle = SPAWN_STYLE_LONG_INVUL;
 			} else if (citem == opt_spawn_preview) {
 				Netgame.SpawnStyle = SPAWN_STYLE_PREVIEW;
-			} else if (citem == opt_gauss_duplicating) {
+			} /*else if (citem == opt_gauss_duplicating) {
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_DUPLICATING;
 			}  else if (citem == opt_gauss_depleting) {
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
@@ -3884,7 +3886,7 @@ int net_udp_more_options_handler( newmenu *menu, d_event *event, void *userdata 
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RECHARGING;
 			}  else if (citem == opt_gauss_steady_respawn) {
 				Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RESPAWNING;
-			} 
+			} */
 
 			break;
 			
@@ -4075,7 +4077,7 @@ int net_udp_setup_game()
 	Netgame.NoFriendlyFire = 0;
 	Netgame.RetroProtocol = 1;
 	Netgame.BlackAndWhitePyros = 1;
-	Netgame.GaussAmmoStyle = GAUSS_STYLE_DEPLETING;
+	Netgame.GaussAmmoStyle = GAUSS_STYLE_STEADY_RECHARGING;
 	Netgame.LowVulcan = 0; 
 
 #ifdef USE_TRACKER
