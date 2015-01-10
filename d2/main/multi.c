@@ -3843,9 +3843,15 @@ void multi_prep_level(void)
 		if(Netgame.SecondaryCapFactor > 0) {
 			int max_homers = Netgame.SecondaryCapFactor == 1 ? 6 : 2; 
 			int max_smarts = Netgame.SecondaryCapFactor == 1 ? 6 : 2; 
+			int max_flashes = max_homers;
+			int max_guideds = max_homers;
+			int max_mercs = max_homers;
 
 			int num_homers = 0;
 			int num_smarts = 0; 
+			int num_flashes = 0;
+			int num_guideds = 0;
+			int num_mercs = 0; 
 			for (i=0; i<=Highest_object_index; i++)
 			{
 				if(Objects[i].id == POW_HOMING_AMMO_1) {
@@ -3869,6 +3875,72 @@ void multi_prep_level(void)
 						bash_to_shield (i,"Homing");
 					}
 				}
+
+				if(Objects[i].id == POW_SMISSILE1_1) {
+					if(num_flashes < max_flashes) {
+						num_flashes++;
+					} else {
+						bash_to_shield (i,"Flash");
+					}
+				}
+
+				if(Objects[i].id == POW_SMISSILE1_4) {
+					if(num_flashes + 4 <= max_flashes) {
+						num_flashes += 4;
+					} else if(num_flashes + 1 <= max_flashes) {
+						Objects[i].id = POW_SMISSILE1_1;
+						Objects[i].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+						Objects[i].rtype.vclip_info.frametime = Vclip[Objects[i].rtype.vclip_info.vclip_num].frame_time;
+
+						num_flashes += 1; 
+					} else {
+						bash_to_shield (i,"Flash");
+					}
+				}	
+
+				if(Objects[i].id == POW_GUIDED_MISSILE_1) {
+					if(num_guideds < max_guideds) {
+						num_guideds++;
+					} else {
+						bash_to_shield (i,"Guided");
+					}
+				}
+
+				if(Objects[i].id == POW_GUIDED_MISSILE_4) {
+					if(num_guideds + 4 <= max_guideds) {
+						num_guideds += 4;
+					} else if(num_guideds + 1 <= max_guideds) {
+						Objects[i].id = POW_GUIDED_MISSILE_1;
+						Objects[i].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+						Objects[i].rtype.vclip_info.frametime = Vclip[Objects[i].rtype.vclip_info.vclip_num].frame_time;
+
+						num_guideds += 1; 
+					} else {
+						bash_to_shield (i,"Guided");
+					}
+				}		
+
+				if(Objects[i].id == POW_MERCURY_MISSILE_1) {
+					if(num_mercs < max_mercs) {
+						num_guideds++;
+					} else {
+						bash_to_shield (i,"Mercury");
+					}
+				}
+
+				if(Objects[i].id == POW_MERCURY_MISSILE_4) {
+					if(num_mercs + 4 <= max_mercs) {
+						num_mercs += 4;
+					} else if(num_mercs + 1 <= max_mercs) {
+						Objects[i].id = POW_MERCURY_MISSILE_1;
+						Objects[i].rtype.vclip_info.vclip_num = Powerup_info[Objects[i].id].vclip_num;
+						Objects[i].rtype.vclip_info.frametime = Vclip[Objects[i].rtype.vclip_info.vclip_num].frame_time;
+
+						num_mercs += 1; 
+					} else {
+						bash_to_shield (i,"Mercury");
+					}
+				}											
 
 				if(Objects[i].id == POW_SMARTBOMB_WEAPON) {
 					if(num_smarts < max_smarts) {
