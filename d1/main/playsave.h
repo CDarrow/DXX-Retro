@@ -99,6 +99,7 @@ typedef struct player_config
 	ubyte SelectAfterFire; /* SelectAfterFire */ 
 	int maxFps;
 	int ShipColor; 
+	int MissileColor; 
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;

@@ -2344,7 +2344,7 @@ multi_reset_player_object(object *objp)
 
 void multi_reset_object_texture (object *objp)
 {
-	int id,i;
+	int id,wid,mid,i;
 
 	if (Game_mode & GM_TEAM)
 		id = get_team(objp->id);
@@ -2365,23 +2365,37 @@ void multi_reset_object_texture (object *objp)
 		}
 	}
 
+
 	if(Game_mode & GM_MULTI && Netgame.FairColors) {
-		id = 0;
+		wid = 0;
+		mid = 0;
 	} else {
-		id = Netgame.players[objp->id].color;
+		wid = Netgame.players[objp->id].color;
+		mid = Netgame.players[objp->id].missilecolor;
 	}
 
-	if (id == 0)
-		objp->rtype.pobj_info.alt_textures=0;
-	else {
+	if (id == 0) {
+		if(wid == 0 && mid == 0) {
+			objp->rtype.pobj_info.alt_textures=0;
+		} else {
+			objp->rtype.pobj_info.alt_textures=8;
+
+			// Initialize the other textures
+			for(int i = 0; i<Polygon_models[objp->rtype.pobj_info.model_num].n_textures; i++) {
+				multi_player_textures[7][i] = ObjBitmaps[ObjBitmapPtrs[Polygon_models[objp->rtype.pobj_info.model_num].first_texture+i]];
+			}
+			multi_player_textures[7][4] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(mid-1)*2]];
+			multi_player_textures[7][5] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(wid-1)*2+1]];
+		}
+	} else {
 		if (N_PLAYER_SHIP_TEXTURES < Polygon_models[objp->rtype.pobj_info.model_num].n_textures)
 			Error("Too many player ship textures!\n");
 
 		for (i=0;i<Polygon_models[objp->rtype.pobj_info.model_num].n_textures;i++)
 			multi_player_textures[id-1][i] = ObjBitmaps[ObjBitmapPtrs[Polygon_models[objp->rtype.pobj_info.model_num].first_texture+i]];
 
-		multi_player_textures[id-1][4] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(id-1)*2]];
-		multi_player_textures[id-1][5] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(id-1)*2+1]];
+		multi_player_textures[id-1][4] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(mid-1)*2]];
+		multi_player_textures[id-1][5] = ObjBitmaps[ObjBitmapPtrs[First_multi_bitmap_num+(wid-1)*2+1]];
 
 		objp->rtype.pobj_info.alt_textures = id;
 	}

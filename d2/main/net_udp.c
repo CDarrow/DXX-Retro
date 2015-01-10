@@ -1439,6 +1439,44 @@ void net_udp_list_join_game()
 	newmenu_dotiny("NETGAMES", NULL,(UDP_NETGAMES_PPAGE+4), m, 1, (int (*)(newmenu *, d_event *, void *))net_udp_list_join_poll, dj);
 }
 
+int wing_color_used(int color, int ignore) {
+	for(int i = 0; i < N_players; i++) {
+		if(i == ignore) continue;
+
+		if(Netgame.players[i].color == color)
+			return 1;
+	}
+
+	return 0;
+}
+
+int missile_color_used(int color, int ignore) {
+	for(int i = 0; i < N_players; i++) {
+		if(i == ignore) continue;
+
+		if(Netgame.players[i].missilecolor == color)
+			return 1;
+	}
+
+	return 0;
+}
+
+void resolve_color_conflicts(int np) { // New Player
+	int new_wing_color = Netgame.players[np].color;
+	int new_missile_color = Netgame.players[np].missilecolor;
+
+	while(wing_color_used(new_wing_color, np) &&
+	      missile_color_used(new_missile_color, np)) {
+
+		// Fix it
+		new_wing_color    = rand() % 8;
+		new_missile_color = rand() % 8;
+
+		Netgame.players[np].color = new_wing_color;
+		Netgame.players[np].missilecolor = new_missile_color; 
+	}
+}
+
 void net_udp_send_sequence_packet(UDP_sequence_packet seq, struct _sockaddr recv_addr)
 {
 	int len = 0;
@@ -1452,6 +1490,7 @@ void net_udp_send_sequence_packet(UDP_sequence_packet seq, struct _sockaddr recv
 	buf[len] = seq.player.connected;				len++;
 	buf[len] = seq.player.rank;					len++;
 	buf[len] = seq.player.color;                len++;
+	buf[len] = seq.player.missilecolor;                len++;
 	memcpy(buf + len, &seq.player.protocol.udp.addr, sizeof(struct _sockaddr));  len += sizeof(struct _sockaddr); 
 	
 	dxx_sendto (UDP_Socket[0], buf, len, 0, (struct sockaddr *)&recv_addr, sizeof(struct _sockaddr));
@@ -1467,6 +1506,7 @@ void net_udp_receive_sequence_packet(ubyte *data, UDP_sequence_packet *seq, stru
 	seq->player.connected = data[len];				len++;
 	memcpy (&(seq->player.rank),&(data[len]),1);			len++;
 	seq->player.color = data[len]; len++; 
+	seq->player.missilecolor = data[len]; len++; 
 	
 	if(seq->type == UPID_ADDPLAYER ) {
 		memcpy(&(seq->player.protocol.udp.addr), data + len, sizeof(struct _sockaddr)); len += sizeof(struct _sockaddr);
@@ -1510,6 +1550,7 @@ void net_udp_init()
 
 	UDP_Seq.player.rank=GetMyNetRanking();	
 	UDP_Seq.player.color = PlayerCfg.ShipColor;
+	UDP_Seq.player.missilecolor = PlayerCfg.MissileColor;
 
 	multi_new_game();
 	net_udp_flush();
@@ -1699,8 +1740,14 @@ net_udp_new_player(UDP_sequence_packet *their)
 	if(Netgame.AllowPreferredColors) { 
 		Netgame.players[pnum].color = their->player.color; 
 		if(their->player.color > 7) { Netgame.players[pnum].color = pnum; }
+
+		Netgame.players[pnum].missilecolor = their->player.missilecolor; 		
+		if(their->player.missilecolor > 7) { Netgame.players[pnum].missilecolor = Netgame.players[pnum].color; }
+
+		resolve_color_conflicts(pnum);		
 	} else {
 		Netgame.players[pnum].color = pnum; 
+		Netgame.players[pnum].missilecolor = pnum;
 	}	
 	//memcpy(&Netgame.players[pnum].protocol.udp.addr, &their->player.protocol.udp.addr, sizeof(struct _sockaddr));
 	update_address_for_player(pnum, their->player.protocol.udp.addr);
@@ -2387,8 +2434,14 @@ void net_udp_add_player(UDP_sequence_packet *p)
 				if(Netgame.AllowPreferredColors) { 
 					Netgame.players[i].color = p->player.color;
 					if(Netgame.players[i].color > 7) { Netgame.players[i].color = i; }
+
+					Netgame.players[i].missilecolor = p->player.missilecolor; 		
+					if(p->player.missilecolor > 7) { Netgame.players[i].missilecolor = Netgame.players[i].color; }
+				
+					resolve_color_conflicts(i);
 				} else { 
 					Netgame.players[i].color = i; 
+					Netgame.players[i].missilecolor = i; 
 				}
 			}
 			return;		// already got them
@@ -2405,8 +2458,14 @@ void net_udp_add_player(UDP_sequence_packet *p)
 	if(Netgame.AllowPreferredColors) {
 		Netgame.players[N_players].color = p->player.color;
 		if(Netgame.players[N_players].color > 7) { Netgame.players[N_players].color = N_players; }
+
+		Netgame.players[N_players].missilecolor = p->player.missilecolor;
+		if(Netgame.players[N_players].missilecolor > 7) { Netgame.players[N_players].missilecolor = Netgame.players[N_players].color; }
+
+		resolve_color_conflicts(N_players);
 	} else {
 		Netgame.players[N_players].color = N_players;
+		Netgame.players[N_players].missilecolor = N_players;
 	}
 	//memcpy( (struct _sockaddr *)&Netgame.players[N_players].protocol.udp.addr, (struct _sockaddr *)&p->player.protocol.udp.addr, sizeof(struct _sockaddr) );
 	update_address_for_player(N_players, p->player.protocol.udp.addr);
@@ -2456,6 +2515,7 @@ void net_udp_remove_player(UDP_sequence_packet *p)
 		update_address_for_player(i, Netgame.players[i+1].protocol.udp.addr);
 		Netgame.players[i].rank=Netgame.players[i+1].rank;		
 		Netgame.players[i].color=Netgame.players[i+1].color;
+		Netgame.players[i].missilecolor=Netgame.players[i+1].missilecolor;
 		ClipRank (&Netgame.players[i].rank);
 	}
 		
@@ -2734,6 +2794,7 @@ void net_udp_send_game_info(struct _sockaddr sender_addr, ubyte info_upid)
 			buf[len] = Netgame.players[i].connected;				len++;
 			buf[len] = Netgame.players[i].rank;					len++;
 			buf[len] = Netgame.players[i].color;                 len++; 
+			buf[len] = Netgame.players[i].missilecolor;				len++;
 			if (!memcmp((struct _sockaddr *)&sender_addr, (struct _sockaddr *)&Netgame.players[i].protocol.udp.addr, sizeof(struct _sockaddr))) {
 				buf[len] = 1; len++; 
 				to_player = i; 
@@ -2974,6 +3035,7 @@ int net_udp_process_game_info(ubyte *data, int data_len, struct _sockaddr game_a
 			Netgame.players[i].connected = data[len];				len++;
 			Netgame.players[i].rank = data[len];					len++;
 			Netgame.players[i].color = data[len];                   len++; 
+			Netgame.players[i].missilecolor = data[len];					len++;
 			Netgame.players[i].protocol.udp.isyou = data[len];			len++;
 			if(is_sync && Netgame.RetroProtocol) {
 				if(i != 0) { // Don't ever overwrite host addr
@@ -4623,6 +4685,7 @@ int net_udp_wait_for_sync(void)
 		me.type = UPID_QUIT_JOINING;
 		memcpy( me.player.callsign, Players[Player_num].callsign, CALLSIGN_LEN+1 );
 		me.player.color = PlayerCfg.ShipColor;
+		me.player.missilecolor = PlayerCfg.MissileColor;
 		net_udp_send_sequence_packet(me, Netgame.players[0].protocol.udp.addr);
 		N_players = 0;
 		Game_mode = GM_GAME_OVER;

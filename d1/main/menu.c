@@ -1925,12 +1925,31 @@ void print_ship_color(char* color_string, int color_value) {
 	}
 
 
-	sprintf( color_string, "Ship Color: %s", color);
+	sprintf( color_string, "Wing Color: %s", color);
+}
+
+void print_missile_color(char* color_string, int color_value) {
+	char color[10];
+	switch(color_value) {
+		case 0:  sprintf(color, "%s", "Blue"); break;
+		case 1:  sprintf(color, "%s", "Red"); break;
+		case 2:  sprintf(color, "%s", "Green"); break;
+		case 3:  sprintf(color, "%s", "Pink"); break;
+		case 4:  sprintf(color, "%s", "Orange"); break;
+		case 5:  sprintf(color, "%s", "Purple"); break;
+		case 6:  sprintf(color, "%s", "White"); break;
+		case 7:  sprintf(color, "%s", "Yellow"); break;
+		case 8:  sprintf(color, "%s", "Match Ship"); break;
+		default: sprintf(color, "%s", "???"); 
+	}
+
+
+	sprintf( color_string, "Missiles/Guns: %s", color);
 }
 
 void do_misc_menu()
 {
-	newmenu_item m[14];
+	newmenu_item m[15];
 	int i = 0;
 
 	do {
@@ -1956,6 +1975,14 @@ void do_misc_menu()
 		m[13].text= preferred_color; 
 		m[13].min_value=0; 
 		m[13].max_value=8; 
+
+		char missile_color[30];
+		print_missile_color(missile_color, PlayerCfg.MissileColor); 
+		m[14].type = NM_TYPE_SLIDER; 
+		m[14].value= PlayerCfg.MissileColor; 
+		m[14].text= missile_color; 
+		m[14].min_value=0; 
+		m[14].max_value=8; 		
 
 
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, menu_misc_options_handler, NULL, i );
@@ -1990,10 +2017,11 @@ int menu_misc_options_handler ( newmenu *menu, d_event *event, void *userdata )
 	{
 		if (citem == 13) {
 			PlayerCfg.ShipColor = menus[13].value;
-			print_ship_color(menus[13].text, PlayerCfg.ShipColor);
-			
-		}
-
+			print_ship_color(menus[13].text, PlayerCfg.ShipColor);			
+		} else if (citem == 14) {
+			PlayerCfg.MissileColor = menus[14].value;
+			print_missile_color(menus[14].text, PlayerCfg.MissileColor);			
+		}		
 	}
 
 	return 0;

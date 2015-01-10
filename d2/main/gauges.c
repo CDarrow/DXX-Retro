@@ -2514,6 +2514,7 @@ void hud_show_kill_list()
 			x1 = FSPACX(43);
 	}
 
+	int ox1 = x1; 
 	for (i=0;i<n_players;i++) {
 		int player_num;
 		char name[9];
@@ -2547,12 +2548,16 @@ void hud_show_kill_list()
 					x1 -= FSPACX(25);
 					x0 -= FSPACX(25); 					
 				}
-			}			
+			}	
+			ox1 = x1;
 		}
 		else  if (Netgame.KillGoal || Netgame.PlayTimeAllowed)
 		{
 			x1 = FSPACX(43);
+			ox1 = x1;
 		}
+
+		
 
 		int lagx, loss_upx, loss_downx, cnxx; 
 
@@ -2607,6 +2612,10 @@ void hud_show_kill_list()
 		}
 		gr_printf(x0,y,"%s",name);
 
+		if(Netgame.AllowPreferredColors) {
+			x1 = ox1 + FSPACX(5); 
+		}
+
 		if (Show_kill_list==2)
 		{
 			if (Players[player_num].net_killed_total+Players[player_num].net_kills_total==0)
@@ -2632,6 +2641,18 @@ void hud_show_kill_list()
 			else
 				gr_printf(x1,y,"%3d",Players[player_num].net_kills_total);
 
+		}
+
+		if(Netgame.AllowPreferredColors) {
+			if ( (Show_kill_list == 1 || Show_kill_list==2) &&
+			     (Players[player_num].connected == CONNECT_PLAYING) &&
+			     (! (Game_mode & GM_TEAM)) )
+			{
+				int score_color = Netgame.players[player_num].missilecolor;
+				gr_set_fontcolor(BM_XRGB(selected_player_rgb[score_color].r,selected_player_rgb[score_color].g,selected_player_rgb[score_color].b),-1 );
+				
+			}
+			gr_printf(x0+FSPACX(40),y,"-",name);
 		}
 
 		if(Show_network_stats && player_num != Player_num && Players[player_num].connected && Show_kill_list != 3) {

@@ -339,6 +339,7 @@ void ogl_texwrap(ogl_texture *gltexture,int state)
 //similarly, with the objects(esp weapons), we could just go through and cache em all instead, but that would get ones that might not even be on the level
 //TODO: doors
 
+int filter_blueship_wing = 0;
 void ogl_cache_polymodel_textures(int model_num)
 {
 	polymodel *po;
@@ -348,6 +349,11 @@ void ogl_cache_polymodel_textures(int model_num)
 		return;
 	po = &Polygon_models[model_num];
 	for (i=0;i<po->n_textures;i++)  {
+		if(model_num == 43 && i == 5) { // wings
+			filter_blueship_wing = 1;
+		} else {
+			filter_blueship_wing = 0;
+		}
 		ogl_loadbmtexture(&GameBitmaps[ObjBitmaps[ObjBitmapPtrs[po->first_texture+i]].index]);
 	}
 }
@@ -1650,6 +1656,8 @@ int ogl_loadtexture (unsigned char *data, int dxo, int dyo, ogl_texture *tex, in
 	return 0;
 }
 
+
+
 unsigned char decodebuf[1024*1024];
 
 // An unbelievably horrible awful wretched hack
@@ -1768,8 +1776,6 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 						int replace = gr_find_closest_color(max/4,max/10,max/3); 
 						buf[i] = replace; 
 					}
-
-					
 				}			
 			}
 			
@@ -1807,6 +1813,41 @@ void ogl_loadbmtexture_f(grs_bitmap *bm, int texfilt)
 					
 				}			
 			} 
+
+			int lower_bound[24]   = {28,27,26,25,24,23,22,21,20,19,19,18,17,16,15,14,13,13,12,11,10,9,8}; //bos
+			int upper_bound[24]   = {57,55,54,52,50,49,48,47,45,44,42,41,39,38,36,35,33,32,30,29,27,25,23}; // fos
+			if(filter_blueship_wing && bm->bm_h == 64 && bm->bm_w == 64) {
+				for(i=0; i < bm->bm_h * bm->bm_w; i++) {
+					int r = i / bm->bm_w;
+					int c = i % bm->bm_w; 
+
+					int in_filter_area_1 = 0;
+					int in_filter_area_2 = 0;
+
+					if(r >= 2 && r <= 6) {
+						in_filter_area_1 = 1;
+					}
+
+					if(r >= 36 && r <= 58) {
+						if(lower_bound[r-36] <= c && c <= upper_bound[r-36]) {
+							in_filter_area_2 = 1;
+						}
+					}
+
+					if(in_filter_area_1) {
+						ubyte b = gr_current_pal[buf[i]*3+2];
+						int replace = gr_find_closest_color(b/2,b/2,b); 
+						buf[i] = replace; 
+					}
+
+					if(in_filter_area_2) {
+						ubyte b = gr_current_pal[buf[i]*3+2];
+						int replace = gr_find_closest_color(b,b,b*2); 
+						buf[i] = replace; 
+					}					
+				}
+				filter_blueship_wing = 0;
+			}			
 		}
 
 	}

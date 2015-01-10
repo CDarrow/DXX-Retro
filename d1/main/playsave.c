@@ -111,6 +111,7 @@ int new_player_config()
 	PlayerCfg.QuietPlasma = 1; 
 	PlayerCfg.maxFps = GameArg.SysMaxFPS; 
 	PlayerCfg.ShipColor = 8;
+	PlayerCfg.MissileColor = 8;	
 	
 
 	// Default taunt macros
@@ -389,7 +390,9 @@ int read_player_d1x(char *filename)
 				if(!strcmp(word,"SHIELDWARNINGS"))
 					PlayerCfg.ShieldWarnings = atoi(line);	
 				if(!strcmp(word,"SHIPCOLOR"))
-					PlayerCfg.ShipColor = atoi(line);					
+					PlayerCfg.ShipColor = atoi(line);	
+				if(!strcmp(word,"MISSILECOLOR"))
+					PlayerCfg.MissileColor = atoi(line);									
 				//if(!strcmp(word,"QUIETPLASMA"))
 				//	PlayerCfg.QuietPlasma = atoi(line);							
 				if(!strcmp(word,"MAXFPS")) {
@@ -748,6 +751,7 @@ int write_player_d1x(char *filename)
 		PHYSFSX_printf(fout,"vulcanammowarnings=%i\n",PlayerCfg.VulcanAmmoWarnings);		
 		PHYSFSX_printf(fout,"shieldwarnings=%i\n",PlayerCfg.ShieldWarnings);			
 		PHYSFSX_printf(fout,"shipcolor=%i\n",PlayerCfg.ShipColor);	
+		PHYSFSX_printf(fout,"missilecolor=%i\n",PlayerCfg.MissileColor);			
 		//PHYSFSX_printf(fout,"quietplasma=%i\n",PlayerCfg.QuietPlasma);	
 		PHYSFSX_printf(fout,"maxfps=%i\n",PlayerCfg.maxFps);	
 		PHYSFSX_printf(fout,"[end]\n");
