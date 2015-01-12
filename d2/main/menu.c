@@ -1956,7 +1956,7 @@ void print_ship_color(char* color_string, int color_value) {
 }
 
 void print_missile_color(char* color_string, int color_value) {
-	char color[10];
+	char color[11];
 	switch(color_value) {
 		case 0:  sprintf(color, "%s", "Blue"); break;
 		case 1:  sprintf(color, "%s", "Red"); break;

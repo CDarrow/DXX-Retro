@@ -1924,7 +1924,6 @@ void print_ship_color(char* color_string, int color_value) {
 		default: sprintf(color, "%s", "???"); 
 	}
 
-
 	sprintf( color_string, "Wing Color: %s", color);
 }
 
@@ -1942,7 +1941,6 @@ void print_missile_color(char* color_string, int color_value) {
 		case 8:  sprintf(color, "%s", "Match Ship"); break;
 		default: sprintf(color, "%s", "???"); 
 	}
-
 
 	sprintf( color_string, "Missiles/Guns: %s", color);
 }
@@ -1984,7 +1982,6 @@ void do_misc_menu()
 		m[14].min_value=0; 
 		m[14].max_value=8; 		
 
-
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, menu_misc_options_handler, NULL, i );
 
 		PlayerCfg.AutoLeveling			= m[0].value;
@@ -2001,8 +1998,6 @@ void do_misc_menu()
 		PlayerCfg.VulcanAmmoWarnings = m[11].value; 
 		PlayerCfg.ShieldWarnings = m[12].value; 
 		//PlayerCfg.QuietPlasma = m[13].value; 
-
-
 
 	} while( i>-1 );
 

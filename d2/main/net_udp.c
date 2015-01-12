@@ -1450,11 +1450,12 @@ int wing_color_used(int color, int ignore) {
 	return 0;
 }
 
-int missile_color_used(int color, int ignore) {
+int color_used(int wingcolor, int missilecolor, int ignore) {
 	for(int i = 0; i < N_players; i++) {
 		if(i == ignore) continue;
 
-		if(Netgame.players[i].missilecolor == color)
+		if(Netgame.players[i].color == wingcolor &&
+		   Netgame.players[i].missilecolor == missilecolor )
 			return 1;
 	}
 
@@ -1465,8 +1466,7 @@ void resolve_color_conflicts(int np) { // New Player
 	int new_wing_color = Netgame.players[np].color;
 	int new_missile_color = Netgame.players[np].missilecolor;
 
-	while(wing_color_used(new_wing_color, np) &&
-	      missile_color_used(new_missile_color, np)) {
+	while(color_used(new_wing_color, new_missile_color, np)) {
 
 		// Fix it
 		new_wing_color    = rand() % 8;
