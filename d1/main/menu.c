@@ -1929,7 +1929,7 @@ void print_ship_color(char* color_string, int color_value) {
 }
 
 void print_missile_color(char* color_string, int color_value) {
-	char color[10];
+	char color[11];
 	switch(color_value) {
 		case 0:  sprintf(color, "%s", "Blue"); break;
 		case 1:  sprintf(color, "%s", "Red"); break;
@@ -1980,7 +1980,7 @@ void do_misc_menu()
 		print_missile_color(missile_color, PlayerCfg.MissileColor); 
 		m[14].type = NM_TYPE_SLIDER; 
 		m[14].value= PlayerCfg.MissileColor; 
-		m[14].text= missile_color; 
+		m[14].text = missile_color; 
 		m[14].min_value=0; 
 		m[14].max_value=8; 		
 
