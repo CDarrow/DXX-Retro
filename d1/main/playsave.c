@@ -85,6 +85,7 @@ int new_player_config()
 	PlayerCfg.MouseControlStyle = MOUSE_CONTROL_OLDSCHOOL; /* Old School Mouse */
 	PlayerCfg.MouseImpulse = 8;
 	PlayerCfg.MouseSens[0] = PlayerCfg.MouseSens[1] = PlayerCfg.MouseSens[2] = PlayerCfg.MouseSens[3] = PlayerCfg.MouseSens[4] = PlayerCfg.MouseSens[5] = 8;
+    PlayerCfg.MouseOverrun[0] = PlayerCfg.MouseOverrun[1] = PlayerCfg.MouseOverrun[2] = PlayerCfg.MouseOverrun[3] = PlayerCfg.MouseOverrun[4] = PlayerCfg.MouseOverrun[5] = 0;
 	PlayerCfg.MouseFSDead = 0;
 	PlayerCfg.MouseFSIndicator = 1;
 	PlayerCfg.CockpitMode[0] = PlayerCfg.CockpitMode[1] = CM_FULL_COCKPIT;
@@ -293,6 +294,18 @@ int read_player_d1x(char *filename)
 					PlayerCfg.MouseSens[4] = atoi(line);
 				if(!strcmp(word,"SENSITIVITY5"))
 					PlayerCfg.MouseSens[5] = atoi(line);
+				if(!strcmp(word,"OVERRUN0"))
+					PlayerCfg.MouseOverrun[0] = atoi(line);
+				if(!strcmp(word,"OVERRUN1"))
+					PlayerCfg.MouseOverrun[1] = atoi(line);
+				if(!strcmp(word,"OVERRUN2"))
+					PlayerCfg.MouseOverrun[2] = atoi(line);
+				if(!strcmp(word,"OVERRUN3"))
+					PlayerCfg.MouseOverrun[3] = atoi(line);
+				if(!strcmp(word,"OVERRUN4"))
+					PlayerCfg.MouseOverrun[4] = atoi(line);
+				if(!strcmp(word,"OVERRUN5"))
+					PlayerCfg.MouseOverrun[5] = atoi(line);
 				if(!strcmp(word,"FSDEAD"))
 					PlayerCfg.MouseFSDead = atoi(line);
 				if(!strcmp(word,"FSINDI"))
@@ -713,6 +726,12 @@ int write_player_d1x(char *filename)
 		PHYSFSX_printf(fout,"sensitivity3=%d\n",PlayerCfg.MouseSens[3]);
 		PHYSFSX_printf(fout,"sensitivity4=%d\n",PlayerCfg.MouseSens[4]);
 		PHYSFSX_printf(fout,"sensitivity5=%d\n",PlayerCfg.MouseSens[5]);
+		PHYSFSX_printf(fout,"overrun0=%d\n",PlayerCfg.MouseOverrun[0]);
+		PHYSFSX_printf(fout,"overrun1=%d\n",PlayerCfg.MouseOverrun[1]);
+		PHYSFSX_printf(fout,"overrun2=%d\n",PlayerCfg.MouseOverrun[2]);
+		PHYSFSX_printf(fout,"overrun3=%d\n",PlayerCfg.MouseOverrun[3]);
+		PHYSFSX_printf(fout,"overrun4=%d\n",PlayerCfg.MouseOverrun[4]);
+		PHYSFSX_printf(fout,"overrun5=%d\n",PlayerCfg.MouseOverrun[5]);
 		PHYSFSX_printf(fout,"fsdead=%d\n",PlayerCfg.MouseFSDead);
 		PHYSFSX_printf(fout,"fsindi=%d\n",PlayerCfg.MouseFSIndicator);
 		PHYSFSX_printf(fout,"[end]\n");

@@ -1225,6 +1225,7 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 
 	int i = 0, j = 0, speed_factor = cheats.turbo?2:1;
 	static fix64 mouse_delta_time = 0;
+    int overruns = 0;
 
 #ifndef NDEBUG
 	// --- Don't do anything if in debug mode ---
@@ -1683,20 +1684,139 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	if (Cruise_speed < 0 ) Cruise_speed = 0;
 	if (Controls.forward_thrust_time==0) Controls.forward_thrust_time = fixmul(Cruise_speed,FrameTime)/100;
 
-	//----------- Clamp values between -FrameTime and FrameTime
-	if (Controls.pitch_time > FrameTime/2 ) Controls.pitch_time = FrameTime/2;
-	if (Controls.heading_time > FrameTime ) Controls.heading_time = FrameTime;
-	if (Controls.pitch_time < -FrameTime/2 ) Controls.pitch_time = -FrameTime/2;
-	if (Controls.heading_time < -FrameTime ) Controls.heading_time = -FrameTime;
-	if (Controls.vertical_thrust_time > FrameTime ) Controls.vertical_thrust_time = FrameTime;
-	if (Controls.sideways_thrust_time > FrameTime ) Controls.sideways_thrust_time = FrameTime;
-	if (Controls.bank_time > FrameTime ) Controls.bank_time = FrameTime;
-	if (Controls.forward_thrust_time > FrameTime ) Controls.forward_thrust_time = FrameTime;
-	if (Controls.vertical_thrust_time < -FrameTime ) Controls.vertical_thrust_time = -FrameTime;
-	if (Controls.sideways_thrust_time < -FrameTime ) Controls.sideways_thrust_time = -FrameTime;
-	if (Controls.bank_time < -FrameTime ) Controls.bank_time = -FrameTime;
-	if (Controls.forward_thrust_time < -FrameTime ) Controls.forward_thrust_time = -FrameTime;
+	//----------- Add overrun values
+    Controls.pitch_time += Controls.pitch_time_overrun;
+    Controls.heading_time += Controls.heading_time_overrun;
+    Controls.vertical_thrust_time += Controls.vertical_thrust_time_overrun;
+    Controls.sideways_thrust_time += Controls.sideways_thrust_time_overrun;
+    Controls.bank_time += Controls.bank_time_overrun;
+    Controls.forward_thrust_time += Controls.forward_thrust_time_overrun;
+    
+	//----------- Set a flag to indicate whether there was an overrun for each of the values
+    overruns |= (Controls.pitch_time_overrun ? 1 : 0);
+    overruns |= (Controls.heading_time_overrun ? 2 : 0);
+    overruns |= (Controls.vertical_thrust_time_overrun ? 4 : 0);
+    overruns |= (Controls.sideways_thrust_time_overrun ? 8 : 0);
+    overruns |= (Controls.bank_time_overrun ? 16 : 0);
+    overruns |= (Controls.forward_thrust_time_overrun ? 32 : 0);
+    
+	//----------- Clear overrun values
+    Controls.pitch_time_overrun = 0;
+    Controls.heading_time_overrun = 0;
+    Controls.vertical_thrust_time_overrun = 0;
+    Controls.sideways_thrust_time_overrun = 0;
+    Controls.bank_time_overrun = 0;
+    Controls.forward_thrust_time_overrun = 0;
 
+	//----------- Clamp values between -FrameTime and FrameTime
+	if (Controls.pitch_time > FrameTime/2 ) {
+        if (overruns & 1 || (!Controls.slide_on_state && Controls.mouse_axis[kc_mouse[13].value])) {
+            Controls.pitch_time_overrun += (Controls.pitch_time - FrameTime/2);
+            if (Controls.pitch_time_overrun > F1_0 * PlayerCfg.MouseOverrun[1] / 32) {
+                Controls.pitch_time_overrun = F1_0 * PlayerCfg.MouseOverrun[1] / 32;
+            }
+        }
+        Controls.pitch_time = FrameTime/2;
+    }
+	if (Controls.heading_time > FrameTime ) {
+        if (overruns & 2 || (!Controls.slide_on_state && !Controls.bank_on_state && Controls.mouse_axis[kc_mouse[15].value])) {
+            Controls.heading_time_overrun += (Controls.heading_time - FrameTime);
+            if (Controls.heading_time_overrun > F1_0 * PlayerCfg.MouseOverrun[0] / 16) {
+                Controls.heading_time_overrun = F1_0 * PlayerCfg.MouseOverrun[0] / 16;
+            }
+        }
+        Controls.heading_time = FrameTime;
+    }
+	if (Controls.pitch_time < -FrameTime/2 ) {
+        if (overruns & 1 || (!Controls.slide_on_state && Controls.mouse_axis[kc_mouse[13].value])) {
+            Controls.pitch_time_overrun += (Controls.pitch_time + FrameTime/2);
+            if (Controls.pitch_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[1] / 32) {
+                Controls.pitch_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[1] / 32;
+            }
+        }
+        Controls.pitch_time = -FrameTime/2;
+    }
+	if (Controls.heading_time < -FrameTime ) {
+        if (overruns & 2 || (!Controls.slide_on_state && !Controls.bank_on_state && Controls.mouse_axis[kc_mouse[15].value])) {
+            Controls.heading_time_overrun += (Controls.heading_time + FrameTime);
+            if (Controls.heading_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[0] / 16) {
+                Controls.heading_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[0] / 16;
+            }
+        }
+        Controls.heading_time = -FrameTime;
+    }
+	if (Controls.vertical_thrust_time > FrameTime ) {
+        if (overruns & 4 || (Controls.mouse_axis[kc_mouse[19].value] || (Controls.slide_on_state && Controls.mouse_axis[kc_mouse[13].value]))) {
+            Controls.vertical_thrust_time_overrun += (Controls.vertical_thrust_time - FrameTime);
+            if (Controls.vertical_thrust_time_overrun > F1_0 * PlayerCfg.MouseOverrun[3] / 16) {
+                Controls.vertical_thrust_time_overrun = F1_0 * PlayerCfg.MouseOverrun[3] / 16;
+            }
+        }
+        Controls.vertical_thrust_time = FrameTime;
+    }
+	if (Controls.sideways_thrust_time > FrameTime ) {
+        if (overruns & 8 || (Controls.mouse_axis[kc_mouse[17].value] || (Controls.slide_on_state && Controls.mouse_axis[kc_mouse[15].value]))) {
+            Controls.sideways_thrust_time_overrun += (Controls.sideways_thrust_time - FrameTime);
+            if (Controls.sideways_thrust_time_overrun > F1_0 * PlayerCfg.MouseOverrun[2] / 16) {
+                Controls.sideways_thrust_time_overrun = F1_0 * PlayerCfg.MouseOverrun[2] / 16;
+            }
+        }
+        Controls.sideways_thrust_time = FrameTime;
+    }
+	if (Controls.bank_time > FrameTime ) {
+        if (overruns & 16 || (Controls.mouse_axis[kc_mouse[21].value] || (Controls.bank_on_state && Controls.mouse_axis[kc_mouse[15].value]))) {
+            Controls.bank_time_overrun += (Controls.bank_time - FrameTime);
+            if (Controls.bank_time_overrun > F1_0 * PlayerCfg.MouseOverrun[4] / 16) {
+                Controls.bank_time_overrun = F1_0 * PlayerCfg.MouseOverrun[4] / 16;
+            }
+        }
+        Controls.bank_time = FrameTime;
+    }
+	if (Controls.forward_thrust_time > FrameTime ) {
+        if (overruns & 32 || (Controls.mouse_axis[kc_mouse[23].value])) {
+            Controls.forward_thrust_time_overrun += (Controls.forward_thrust_time - FrameTime);
+            if (Controls.forward_thrust_time_overrun > F1_0 * PlayerCfg.MouseOverrun[5] / 16) {
+                Controls.forward_thrust_time_overrun = F1_0 * PlayerCfg.MouseOverrun[5] / 16;
+            }
+        }
+        Controls.forward_thrust_time = FrameTime;
+    }
+	if (Controls.vertical_thrust_time < -FrameTime ) {
+        if (overruns & 4 || (Controls.mouse_axis[kc_mouse[19].value] || (Controls.slide_on_state && Controls.mouse_axis[kc_mouse[13].value]))) {
+            Controls.vertical_thrust_time_overrun += (Controls.vertical_thrust_time + FrameTime);
+            if (Controls.vertical_thrust_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[3] / 16) {
+                Controls.vertical_thrust_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[3] / 16;
+            }
+        }
+        Controls.vertical_thrust_time = -FrameTime;
+    }
+	if (Controls.sideways_thrust_time < -FrameTime ) {
+        if (overruns & 8 || (Controls.mouse_axis[kc_mouse[17].value] || (Controls.slide_on_state && Controls.mouse_axis[kc_mouse[15].value]))) {
+            Controls.sideways_thrust_time_overrun += (Controls.sideways_thrust_time + FrameTime);
+            if (Controls.sideways_thrust_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[2] / 16) {
+                Controls.sideways_thrust_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[2] / 16;
+            }
+        }
+        Controls.sideways_thrust_time = -FrameTime;
+    }
+	if (Controls.bank_time < -FrameTime ) {
+        if (overruns & 16 || (Controls.mouse_axis[kc_mouse[21].value] || (Controls.bank_on_state && Controls.mouse_axis[kc_mouse[15].value]))) {
+            Controls.bank_time_overrun += (Controls.bank_time + FrameTime);
+            if (Controls.bank_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[4] / 16) {
+                Controls.bank_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[4] / 16;
+            }
+        }
+        Controls.bank_time = -FrameTime;
+    }
+	if (Controls.forward_thrust_time < -FrameTime ) {
+        if (overruns & 32 || (Controls.mouse_axis[kc_mouse[23].value])) {
+            Controls.forward_thrust_time_overrun += (Controls.forward_thrust_time + FrameTime);
+            if (Controls.forward_thrust_time_overrun < F1_0 * -PlayerCfg.MouseOverrun[5] / 16) {
+                Controls.forward_thrust_time_overrun = F1_0 * -PlayerCfg.MouseOverrun[5] / 16;
+            }
+        }
+        Controls.forward_thrust_time = -FrameTime;
+    }
 }
 
 void reset_cruise(void)
