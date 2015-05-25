@@ -57,6 +57,7 @@ typedef struct player_config
 	ubyte MouseControlStyle; /* Old School Mouse -- ubyte MouseFlightSim; */ 
 	int MouseImpulse; /* Old School Mouse */ 
 	int MouseSens[6];
+    int MouseOverrun[6];
 	int MouseFSDead;
 	int MouseFSIndicator;
 	int CockpitMode[2]; // 0 saves the "real" cockpit, 1 also saves letterbox and rear. Used to properly switch between modes and restore the real one.

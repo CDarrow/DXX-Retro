@@ -30,6 +30,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 typedef struct _control_info {
 	float key_pitch_forward_down_time, key_pitch_backward_down_time, key_heading_left_down_time, key_heading_right_down_time, key_slide_left_down_time, key_slide_right_down_time, key_slide_up_down_time, key_slide_down_down_time, key_bank_left_down_time, key_bank_right_down_time; // to scale movement depending on how long the key is pressed
 	fix pitch_time, vertical_thrust_time, heading_time, sideways_thrust_time, bank_time, forward_thrust_time;
+    fix pitch_time_overrun, vertical_thrust_time_overrun, heading_time_overrun, sideways_thrust_time_overrun, bank_time_overrun, forward_thrust_time_overrun;
 	ubyte key_pitch_forward_state, key_pitch_backward_state, key_heading_left_state, key_heading_right_state, key_slide_left_state, key_slide_right_state, key_slide_up_state, key_slide_down_state, key_bank_left_state, key_bank_right_state; // to scale movement for keys only we need them to be seperate from joystick/mouse buttons
 	ubyte btn_slide_left_state, btn_slide_right_state, btn_slide_up_state, btn_slide_down_state, btn_bank_left_state, btn_bank_right_state;
 	ubyte slide_on_state, bank_on_state;
