@@ -1677,7 +1677,8 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 		Controls.forward_thrust_time += (Controls.mouse_axis[kc_mouse[23].value]*PlayerCfg.MouseSens[5])/8;
 
 	//----------- Read cruise-control-type of throttle.
-	if ( Controls.cruise_plus_state ) Cruise_speed += speed_factor*FrameTime*80;
+	// For LoNi -- have cruise go to 100% instantly.  Will add option if anyone cares about making it slow.
+	if ( Controls.cruise_plus_state ) Cruise_speed = i2f(100); // Cruise_speed += speed_factor*FrameTime*80;
 	if ( Controls.cruise_minus_state ) Cruise_speed -= speed_factor*FrameTime*80;
 	if ( Controls.cruise_off_count > 0 ) Controls.cruise_off_count = Cruise_speed = 0;
 	if (Cruise_speed > i2f(100) ) Cruise_speed = i2f(100);
