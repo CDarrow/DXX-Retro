@@ -1957,7 +1957,7 @@ void print_missile_color(char* color_string, int color_value) {
 
 void do_misc_menu()
 {
-	newmenu_item m[15];
+	newmenu_item m[16];
 	int i = 0;
 
 	do {
@@ -1974,23 +1974,23 @@ void do_misc_menu()
 		ADD_CHECK(10, "Only Cycle Autoselect Weapons",PlayerCfg.CycleAutoselectOnly);		
 		ADD_CHECK(11, "Ammo Warnings",PlayerCfg.VulcanAmmoWarnings);
 		ADD_CHECK(12, "Shield Warnings",PlayerCfg.ShieldWarnings);
-		//ADD_CHECK(13, "Quiet Plasma",PlayerCfg.QuietPlasma);
-
+		ADD_CHECK(13, "Automatically Start Demos",PlayerCfg.AutoDemo);
+		
 		char preferred_color[30];
 		print_ship_color(preferred_color, PlayerCfg.ShipColor); 
-		m[13].type = NM_TYPE_SLIDER; 
-		m[13].value= PlayerCfg.ShipColor; 
-		m[13].text= preferred_color; 
-		m[13].min_value=0; 
-		m[13].max_value=8; 
+		m[14].type = NM_TYPE_SLIDER; 
+		m[14].value= PlayerCfg.ShipColor; 
+		m[14].text= preferred_color; 
+		m[14].min_value=0; 
+		m[14].max_value=8; 
 
 		char missile_color[30];
 		print_missile_color(missile_color, PlayerCfg.MissileColor); 
-		m[14].type = NM_TYPE_SLIDER; 
-		m[14].value= PlayerCfg.MissileColor; 
-		m[14].text = missile_color; 
-		m[14].min_value=0; 
-		m[14].max_value=8; 		
+		m[15].type = NM_TYPE_SLIDER; 
+		m[15].value= PlayerCfg.MissileColor; 
+		m[15].text = missile_color; 
+		m[15].min_value=0; 
+		m[15].max_value=8; 		
 
 		i = newmenu_do1( NULL, "Misc Options", sizeof(m)/sizeof(*m), m, menu_misc_options_handler, NULL, i );
 
@@ -2007,6 +2007,7 @@ void do_misc_menu()
 		PlayerCfg.CycleAutoselectOnly		= m[10].value;
 		PlayerCfg.VulcanAmmoWarnings = m[11].value; 
 		PlayerCfg.ShieldWarnings = m[12].value; 
+		PlayerCfg.AutoDemo = m[13].value;
 		//PlayerCfg.QuietPlasma = m[13].value; 
 
 	} while( i>-1 );
@@ -2020,12 +2021,12 @@ int menu_misc_options_handler ( newmenu *menu, d_event *event, void *userdata )
 	
 	if (event->type == EVENT_NEWMENU_CHANGED)
 	{
-		if (citem == 13) {
-			PlayerCfg.ShipColor = menus[13].value;
-			print_ship_color(menus[13].text, PlayerCfg.ShipColor);			
-		} else if (citem == 14) {
-			PlayerCfg.MissileColor = menus[14].value;
-			print_missile_color(menus[14].text, PlayerCfg.MissileColor);			
+		if (citem == 14) {
+			PlayerCfg.ShipColor = menus[14].value;
+			print_ship_color(menus[14].text, PlayerCfg.ShipColor);			
+		} else if (citem == 15) {
+			PlayerCfg.MissileColor = menus[15].value;
+			print_missile_color(menus[15].text, PlayerCfg.MissileColor);			
 		}		
 	}
 

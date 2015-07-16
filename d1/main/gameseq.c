@@ -1097,6 +1097,10 @@ void StartNewLevelSub(int level_num, int page_in_textures, int secret_flag)
 	if (Newdemo_state == ND_STATE_RECORDING) {
 		newdemo_set_new_level(level_num);
 		newdemo_record_start_frame(FrameTime );
+	} else {
+		if(Game_mode & GM_MULTI && PlayerCfg.AutoDemo) {
+			newdemo_start_recording();
+		}
 	}
 
 	LoadLevel(level_num, page_in_textures);
