@@ -435,6 +435,22 @@ void do_physics_sim(object *obj)
 
 	pi = &obj->mtype.phys_info;
 
+	/*
+	if(obj-Objects == 0) {
+	con_printf(CON_NORMAL, "%f\t%f\t%f\t%f\n", (double)(GameTime64)/(double)(F1_0),
+		(double)(obj->pos.x)/(double)(F1_0),
+		(double)(obj->pos.y)/(double)(F1_0),
+		(double)(obj->pos.z)/(double)(F1_0));
+	}
+	*/
+	/*
+	if(obj-Objects == 0) {
+	con_printf(CON_NORMAL, "%f\t%f\t%f\t%f\n", (double)(GameTime64)/(double)(F1_0),
+		(double)(obj->orient.uvec.x)/(double)(F1_0),
+		(double)(obj->orient.uvec.y)/(double)(F1_0),
+		(double)(obj->orient.uvec.z)/(double)(F1_0));
+	}
+	*/
 	do_physics_sim_rot(obj);
 
 	if (!(pi->velocity.x || pi->velocity.y || pi->velocity.z || pi->thrust.x || pi->thrust.y || pi->thrust.z))
