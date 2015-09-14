@@ -1179,6 +1179,8 @@ void GameProcessFrame(void)
 
 		delayed_autoselect(); /* SelectAfterFire */ 
 		do_shield_warnings(); 
+
+		check_robot_respawns(); 
 	}
 
 	if (Do_appearance_effect) {

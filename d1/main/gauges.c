@@ -713,7 +713,7 @@ void hud_show_score()
 
 	gr_set_curfont( GAME_FONT );
 
-	if ( ((Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP)) ) {
+	if ( (Game_mode & GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) ) {
 		sprintf(score_str, "%s: %5d", TXT_KILLS, Players[Player_num].net_kills_total);
 	} else {
 		sprintf(score_str, "%s: %5d", TXT_SCORE, Players[Player_num].score);
@@ -766,7 +766,7 @@ void hud_show_score_added()
 	int	w, h, aw;
 	char	score_str[20];
 
-	if ( (Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) )
+	if ( (Game_mode & GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) )
 		return;
 
 	if (score_display == 0)
@@ -806,13 +806,13 @@ void sb_show_score()
 	gr_set_curfont( GAME_FONT );
 	gr_set_fontcolor(BM_XRGB(0,20,0),-1 );
 
-	if ( (Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) )
+	if ( (Game_mode & GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) )
 		gr_printf(HUD_SCALE_X(SB_SCORE_LABEL_X),HUD_SCALE_Y(SB_SCORE_Y),"%s:", TXT_KILLS);
 	else
 		gr_printf(HUD_SCALE_X(SB_SCORE_LABEL_X),HUD_SCALE_Y(SB_SCORE_Y),"%s:", TXT_SCORE);
 
 	gr_set_curfont( GAME_FONT );
-	if ( (Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) )
+	if ( (Game_mode & GM_MULTI) && !( (Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS) ) )
 		sprintf(score_str, "%5d", Players[Player_num].net_kills_total);
 	else
 		sprintf(score_str, "%5d", Players[Player_num].score);
@@ -825,7 +825,7 @@ void sb_show_score()
 	gr_setcolor(BM_XRGB(0,0,0));
 	gr_rect(x,y,HUD_SCALE_X(SB_SCORE_RIGHT),y+LINE_SPACING);
 
-	if ( (Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) )
+	if ( (Game_mode & GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) )
 		gr_set_fontcolor(BM_XRGB(0,20,0),-1 );
 	else
 		gr_set_fontcolor(BM_XRGB(0,31,0),-1 );
@@ -841,7 +841,7 @@ void sb_show_score_added()
 	static int x;
 	static	int last_score_display = -1;
 
-	if ( (Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP) )
+	if ( (Game_mode & GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) )
 		return;
 
 	if (score_display == 0)
@@ -1336,7 +1336,7 @@ void add_points_to_score(int points)
 	if (points == 0 || cheats.enabled)
 		return;
 
-	if ((Game_mode & GM_MULTI) && !(Game_mode & GM_MULTI_COOP))
+	if ((Game_mode & GM_MULTI) && !( (Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS) ))
 		return;
 
 	prev_score=Players[Player_num].score;
@@ -1350,7 +1350,7 @@ void add_points_to_score(int points)
 
 #ifndef SHAREWARE
 #ifdef NETWORK
-	if (Game_mode & GM_MULTI_COOP)
+	if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS))
 		multi_send_score();
 #endif
 #endif
@@ -2226,14 +2226,14 @@ void hud_show_kill_list()
 
 	x0 = FSPACX(1); x1 = FSPACX(43); 
 
-	if (Game_mode & GM_MULTI_COOP)
+	if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS))
 		x1 = FSPACX(31);
 
 	save_y = y = grd_curcanv->cv_bitmap.bm_h - n_left*(LINE_SPACING);
 
 	if (PlayerCfg.CockpitMode[1] == CM_FULL_COCKPIT) {
 		save_y = y -= FSPACX(6);
-		if (Game_mode & GM_MULTI_COOP)
+		if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS))
 			x1 = FSPACX(33);
 		else
 			x1 = FSPACX(43);
@@ -2250,7 +2250,7 @@ void hud_show_kill_list()
 				x0 = grd_curcanv->cv_bitmap.bm_w - FSPACX(53);
 			else
 				x0 = grd_curcanv->cv_bitmap.bm_w - FSPACX(60);
-			if (Game_mode & GM_MULTI_COOP)
+			if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS))
 				x1 = grd_curcanv->cv_bitmap.bm_w - FSPACX(27);
 			else
 				x1 = grd_curcanv->cv_bitmap.bm_w - FSPACX(15);  // Right edge of name, change this for width problems
@@ -2260,7 +2260,7 @@ void hud_show_kill_list()
 			if (Netgame.KillGoal || Netgame.PlayTimeAllowed)
 				x1-=FSPACX(18);
 
-			if(! (Game_mode & GM_MULTI_COOP) ) {
+			if(! ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) ) {
 				x1 -= FSPACX(18);
 				x0 -= FSPACX(18); 
 			}
@@ -2368,7 +2368,7 @@ void hud_show_kill_list()
 				gr_printf(x1,y,"%3d",team_kills[i]);
 
 			
-		} else if (Game_mode & GM_MULTI_COOP)
+		} else if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS) )
 			gr_printf(x1,y,"%-6d",Players[player_num].score);
 		
 		else {
@@ -2391,7 +2391,7 @@ void hud_show_kill_list()
 				gr_set_fontcolor(BM_XRGB(selected_player_rgb[score_color].r,selected_player_rgb[score_color].g,selected_player_rgb[score_color].b),-1 );
 				
 			}
-			gr_printf(x0+FSPACX(40),y,"-",name);
+			//gr_printf(x0+FSPACX(40),y,"-",name);
 		}
 
 		if(Show_network_stats && player_num != Player_num && Players[player_num].connected && Show_kill_list != 3) {
@@ -2765,7 +2765,7 @@ void render_gauges()
 
 		sb_show_lives();
 
-		if ((Game_mode&GM_MULTI) && !(Game_mode & GM_MULTI_COOP))
+		if ((Game_mode&GM_MULTI) && !((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)))
 		{
 			sb_show_score();
 		}

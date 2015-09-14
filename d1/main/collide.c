@@ -68,6 +68,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "editor/editor.h"
 #endif
 #include "collide.h"
+#include "multibot.h"
 
 #define WALL_DAMAGE_SCALE (128) // Was 32 before 8:55 am on Thursday, September 15, changed by MK, walls were hurting me more than robots!
 #define WALL_DAMAGE_THRESHOLD (F1_0/3)
@@ -873,6 +874,10 @@ int apply_damage_to_robot(object *robot, fix damage, int killer_objnum)
 			if (multi_explode_robot_sub(robot-Objects, killer_objnum, 0))
 			{
 				multi_send_robot_explode(robot-Objects, killer_objnum, 0);
+
+				if(multi_i_am_master() && Game_mode & GM_MULTI_ROBOTS) {
+			    	kill_respawnable_robot(robot); 
+			    }
 				return 1;
 			}
 			else
@@ -968,8 +973,9 @@ void collide_robot_and_weapon( object * robot, object * weapon, vms_vector *coll
 
 			if (! apply_damage_to_robot(robot, damage, weapon->ctype.laser_info.parent_num))
 				bump_two_objects(robot, weapon, 0);		//only bump if not dead. no damage from bump
-			else if (weapon->ctype.laser_info.parent_signature == ConsoleObject->signature)
+			else if (weapon->ctype.laser_info.parent_signature == ConsoleObject->signature) {
 				add_points_to_score(Robot_info[robot->id].score_value);
+			}
 		}
 
 	}

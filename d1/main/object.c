@@ -1798,7 +1798,7 @@ void object_move_one( object * obj )
 
 		default:
 
-                        Error("Unknown control type %d in object %d, sig/type/id = %d/%d/%d",obj->control_type,(int) (obj-Objects), obj->signature, obj->type, obj->id);
+                        con_printf(CON_NORMAL, "Unknown control type %d in object %d, sig/type/id = %d/%d/%d",obj->control_type,(int) (obj-Objects), obj->signature, obj->type, obj->id);
 
 			break;
 

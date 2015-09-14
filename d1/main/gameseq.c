@@ -99,6 +99,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "byteswap.h"
 #include "segment.h"
 #include "gameseg.h"
+#include "multibot.h"
 
 void init_player_stats_new_ship(ubyte pnum);
 void copy_defaults_to_robot_all(void);
@@ -1097,11 +1098,7 @@ void StartNewLevelSub(int level_num, int page_in_textures, int secret_flag)
 	if (Newdemo_state == ND_STATE_RECORDING) {
 		newdemo_set_new_level(level_num);
 		newdemo_record_start_frame(FrameTime );
-	} else {
-		if(Game_mode & GM_MULTI && PlayerCfg.AutoDemo) {
-			newdemo_start_recording();
-		}
-	}
+	} 
 
 	LoadLevel(level_num, page_in_textures);
 
@@ -1185,12 +1182,18 @@ void StartNewLevelSub(int level_num, int page_in_textures, int secret_flag)
 	copy_defaults_to_robot_all();
 	init_controlcen_for_level();
 
+	reset_respawnable_bots();
+
 	//	Say player can use FLASH cheat to mark path to exit.
 	Last_level_path_created = -1;
 
 	// Initialise for palette_restore()
 	if (!((Game_mode & GM_MULTI) && (Newdemo_state != ND_STATE_PLAYBACK)))
 		palette_save();
+
+	if(Game_mode & GM_MULTI && PlayerCfg.AutoDemo && Newdemo_state != ND_STATE_RECORDING) {
+		newdemo_start_recording();
+	}
 
 	if (!Game_wind)
 		game();
@@ -1340,7 +1343,7 @@ void StartLevel(int random)
 
 	if (Game_mode & GM_MULTI)
 	{
-		if (Game_mode & GM_MULTI_COOP)
+		if ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS))
 			multi_send_score();
 	 	multi_send_reappear();
 		multi_do_protocol_frame(1, 1);
