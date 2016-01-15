@@ -46,6 +46,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "physics.h" 
 #include "multibot.h"
 #include "byteswap.h"
+#include "wall.h"
 
 void multi_delete_controlled_robot(int objnum);
 void multi_send_robot_position_sub(int objnum, int now);
@@ -960,10 +961,33 @@ void check_robot_respawns() {
 		for(int i = 0; i < num_respawnable_bots; i++) {
 			if(robo_death_time[i] == 0) { continue; } // Still alive
 			if(GameTime64 - robo_death_time[i] < RobotRechargeTime) { continue; }
-			short objnum = master_respawn_robot(i);
 
-			// Tell everyone else to do the same
-			multi_send_respawn_robot(objnum);
+
+			object *robo = respawnable_bots + i; 
+			int player_too_close = 0; 
+			for(int j = 0; j < MAX_PLAYERS; j++) {
+				if(Players[j].connected) {
+					fix dist = find_connected_distance(
+						&Objects[Players[j].objnum].pos, 
+						Objects[Players[j].objnum].segnum, 
+						&robo->pos,
+						robo->segnum, 
+						15, WID_FLY_FLAG
+						);
+
+					if(dist < F1_0 * 100) {
+						player_too_close = 1; 
+						break;
+					}
+				}
+			}
+
+			if(! player_too_close) {
+				short objnum = master_respawn_robot(i);
+
+				// Tell everyone else to do the same
+				multi_send_respawn_robot(objnum);
+			}
 		}
 	}
  } 
@@ -992,7 +1016,8 @@ void multi_send_respawn_robot(short objnum) {
 	PUT_INTEL_INT(multibuf + loc, bot->orient.fvec.z);      loc += 4;	
 	PUT_INTEL_INT(multibuf + loc, bot->size);               loc += 4;
 	multibuf[loc] = 0;                                      loc += 1; // player num
-	PUT_INTEL_SHORT(multibuf + loc, objnum);                loc += 2; 	
+	PUT_INTEL_SHORT(multibuf + loc, objnum);                loc += 2; 
+	multibuf[loc] = bot->ctype.ai_info.behavior;        	loc += 1; 
 
 	multi_send_data(multibuf, loc, 2);
 }
@@ -1004,6 +1029,7 @@ void multi_do_respawn_robot(const ubyte *buf) {
 	vms_vector pos; 
 	vms_matrix orient; 
 	fix size;
+	ubyte behavior; 
 
 	ubyte id      = buf[loc];                      loc += 1; 
 	segnum        = GET_INTEL_SHORT(buf + loc);    loc += 2; 
@@ -1022,8 +1048,9 @@ void multi_do_respawn_robot(const ubyte *buf) {
 	size          = GET_INTEL_INT(buf + loc);      loc += 4;
 	ubyte rplr    = buf[loc];                      loc += 1; 
 	short robjnum = GET_INTEL_SHORT(buf + loc);    loc += 2; 
+	behavior      = buf[loc];                      loc += 1; 
 
-	short objnum = respawn_robot(id, segnum, pos, orient, size); 
+	short objnum = respawn_robot(id, segnum, pos, orient, size, behavior); 
 
 	map_objnum_local_to_remote(objnum, robjnum, rplr); 
 }
@@ -1031,7 +1058,7 @@ void multi_do_respawn_robot(const ubyte *buf) {
 short master_respawn_robot(short robo_id) {
 	object *robo = respawnable_bots + robo_id; 
 
-	short objnum = respawn_robot(robo->id, robo->segnum, robo->pos, robo->orient, robo->size); 
+	short objnum = respawn_robot(robo->id, robo->segnum, robo->pos, robo->orient, robo->size, robo->ctype.ai_info.behavior ); 
 
 	roboid_to_objid[robo_id] = objnum;
 	robo_death_time[robo_id] = 0;
@@ -1041,7 +1068,7 @@ short master_respawn_robot(short robo_id) {
 	return objnum; 
 }
 
-short respawn_robot(ubyte id, short segnum, vms_vector pos, vms_matrix orient, fix size) // robo ID 
+short respawn_robot(ubyte id, short segnum, vms_vector pos, vms_matrix orient, fix size, ubyte behavior) // robo ID 
 {
 	robot_info	*robodata = &Robot_info[id];
 
@@ -1062,11 +1089,11 @@ short respawn_robot(ubyte id, short segnum, vms_vector pos, vms_matrix orient, f
 
 	objp->shields = robodata->strength;
 	
-	int default_behavior = AIB_NORMAL;
-	if (id == 10)						//	This is a toaster guy!
-		default_behavior = AIB_RUN_FROM;
+	//int default_behavior = AIB_NORMAL;
+	//if (id == 10)						//	This is a toaster guy!
+	//	default_behavior = AIB_RUN_FROM;
 
-	init_ai_object(objp-Objects, default_behavior, -1 );		//	Note, -1 = segment this robot goes to to hide, should probably be something useful
+	init_ai_object(objp-Objects, behavior, -1 );		//	Note, -1 = segment this robot goes to to hide, should probably be something useful
 
 	object_create_explosion(segnum, &pos, i2f(10), VCLIP_MORPHING_ROBOT );
 	digi_link_sound_to_pos( Vclip[VCLIP_MORPHING_ROBOT].sound_num, segnum, 0,  &pos, 0 , F1_0);

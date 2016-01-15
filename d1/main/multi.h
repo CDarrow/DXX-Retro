@@ -116,7 +116,7 @@ extern int multi_protocol; // set and determinate used protocol
 	VALUE(MULTI_KILL_HOST            , 7)	\
 	VALUE(MULTI_KILL_CLIENT          , 5)	\
 	VALUE(MULTI_RANK                 , 3)	\
-	VALUE(MULTI_RESPAWN_ROBOT        , 59)	\
+	VALUE(MULTI_RESPAWN_ROBOT        , 60)	\
 	AFTER
 for_each_multiplayer_command(enum {, define_multiplayer_command, });
 
