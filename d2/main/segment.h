@@ -191,7 +191,7 @@ typedef struct {
 } dl_index;
 
 #define MAX_DL_INDICES      500
-#define MAX_DELTA_LIGHTS    10000
+#define MAX_DELTA_LIGHTS    32000
 
 #define DL_SCALE            2048    // Divide light to allow 3 bits integer, 5 bits fraction.
 
