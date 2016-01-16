@@ -126,9 +126,7 @@ void kmatrix_draw_names(int *sorted)
 {
 	int j, x, color;
 
-	if(Netgame.FairColors)
-		selected_player_rgb = player_rgb_all_blue; 
-	else if(Netgame.BlackAndWhitePyros) 
+	if(Netgame.BlackAndWhitePyros) 
 		selected_player_rgb = player_rgb_alt; 
 	else
 		selected_player_rgb = player_rgb;
@@ -136,9 +134,9 @@ void kmatrix_draw_names(int *sorted)
 	for (j=0; j<N_players; j++)
 	{
 		if (Game_mode & GM_TEAM)
-			color = get_team(sorted[j]);
+			color = get_color_for_team(sorted[j], 0);
 		else
-			color = Netgame.players[sorted[j]].color;//sorted[j];
+			color = get_color_for_player(sorted[j], 0);//sorted[j];
 
 		x = FSPACX (70 + CENTERING_OFFSET(N_players) + j*25);
 
@@ -192,9 +190,7 @@ void kmatrix_redraw(kmatrix_screen *km)
 	gr_set_current_canvas(NULL);
 	show_fullscr(&km->background);
 	
-	if(Netgame.FairColors)
-		selected_player_rgb = player_rgb_all_blue; 
-	else if(Netgame.BlackAndWhitePyros) 
+	if(Netgame.BlackAndWhitePyros) 
 		selected_player_rgb = player_rgb_alt; 
 	else
 		selected_player_rgb = player_rgb;
@@ -217,9 +213,9 @@ void kmatrix_redraw(kmatrix_screen *km)
 		for (i=0; i<N_players; i++ )
 		{
 			if (Game_mode & GM_TEAM)
-				color = get_team(sorted[i]);
+				color = get_color_for_team(sorted[i], 0);
 			else
-				color = Netgame.players[sorted[i]].color;//sorted[i];
+				color = get_color_for_player(sorted[i], 0);//sorted[j];
 
 			if (Players[sorted[i]].connected==CONNECT_DISCONNECTED)
 				gr_set_fontcolor(gr_find_closest_color(31,31,31),-1);
