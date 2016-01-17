@@ -434,7 +434,7 @@ int main_menu_handler(newmenu *menu, d_event *event, int *menu_choice )
 			break;
 
 		case EVENT_IDLE:
-			if ( keyd_time_when_last_pressed+i2f(45) < timer_query() || GameArg.SysAutoDemo  )
+			if ( /*keyd_time_when_last_pressed+i2f(45) < timer_query() || */ GameArg.SysAutoDemo  )
 			{
 				keyd_time_when_last_pressed = timer_query();			// Reset timer so that disk won't thrash if no demos.
 				newdemo_start_playback(NULL);		// Randomly pick a file
