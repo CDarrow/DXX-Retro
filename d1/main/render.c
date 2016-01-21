@@ -1444,6 +1444,7 @@ int first_terminal_seg;
 //fills in Render_list & N_render_segs
 void build_segment_list(int start_seg_num)
 {
+	bool observer = true; // Set this boolean to indicate whether the user is in observer mode or not so that it can properly render the cubes outside the level.
 	int	lcnt,scnt,ecnt;
 	int	l,c;
 	int	ch;
@@ -1516,8 +1517,8 @@ void build_segment_list(int start_seg_num)
 
 				ch=seg->children[c];
 
-				if ( (window_check || !visited[ch]) && (wid & WID_RENDPAST_FLAG) ) {
-					if (behind_check) {
+				if ( (window_check || !visited[ch]) && ((wid & WID_RENDPAST_FLAG) || observer) ) {
+					if (!observer && behind_check) {
 						sbyte *sv = Side_to_verts[c];
 						ubyte codes_and=0xff;
 						int i;
@@ -1597,7 +1598,7 @@ void build_segment_list(int start_seg_num)
 							draw_window_box(WHITE,min_x,min_y,max_x,max_y);
 						#endif
 
-						if (no_proj_flag || (!codes_and_3d && !codes_and_2d)) {	//maybe add this segment
+						if (observer || no_proj_flag || (!codes_and_3d && !codes_and_2d)) {	//maybe add this segment
 							int rp = render_pos[ch];
 							rect *new_w = &render_windows[lcnt];
 
