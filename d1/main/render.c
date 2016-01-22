@@ -1444,7 +1444,7 @@ int first_terminal_seg;
 //fills in Render_list & N_render_segs
 void build_segment_list(int start_seg_num)
 {
-	bool observer = true; // Set this boolean to indicate whether the user is in observer mode or not so that it can properly render the cubes outside the level.
+	bool observer = true; // TODO: Set this boolean to indicate whether the user is in observer mode or not so that it can properly render the cubes outside the level.
 	int	lcnt,scnt,ecnt;
 	int	l,c;
 	int	ch;
