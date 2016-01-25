@@ -1444,7 +1444,7 @@ int first_terminal_seg;
 //fills in Render_list & N_render_segs
 void build_segment_list(int start_seg_num)
 {
-	bool observer = Game_mode & GM_OBSERVER;
+	bool observer = (Game_mode & GM_OBSERVER) != 0;
 	int	lcnt,scnt,ecnt;
 	int	l,c;
 	int	ch;

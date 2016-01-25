@@ -1222,7 +1222,7 @@ int is_key_rotate_event(d_event *event) {
 
 void kconfig_read_controls(d_event *event, int automap_flag)
 {
-    bool observer = Game_mode & GM_OBSERVER;
+    bool observer = (Game_mode & GM_OBSERVER) != 0;
 
 	int i = 0, j = 0, speed_factor = (cheats.turbo || observer)?2:1;
 	static fix64 mouse_delta_time = 0;
