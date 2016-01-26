@@ -103,6 +103,9 @@ typedef struct player_config
 	int maxFps;
 	int ShipColor; 
 	int MissileColor; 
+	ubyte ObsTurbo;
+	ubyte ObsShowNames;
+	ubyte ObsShowObs; 
 } __pack__ player_config;
 
 extern struct player_config PlayerCfg;
