@@ -1184,6 +1184,7 @@ void read_netgame_profile(netgame_info *ng)
 	if (!file)
 		return;
 
+
 	// NOTE that we do not set any defaults here or even initialize netgame_info. For flexibility, leave that to the function calling this.
 	while (!PHYSFS_eof(file))
 	{
@@ -1251,7 +1252,9 @@ void read_netgame_profile(netgame_info *ng)
 			else if (!strcmp(token, "FairColors"))
 				ng->FairColors = strtol(value, NULL, 10);	
 			else if (!strcmp(token, "BlackAndWhitePyros"))
-				ng->BlackAndWhitePyros = strtol(value, NULL, 10);																		
+				ng->BlackAndWhitePyros = strtol(value, NULL, 10);		
+			else if (!strcmp(token, "ObsDelay"))
+				ng->obs_delay = strtol(value, NULL, 10);																	
 #ifdef USE_TRACKER
 			else if (!strcmp(token, "Tracker"))
 				ng->Tracker = strtol(value, NULL, 10);
@@ -1300,6 +1303,7 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "AllowColoredLighting=%i\n", ng->AllowColoredLighting);
 	PHYSFSX_printf(file, "FairColors=%i\n", ng->FairColors);
 	PHYSFSX_printf(file, "BlackAndWhitePyros=%i\n", ng->BlackAndWhitePyros);
+	PHYSFSX_printf(file, "ObsDelay=%i\n", ng->obs_delay);
 #ifdef USE_TRACKER
 	PHYSFSX_printf(file, "Tracker=%i\n", ng->Tracker);
 #else
