@@ -468,4 +468,28 @@ typedef struct netgame_info
 	ubyte						LowVulcan;
 	ubyte						AllowPreferredColors;
 } __pack__ netgame_info;
+
+// Stats for The Observatory
+#define OBSEV_NONE 0
+#define OBSEV_KILL 1
+#define OBSEV_DEATH 2
+#define OBSEV_SELF 4
+#define OBSEV_REACTOR 8
+#define OBSEV_ROBOT 16
+#define OBSEV_PLAYER 32
+
+typedef struct kill_event {
+	int					timestamp_hours;
+	fix					timestamp;
+	int					obs_event;
+	int					score;
+	struct kill_event*	next;
+	struct kill_event*	prev;
+} __pack__ kill_event;
+
+kill_event *first_event[MAX_PLAYERS];
+kill_event *last_event[MAX_PLAYERS];
+kill_event *last_kill[MAX_PLAYERS];
+kill_event *last_death[MAX_PLAYERS];
+
 #endif /* _MULTI_H */

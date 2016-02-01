@@ -173,6 +173,7 @@ u_int32_t Game_screen_mode = SM(640,480);
 //called every time the screen mode or cockpit changes
 void init_cockpit()
 {
+	bool observer = (Game_mode & GM_OBSERVER) != 0;
 	//Initialize the on-screen canvases
 
 	if (Screen_mode != SCREEN_GAME)
@@ -189,7 +190,7 @@ void init_cockpit()
 
 	gr_set_current_canvas(NULL);
 
-	switch( PlayerCfg.CockpitMode[1] ) {
+	switch( observer ? CM_FULL_SCREEN : PlayerCfg.CockpitMode[1]) {
 		case CM_FULL_COCKPIT:
 			game_init_render_sub_buffers(0, 0, SWIDTH, (SHEIGHT*2)/3);
 			break;
