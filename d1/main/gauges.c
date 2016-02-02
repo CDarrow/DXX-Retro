@@ -53,6 +53,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "ogl_init.h"
 #endif
 #include "net_udp.h"
+#include <math.h>
 
 //bitmap numbers for gauges
 #define GAUGE_SHIELDS			0		//0..9, in decreasing order (100%,90%...0%)
@@ -2454,8 +2455,27 @@ int time_diff(kill_event *ev) {
 
 void observer_show_kill_list()
 {
-	int n_players,player_list[MAX_PLAYERS];
+	int i,n_players,player_list[MAX_PLAYERS];
 	bool is_teams = (Show_kill_list == 3); // TODO: Fix for teams.  Right now this will only show team data if you cycle through the F7 list appropriately.
+	int player_num;
+	char name[9], score[10], major_event[23], run[23], time[10];
+	int old_time, new_time;
+	char *t;
+	int sw,sh,aw;
+	bool left;
+	int x, y, diff, diff2;
+	int gridminx, gridminx2, gridmaxx, gridminy, gridmaxy;
+	int old_x, old_y;
+	int minscore = 0;
+	int maxscore = 0;
+	int maxtime = 0;
+	int timescale = 0;
+	int scorescale = 0;
+	int color;
+	kill_event *ev;
+	kill_event *opp_ev;
+	kill_event *last_ev;
+	kill_event *last_opp_ev;
 
 	gr_set_curfont( GAME_FONT );
 
@@ -2469,23 +2489,16 @@ void observer_show_kill_list()
 	else
 		selected_player_rgb = player_rgb;
 
-	for (int i=0;i<n_players;i++) {
-		int player_num;
-		char name[9], score[10];
-		char major_event[23] = "";
-		char run[23] = "";
-		char *t;
-		int sw,sh,aw;
-		bool left = (i % 2) == 0;
-		int x, diff, diff2;
-		int y = 5 + (i / 2) * 100;
+	for (i=0;i<n_players;i++) {
+		strcpy(major_event, "");
+		strcpy(run, "");
+		left = (i % 2) == 0;
+		y = 5 + (i / 2) * 100;
 
 		if (is_teams)
 			player_num = i;
 		else
 			player_num = player_list[i];
-
-		int color;
 
 		if (Players[player_num].connected != CONNECT_PLAYING) {
 			gr_set_fontcolor(BM_XRGB(12, 12, 12), -1);
@@ -2584,10 +2597,14 @@ void observer_show_kill_list()
 				else
 					sprintf(run, "Run: %i-%i in %02i:%02i", initial_score, initial_opp_score, (diff / 60) % 60, diff % 60);
 			} else if (initial_score >= 5 || initial_opp_score >= 5) {
-				kill_event *ev = last_kill[player_num];
-				kill_event *opp_ev = last_kill[player_list[1 - i]];
-				kill_event *last_ev = ev;
-				kill_event *last_opp_ev = opp_ev;
+				ev = last_kill[player_num];
+				if (ev == NULL)
+					ev = last_event[player_num];
+				opp_ev = last_kill[player_list[1 - i]];
+				if (opp_ev == NULL)
+					opp_ev = last_event[player_list[i - 1]];
+				last_ev = ev;
+				last_opp_ev = opp_ev;
 				while (true) {
 					if (ev->score != last_ev->score)
 						last_ev = ev;
@@ -2628,9 +2645,9 @@ void observer_show_kill_list()
 						diff = diff2;
 
 					if (diff >= 3600)
-						sprintf(run, "Run: %i-%i in %i:%02i:%02i", initial_score, initial_opp_score, diff / 3600, (diff / 60) % 60, diff % 60);
+						sprintf(run, "Run: %i-%i in %i:%02i:%02i", initial_score - last_ev->score, initial_opp_score - last_opp_ev->score, diff / 3600, (diff / 60) % 60, diff % 60);
 					else
-						sprintf(run, "Run: %i-%i in %02i:%02i", initial_score, initial_opp_score, (diff / 60) % 60, diff % 60);
+						sprintf(run, "Run: %i-%i in %02i:%02i", initial_score - last_ev->score, initial_opp_score - last_opp_ev->score, (diff / 60) % 60, diff % 60);
 				}
 			}
 		}
@@ -2647,6 +2664,195 @@ void observer_show_kill_list()
 				gr_printf(grd_curcanv->cv_bitmap.bm_w - 10 - sw - x, y, "%s", run);
 				
 			y += FSPACY(7);
+		}
+	}
+
+	// Show graph
+	if (!is_teams) {
+		for (i=0; i < n_players; i++) {
+			player_num = player_list[i];
+	
+			if ((ev = first_event[player_num]) != NULL) {
+				while(ev != NULL) {
+					if (ev->score < minscore)
+						minscore = ev->score;
+					if (ev->score > maxscore)
+						maxscore = ev->score;
+					ev = ev->next;
+				}
+			}
+		}
+		
+		if (minscore != maxscore) {
+			x = (grd_curcanv->cv_bitmap.bm_w - 1000) / 2;
+			y = grd_curcanv->cv_bitmap.bm_h - 205;
+			gr_settransblend(14, GR_BLEND_NORMAL);
+			gr_setcolor( BM_XRGB(0,0,0) );
+			gr_rect(x,y,x+1000,y+200);
+			gr_settransblend(GR_FADE_OFF, GR_BLEND_NORMAL);
+			
+			gr_set_curfont( GAME_FONT );
+			gr_set_fontcolor(BM_XRGB(255, 255, 255), -1);
+			
+			// Determine the numbers to use on the axis.  We want a maximum of 6 vertically (including 0) and 12 horizontally (not including 0).
+			scorescale = 1;
+			while (trunc((float)maxscore / (float)scorescale) - trunc((float)minscore / (float)scorescale) > 5) {
+				switch (scorescale) {
+					case 1:
+						scorescale = 2;
+						break;
+					case 2:
+						scorescale = 5;
+						break;
+					case 5:
+						scorescale = 10;
+						break;
+					case 10:
+						scorescale = 20;
+						break;
+					case 20:
+						scorescale = 25;
+						break;
+					case 25:
+						scorescale = 50;
+						break;
+					case 50:
+						scorescale = 100;
+						break;
+					case 100:
+						scorescale = 200;
+						break;
+					case 200:
+						scorescale = 250;
+						break;
+					case 250:
+						scorescale = 500;
+						break;
+					case 500:
+						scorescale = 1000;
+						break;
+					case 1000:
+						scorescale = 2000;
+						break;
+					case 2000:
+						scorescale = 2500;
+						break;
+					case 2500:
+						scorescale = 5000;
+						break;
+					case 5000:
+						scorescale = 10000;
+						break;
+				}
+			}
+			
+			timescale = 1;
+			maxtime = Players[Player_num].hours_total * 3600 + f2i(Players[Player_num].time_total);
+			while ((maxtime / 60) / timescale > 12) {
+				switch (timescale) {
+					case 1:
+						timescale = 2;
+						break;
+					case 2:
+						timescale = 5;
+						break;
+					case 5:
+						timescale = 10;
+						break;
+					case 10:
+						timescale = 15;
+						break;
+					case 15:
+						timescale = 20;
+						break;
+					case 20:
+						timescale = 30;
+						break;
+					case 30:
+						timescale = 60;
+						break;
+					case 60:
+						timescale = 120;
+						break;
+				}
+			}
+			gridminy = grd_curcanv->cv_bitmap.bm_h - 10 - FSPACY(6);
+			gridmaxy = grd_curcanv->cv_bitmap.bm_h - 200;
+	
+			sprintf(score, "%i", minscore);
+			gr_get_string_size(score, &sw, &sh, &aw);
+			gridminx = (grd_curcanv->cv_bitmap.bm_w - 1000) / 2 + 5 + sw;
+	
+			sprintf(score, "%i", maxscore);
+			gr_get_string_size(score, &sw, &sh, &aw);
+			gridminx2 = (grd_curcanv->cv_bitmap.bm_w - 1000) / 2 + 5 + sw;
+			
+			if (gridminx2 > gridminx) {
+				gridminx = gridminx2;
+			}
+			
+			gridmaxx = (grd_curcanv->cv_bitmap.bm_w - 1000) / 2 + 995;
+	
+			for (i = trunc((float)minscore / (float)scorescale); i <= maxscore; i += scorescale) {
+				y = gridminy - (int)((float)(gridminy - gridmaxy) * (((float)(i - minscore)) / (float)(maxscore - minscore)));
+				sprintf(score, "%i", i);
+				gr_get_string_size(score, &sw, &sh, &aw);
+				gr_set_fontcolor(BM_XRGB(255, 255, 255), -1);
+				gr_printf(gridminx - sw, y - sh / 2, "%s", score);
+				gr_setcolor(BM_XRGB(12, 12, 12));
+				gr_line(gridminx * F1_0, y * F1_0, gridmaxx * F1_0, y * F1_0);
+			}
+			
+			for (i = 0; i < maxtime; i += timescale * 60) {
+				x = gridminx + (int)((float)(gridmaxx - gridminx) * (((float)i) / (float)maxtime));
+				if (i > 0) {
+					sprintf(time, "%i", i / 60);
+					gr_get_string_size(time, &sw, &sh, &aw);
+					gr_set_fontcolor(BM_XRGB(255, 255, 255), -1);
+					gr_printf(x - sw / 2, gridminy + 1, "%s", time);
+				}
+				gr_setcolor(BM_XRGB(12, 12, 12));
+				gr_line(x * F1_0, gridminy * F1_0, x * F1_0, gridmaxy * F1_0);
+			}
+			
+			for (i = n_players; i >= 0; i--) {
+				player_num = player_list[i];
+
+				if ((ev = first_event[player_num]) != NULL) {
+					if (Game_mode & GM_TEAM) {
+						color = get_color_for_team(player_num, 0);
+						gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
+					} else {
+						color = get_color_for_player(player_num, 0);
+						gr_setcolor(BM_XRGB(selected_player_rgb[color].r,selected_player_rgb[color].g,selected_player_rgb[color].b));
+					}
+					
+					last_ev = ev;
+					while (ev->next != NULL) {
+						ev = ev->next;
+						if (ev->score != last_ev->score) {
+							old_time = last_ev->timestamp_hours * 3600 + f2i(last_ev->timestamp);
+							new_time = ev->timestamp_hours * 3600 + f2i(ev->timestamp);
+
+							old_x = gridminx + (int)((float)(gridmaxx - gridminx) * (((float)old_time) / (float)maxtime));
+							old_y = gridminy - (int)((float)(gridminy - gridmaxy) * (((float)(last_ev->score - minscore)) / (float)(maxscore - minscore)));
+							x = gridminx + (int)((float)(gridmaxx - gridminx) * (((float)new_time) / (float)maxtime));
+							y = gridminy - (int)((float)(gridminy - gridmaxy) * (((float)(ev->score - minscore)) / (float)(maxscore - minscore)));
+							
+							gr_line(old_x * F1_0, old_y * F1_0, x * F1_0, old_y * F1_0);
+							gr_line(x * F1_0, old_y * F1_0, x * F1_0, y * F1_0);
+
+							last_ev = ev;
+						}
+					}
+
+					old_time = last_ev->timestamp_hours * 3600 + f2i(last_ev->timestamp);
+					old_x = gridminx + (int)((float)(gridmaxx - gridminx) * (((float)old_time) / (float)maxtime));
+					old_y = gridminy - (int)((float)(gridminy - gridmaxy) * (((float)(last_ev->score - minscore)) / (float)(maxscore - minscore)));
+
+					gr_line(old_x * F1_0, old_y * F1_0, gridmaxx * F1_0, old_y * F1_0);
+				}
+			}
 		}
 	}
 }

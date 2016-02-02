@@ -218,6 +218,8 @@ void add_observatory_stat(int player_num, int event_type) {
 	ev->score = ((Game_mode & GM_MULTI_COOP) || (Game_mode & GM_MULTI_ROBOTS)) ? Players[player_num].score : Players[player_num].net_kills_total;
 	ev->next = NULL;
 	ev->prev = last_event[player_num];
+	if (ev->prev != NULL)
+		ev->prev->next = ev;
 	last_event[player_num] = ev;
 	if (first_event[player_num] == NULL)
 		first_event[player_num] = ev;
