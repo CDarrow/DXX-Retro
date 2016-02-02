@@ -2590,26 +2590,20 @@ void observer_show_kill_list()
 		if (!is_teams && n_players == 2 && (Game_mode & GM_MULTI) != 0 && (Game_mode & GM_MULTI_COOP) == 0 && (Game_mode & GM_MULTI_ROBOTS) == 0) {
 			int initial_score = Players[player_num].net_kills_total;
 			int initial_opp_score = Players[player_list[1 - i]].net_kills_total;
-			if (initial_score >= 5 && initial_opp_score <= 2) {
-				diff = time_diff(first_event[player_num]);
-				if (diff >= 3600)
-					sprintf(run, "Run: %i-%i in %i:%02i:%02i", initial_score, initial_opp_score, diff / 3600, (diff / 60) % 60, diff % 60);
-				else
-					sprintf(run, "Run: %i-%i in %02i:%02i", initial_score, initial_opp_score, (diff / 60) % 60, diff % 60);
-			} else if (initial_score >= 5 || initial_opp_score >= 5) {
-				ev = last_kill[player_num];
-				if (ev == NULL)
-					ev = last_event[player_num];
-				opp_ev = last_kill[player_list[1 - i]];
-				if (opp_ev == NULL)
-					opp_ev = last_event[player_list[i - 1]];
+			if (initial_score >= 5) {
+				ev = last_event[player_num];
+				opp_ev = last_event[player_list[1 - i]];
 				last_ev = ev;
 				last_opp_ev = opp_ev;
 				while (true) {
-					if (ev->score != last_ev->score)
+					if (ev->score != last_ev->score) {
 						last_ev = ev;
-					if (opp_ev->score != last_opp_ev->score)
+						if (opp_ev->score != last_opp_ev->score)
+							last_opp_ev = opp_ev;
+					}
+					if (opp_ev->score > last_opp_ev->score) {
 						last_opp_ev = opp_ev;
+					}
 					
 					if (ev->prev == NULL && opp_ev->prev == NULL) {
 						// Neither player has a previous event, we're done calculating the run.
