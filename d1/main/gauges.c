@@ -2560,7 +2560,9 @@ void observer_show_kill_list()
 		gr_set_curfont( GAME_FONT );
 		
 		// Determine last major event for player.
-		if (last_kill[player_num] != NULL && ((diff = time_diff(last_kill[player_num])) >= 60)) {
+		if (kill_streak[player_num] >= 3) {
+			sprintf(major_event, "Kill Streak: %i", kill_streak[player_num]);
+		} else if (last_kill[player_num] != NULL && ((diff = time_diff(last_kill[player_num])) >= 60)) {
 			if (diff >= 3600)
 				sprintf(major_event, "Last Kill: %i:%02i:%02i", diff / 3600, (diff / 60) % 60, diff % 60);
 			else
@@ -2628,6 +2630,9 @@ void observer_show_kill_list()
 					if (initial_opp_score - opp_ev->score <= 0 || (initial_score - ev->score < 5 && initial_opp_score - opp_ev->score < 5))
 						continue;
 					
+					if (initial_score - ev->score <= 0)
+						break;
+					
 					if (((float)(initial_score - ev->score)) / ((float)(initial_opp_score - opp_ev->score)) < 2)
 						break; 
 				}
@@ -2682,7 +2687,7 @@ void observer_show_kill_list()
 			y = grd_curcanv->cv_bitmap.bm_h - 205;
 			gr_settransblend(14, GR_BLEND_NORMAL);
 			gr_setcolor( BM_XRGB(0,0,0) );
-			gr_rect(x,y,x+1000,y+200);
+			gr_rect(x,y - FSPACY(4),x+1000 + FSPACX(7),y+200);
 			gr_settransblend(GR_FADE_OFF, GR_BLEND_NORMAL);
 			
 			gr_set_curfont( GAME_FONT );

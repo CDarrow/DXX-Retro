@@ -209,6 +209,7 @@ kill_event *first_event[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL}
 kill_event *last_event[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 kill_event *last_kill[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 kill_event *last_death[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+int kill_streak[MAX_PLAYERS] = {0,0,0,0,0,0,0,0};
 
 void add_observatory_stat(int player_num, int event_type) {
 	kill_event *ev = (kill_event *)d_malloc(sizeof(kill_event));
@@ -223,11 +224,15 @@ void add_observatory_stat(int player_num, int event_type) {
 	last_event[player_num] = ev;
 	if (first_event[player_num] == NULL)
 		first_event[player_num] = ev;
-	if ((event_type & OBSEV_KILL) != 0)
+	if ((event_type & OBSEV_KILL) != 0) {
 		last_kill[player_num] = ev;
-	if ((event_type & OBSEV_DEATH) != 0)
+		kill_streak[player_num] += 1;
+	}
+	if ((event_type & OBSEV_DEATH) != 0) {
 		last_death[player_num] = ev;
-		
+		kill_streak[player_num] = 0;
+	}
+
 	con_printf(CON_NORMAL, "Last 5 events for %i\n", player_num);
 	kill_event *evt = last_event[player_num];
 	for (int i = 0; i < 5; i++) {
@@ -522,6 +527,7 @@ multi_new_game(void)
 	for (i = 0; i < MAX_PLAYERS; i++) {
 		last_kill[i] = NULL;
 		last_death[i] = NULL;
+		kill_streak[i] = 0;
 		while ((ev = last_event[i]) != NULL) {
 			if (ev->prev != NULL) {
 				ev->prev->next = NULL;
