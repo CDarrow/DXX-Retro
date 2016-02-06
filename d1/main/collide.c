@@ -483,6 +483,8 @@ void collide_weapon_and_wall( object * weapon, fix hitspeed, short hitseg, short
 
 	//if ((seg->sides[hitwall].tmap_num2==0) && (TmapInfo[seg->sides[hitwall].tmap_num].flags & TMI_VOLATILE)) {
 
+	fix volume = ((Game_mode & GM_OBSERVER) != 0 && Objects[weapon->ctype.laser_info.parent_num].type == OBJ_CNTRLCEN) ? F1_0 / 4 : F1_0;
+		
 	if (Objects[weapon->ctype.laser_info.parent_num].type == OBJ_PLAYER)
 		playernum = Objects[weapon->ctype.laser_info.parent_num].id;
 	else
@@ -496,7 +498,7 @@ void collide_weapon_and_wall( object * weapon, fix hitspeed, short hitseg, short
 
 		//we've hit a volatile wall
 
-		digi_link_sound_to_pos( SOUND_VOLATILE_WALL_HIT,hitseg, 0, hitpt, 0, F1_0 );
+		digi_link_sound_to_pos( SOUND_VOLATILE_WALL_HIT,hitseg, 0, hitpt, 0, volume );
 
 		object_create_badass_explosion( weapon, hitseg, hitpt,
 			wi->impact_size + VOLATILE_WALL_IMPACT_SIZE,
@@ -514,7 +516,7 @@ void collide_weapon_and_wall( object * weapon, fix hitspeed, short hitseg, short
 		//is no wall, and no blowing up monitor, then play sound
 		if ((weapon->ctype.laser_info.parent_type != OBJ_PLAYER) ||	((seg->sides[hitwall].wall_num == -1 || wall_type==WHP_NOT_SPECIAL) && !blew_up))
 			if ((Weapon_info[weapon->id].wall_hit_sound > -1 ) && (!(weapon->flags & OF_SILENT)))
-				digi_link_sound_to_pos( Weapon_info[weapon->id].wall_hit_sound,weapon->segnum, 0, &weapon->pos, 0, F1_0 );
+				digi_link_sound_to_pos( Weapon_info[weapon->id].wall_hit_sound,weapon->segnum, 0, &weapon->pos, 0, volume );
 
 		if ( Weapon_info[weapon->id].wall_hit_vclip > -1 )	{
 			if ( Weapon_info[weapon->id].damage_radius )
@@ -540,17 +542,17 @@ void collide_weapon_and_wall( object * weapon, fix hitspeed, short hitseg, short
 
 					case WHP_NOT_SPECIAL:
 						//should be handled above
-						//digi_link_sound_to_pos( Weapon_info[weapon->id].wall_hit_sound, weapon->segnum, 0, &weapon->pos, 0, F1_0 );
+						//digi_link_sound_to_pos( Weapon_info[weapon->id].wall_hit_sound, weapon->segnum, 0, &weapon->pos, 0, volume );
 						break;
 
 					case WHP_NO_KEY:
 						//play special hit door sound (if/when we get it)
-						digi_link_sound_to_pos( SOUND_WEAPON_HIT_DOOR, weapon->segnum, 0, &weapon->pos, 0, F1_0 );
+						digi_link_sound_to_pos( SOUND_WEAPON_HIT_DOOR, weapon->segnum, 0, &weapon->pos, 0, volume );
 						break;
 
 					case WHP_BLASTABLE:
 						//play special blastable wall sound (if/when we get it)
-							digi_link_sound_to_pos( SOUND_WEAPON_HIT_BLASTABLE, weapon->segnum, 0, &weapon->pos, 0, F1_0 );
+							digi_link_sound_to_pos( SOUND_WEAPON_HIT_BLASTABLE, weapon->segnum, 0, &weapon->pos, 0, volume );
 						break;
 
 					case WHP_DOOR:
