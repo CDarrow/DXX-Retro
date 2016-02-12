@@ -493,5 +493,6 @@ kill_event *last_event[MAX_PLAYERS];
 kill_event *last_kill[MAX_PLAYERS];
 kill_event *last_death[MAX_PLAYERS];
 int kill_streak[MAX_PLAYERS];
+int show_graph_until;
 
 #endif /* _MULTI_H */

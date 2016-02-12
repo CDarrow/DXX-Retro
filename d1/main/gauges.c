@@ -2637,7 +2637,7 @@ void observer_show_kill_list()
 						break; 
 				}
 				
-				if (initial_score - last_ev->score >= 5) {
+				if ((last_ev->score > 0 || last_opp_ev->score > 0) && initial_score - last_ev->score >= 5) {
 					diff = time_diff(last_opp_ev);
 					diff2 = time_diff(last_ev);
 					if (diff2 > diff)
@@ -2667,7 +2667,7 @@ void observer_show_kill_list()
 	}
 
 	// Show graph
-	if (!is_teams) {
+	if (!is_teams && Players[Player_num].hours_total * 3600 + f2i(Players[Player_num].time_total) < show_graph_until) {
 		for (i=0; i < n_players; i++) {
 			player_num = player_list[i];
 	

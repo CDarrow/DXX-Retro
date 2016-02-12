@@ -210,6 +210,8 @@ kill_event *last_event[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 kill_event *last_kill[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 kill_event *last_death[MAX_PLAYERS] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 int kill_streak[MAX_PLAYERS] = {0,0,0,0,0,0,0,0};
+int next_graph = 5;
+int show_graph_until = -1;
 
 void add_observatory_stat(int player_num, int event_type) {
 	kill_event *ev = (kill_event *)d_malloc(sizeof(kill_event));
@@ -528,6 +530,8 @@ multi_new_game(void)
 		last_kill[i] = NULL;
 		last_death[i] = NULL;
 		kill_streak[i] = 0;
+		next_graph = 5;
+		show_graph_until = -1;
 		while ((ev = last_event[i]) != NULL) {
 			if (ev->prev != NULL) {
 				ev->prev->next = NULL;
@@ -848,6 +852,11 @@ void multi_compute_kill(int killer, int killed)
 
 		Players[killed_pnum].net_killed_total += 1;
 		kill_matrix[killer_pnum][killed_pnum] += 1;
+		
+		if (Players[killer_pnum].net_kills_total >= next_graph) {
+			next_graph += (next_graph < 20 || N_players > 2 ? 5 : 1);
+			show_graph_until = Players[Player_num].hours_total * 3600 + f2i(Players[Player_num].time_total) + 15;
+		}
 
 		if (killer_pnum == Player_num) {
 			HUD_init_message(HM_MULTI, "%s %s %s!", TXT_YOU, TXT_KILLED, killed_name);
