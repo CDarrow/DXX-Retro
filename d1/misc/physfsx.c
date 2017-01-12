@@ -133,7 +133,7 @@ void PHYSFSX_init(int argc, char *argv[])
 	
 	PHYSFSX_addRelToSearchPath("data", 1);	// 'Data' subdirectory
 	
-	// For Macintosh, add the 'Resources' directory in the .app bundle to the searchpaths
+	// For Macintosh, search the same path as the .app.
 #if defined(__APPLE__) && defined(__MACH__)
 	{
 		ProcessSerialNumber psn = { 0, kCurrentProcess };
@@ -143,12 +143,14 @@ void PHYSFSX_init(int argc, char *argv[])
 		err = GetProcessBundleLocation(&psn, &fsref);
 		if (err == noErr)
 			err = FSRefMakePath(&fsref, (ubyte *)fullPath, PATH_MAX);
-		
 		if (err == noErr)
 		{
-			strncat(fullPath, "/Contents/Resources/", PATH_MAX + 4 - strlen(fullPath));
+			// We now need to look into the same directory as the .app, not into any subdirectories.
+			//strncat(fullPath, "/Contents/Resources/", PATH_MAX + 4 - strlen(fullPath));
+			strncat(fullPath, "/..", PATH_MAX + 4 - strlen(fullPath));
 			fullPath[PATH_MAX + 4] = '\0';
 			PHYSFS_addToSearchPath(fullPath, 1);
+			PHYSFSX_addRelToSearchPath("data", 1);	// 'Data' subdirectory
 		}
 	}
 #elif defined(macintosh)
