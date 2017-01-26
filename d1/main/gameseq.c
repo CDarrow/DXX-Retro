@@ -863,12 +863,16 @@ void PlayerFinishedLevel(int secret_flag)
 
 #ifdef NETWORK
 	if (Game_mode & GM_NETWORK)
-         {
+	{
 		if (secret_flag)
 			Players[Player_num].connected = CONNECT_FOUND_SECRET; // Finished and went to secret level
 		else
 			Players[Player_num].connected = CONNECT_WAITING; // Finished but did not die
-         }
+		
+		if (Current_obs_player == Player_num)
+			Current_obs_player = OBSERVER_PLAYER_ID;
+	}
+
 #endif
 	last_drawn_cockpit = -1;
 
@@ -1045,6 +1049,9 @@ void DoPlayerDead()
 		Players[Player_num].shields = 0;
 #ifdef NETWORK
 		Players[Player_num].connected = CONNECT_DIED_IN_MINE;
+
+		if (Current_obs_player == Player_num)
+			Current_obs_player = OBSERVER_PLAYER_ID;
 #endif
 
 		do_screen_message(TXT_DIED_IN_MINE); // Give them some indication of what happened
@@ -1300,6 +1307,11 @@ void InitPlayerPosition(int random)
 	if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL) {
 		ConsoleObject->orient = Dead_player_camera->orient;  
 		Dead_player_camera = NULL; 
+	}
+
+	if (Game_mode & GM_OBSERVER) {
+		ConsoleObject->pos = Objects[Players[Current_obs_player].objnum].pos;
+		ConsoleObject->orient = Objects[Players[Current_obs_player].objnum].orient;
 	}
 #endif	
 	obj_relink(ConsoleObject-Objects,Player_init[NewPlayer].segnum);

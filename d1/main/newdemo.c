@@ -2365,6 +2365,10 @@ int newdemo_read_frame_information(int rewrite)
 			}
 			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
+
+				if (Current_obs_player == pnum)
+					Current_obs_player = OBSERVER_PLAYER_ID;
+
 				if (!new_player) {
 					memcpy(Players[pnum].callsign, old_callsign, CALLSIGN_LEN+1);
 					Players[pnum].net_killed_total = killed_total;
@@ -2392,9 +2396,12 @@ int newdemo_read_frame_information(int rewrite)
 				nd_write_byte(pnum);
 				break;
 			}
-			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD))
+			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
-			else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
+
+				if (Current_obs_player == pnum)
+					Current_obs_player = OBSERVER_PLAYER_ID;
+			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;
 		}
@@ -2408,9 +2415,12 @@ int newdemo_read_frame_information(int rewrite)
 				nd_write_byte(pnum);
 				break;
 			}
-			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD))
+			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
-			else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
+
+				if (Current_obs_player == pnum)
+					Current_obs_player = OBSERVER_PLAYER_ID;
+			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;
 		}
