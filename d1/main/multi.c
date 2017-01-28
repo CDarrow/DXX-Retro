@@ -154,6 +154,9 @@ const char GMNamesShrt[MULTI_GAME_TYPE_COUNT][8]={
 	"BOUNTY"
 };
 
+int Current_obs_player = OBSERVER_PLAYER_ID; // Current player being observed. Defaults to the observer player ID.
+bool Obs_at_distance = 0; // True if you're viewing the player from a cube back.
+
 // For rejoin object syncing (used here and all protocols - globally)
 
 int	Network_send_objects = 0;  // Are we in the process of sending objects to a player?
@@ -439,9 +442,7 @@ void multi_endlevel_score(void)
 
 	// Restore connect state
 	if (Game_mode & GM_NETWORK)
-	{
 		Players[Player_num].connected = old_connect;
-	}
 
 	if (Game_mode & GM_MULTI_COOP)
 	{
@@ -493,6 +494,11 @@ multi_new_game(void)
 	{
 		sorted_kills[i] = i;
 		Players[i].connected = CONNECT_DISCONNECTED;
+
+		if (Current_obs_player == i) {
+			reset_obs();
+		}
+
 		Players[i].net_killed_total = 0;
 		Players[i].net_kills_total = 0;
 		Players[i].flags = 0;
@@ -1953,8 +1959,13 @@ multi_do_escape(const ubyte *buf)
                 digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
 		HUD_init_message(HM_MULTI, "%s %s", Players[(int)buf[1]].callsign, TXT_HAS_ESCAPED);
 
-		if (Game_mode & GM_NETWORK)
+		if (Game_mode & GM_NETWORK) {
 			Players[(int)buf[1]].connected = CONNECT_ESCAPE_TUNNEL;
+
+			if (Current_obs_player == (int)buf[1]) {
+				reset_obs();
+			}
+		}
 
 		if (!multi_goto_secret)
 			multi_goto_secret = 2;
@@ -1964,8 +1975,13 @@ multi_do_escape(const ubyte *buf)
                 digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
 		HUD_init_message(HM_MULTI, "%s %s", Players[(int)buf[1]].callsign, TXT_HAS_FOUND_SECRET);
 
-		if (Game_mode & GM_NETWORK)
+		if (Game_mode & GM_NETWORK) {
 			Players[(int)buf[1]].connected = CONNECT_FOUND_SECRET;
+
+			if (Current_obs_player == (int)buf[1]) {
+				reset_obs();
+			}
+		}
 
 		if (!multi_goto_secret)
 			multi_goto_secret = 1;
@@ -2121,6 +2137,9 @@ void multi_disconnect_player(int pnum)
 	}
 
 	Players[pnum].connected = CONNECT_DISCONNECTED;
+	if (Current_obs_player == pnum) {
+		reset_obs();
+	}
 	Netgame.players[pnum].connected = CONNECT_DISCONNECTED;
 	PKilledFlags[pnum] = 1;
 
@@ -2676,6 +2695,7 @@ multi_send_endlevel_start(int secret)
 	if (Game_mode & GM_NETWORK)
 	{
 		Players[Player_num].connected = CONNECT_ESCAPE_TUNNEL;
+
 		switch (multi_protocol)
 		{
 #ifdef USE_UDP
@@ -3071,7 +3091,7 @@ multi_send_remobj(int objnum)
 		int plr_count = 0;
 		for(int i = 0; i < MAX_PLAYERS; i++) {
 			if(Players[i].connected == CONNECT_PLAYING ) {
-				plr_count += 1; 
+				plr_count += 1;
 			}
 		}
 		
@@ -4296,8 +4316,13 @@ void multi_restore_game(ubyte slot, uint id)
 		multi_strip_robots(i);
 	if (multi_i_am_master()) // put all players to wait-state again so we can sync up properly
 		for (i = 0; i < MAX_PLAYERS; i++)
-			if (Players[i].connected == CONNECT_PLAYING && i != Player_num)
+			if (Players[i].connected == CONNECT_PLAYING && i != Player_num) {
 				Players[i].connected = CONNECT_WAITING;
+
+				if (Current_obs_player == i) {
+					reset_obs();
+				}
+			}
    
 	thisid=state_get_game_id(filename);
 	if (thisid!=id)

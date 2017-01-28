@@ -689,6 +689,8 @@ int HandleSystemKey(int key)
 
 int HandleGameKey(int key)
 {
+	int new_obs = Current_obs_player;
+
 	switch (key) {
 		case KEY_ALTED+KEY_F7:
 		KEY_MAC(case KEY_COMMAND+KEY_ALTED+KEY_7:)
@@ -731,6 +733,56 @@ int HandleGameKey(int key)
 					RefuseTeam=2;
 					game_flush_inputs();
 				}
+			break;
+		case KEY_CTRLED + KEY_1:
+		case KEY_CTRLED + KEY_2:
+		case KEY_CTRLED + KEY_3:
+		case KEY_CTRLED + KEY_4:
+		case KEY_CTRLED + KEY_5:
+		case KEY_CTRLED + KEY_6:
+		case KEY_CTRLED + KEY_7:
+			set_obs(key - KEY_CTRLED - KEY_1);
+			break;
+		case KEY_CTRLED + KEY_8:
+			reset_obs();
+			break;
+		case KEY_CTRLED + KEY_9:
+			while (1) {
+				new_obs = (MAX_PLAYERS + new_obs - 1) % MAX_PLAYERS;
+				if (new_obs == OBSERVER_PLAYER_ID) {
+					reset_obs();
+					break;
+				}
+				if (Players[new_obs].connected == CONNECT_PLAYING) {
+					set_obs(new_obs);
+					break;
+				}
+			}
+			break;
+		case KEY_CTRLED + KEY_0:
+			while (1) {
+				new_obs = (new_obs + 1) % MAX_PLAYERS;
+				if (new_obs == OBSERVER_PLAYER_ID) {
+					reset_obs();
+					break;
+				}
+				if (Players[new_obs].connected == CONNECT_PLAYING) {
+					set_obs(new_obs);
+					break;
+				}
+			}
+			break;
+		case KEY_CTRLED + KEY_MINUS:
+			if (Obs_at_distance == 1 && Current_obs_player != OBSERVER_PLAYER_ID) {
+				HUD_init_message_literal(HM_MULTI, "Observing first person.");
+				Obs_at_distance = 0;
+			}
+			break;
+		case KEY_CTRLED + KEY_EQUAL:
+			if (Obs_at_distance == 0 && Current_obs_player != OBSERVER_PLAYER_ID) {
+				HUD_init_message_literal(HM_MULTI, "Observing third person.");
+				Obs_at_distance = 1;
+			}
 			break;
 #endif
 
@@ -1279,6 +1331,74 @@ int ReadControls(d_event *event)
 				return 1;
 			}
 		}
+
+
+	if (Game_mode & GM_OBSERVER && Newdemo_state < ND_STATE_PLAYBACK) {
+		// Force the observer to a certain camera based on whether they are freely observing or observing a specific player.
+		if (Current_obs_player == OBSERVER_PLAYER_ID) {
+			// If we're freely observing, just update position and orientation as normal.
+			ConsoleObject->pos = Objects[Players[Current_obs_player].objnum].pos;
+			ConsoleObject->orient = Objects[Players[Current_obs_player].objnum].orient;
+		} else {
+			// We're observing a player directly, and need to interpolate the position and orientation.  Check to see if the real position has updated, and accumulate Last_real_update time.
+			if (vm_vec_equal(&Real_pos, &Objects[Players[Current_obs_player].objnum].pos) && vm_mat_equal(&Real_orient, &Objects[Players[Current_obs_player].objnum].orient)) {
+				Last_real_update += FrameTime;
+			} else {
+
+				Real_pos = Objects[Players[Current_obs_player].objnum].pos;
+				Real_orient = Objects[Players[Current_obs_player].objnum].orient;
+				Last_real_update = 0;
+
+				// If we're obsserving at a distance, move the camera accordingly.achieved_state
+				if (Obs_at_distance == 1) {
+					vms_vector move = ZERO_VECTOR;
+					vm_vec_copy_scale(&move, &Real_orient.fvec, F1_0 * -20);
+					Real_pos.x += move.x;
+					Real_pos.y += move.y;
+					Real_pos.z += move.z;
+				}
+			}
+
+			// We take a sample time of 1.5 times the packet frequency to help offset stuttering from lag.
+			fix sample_time = 1.5 * F1_0 / Netgame.PacketsPerSec;
+			
+			if (sample_time <= Last_real_update) {
+				// We haven't updated the real position within the sample time, so just update position and orientation as normal.
+				ConsoleObject->pos = Real_pos;
+				ConsoleObject->orient = Real_orient;
+			} else {
+				// Determine how close we should get to the real position and orientation, and update the console object accordingly.
+				fix factor = fixdiv(FrameTime, (sample_time - Last_real_update));
+
+				vms_vector  fvec1, fvec2, rvec1, rvec2;
+				fix         mag1;
+
+				// Update orientation.
+				fvec1 = ConsoleObject->orient.fvec;
+				vm_vec_scale(&fvec1, F1_0-factor);
+				fvec2 = Real_orient.fvec;
+				vm_vec_scale(&fvec2, factor);
+				vm_vec_add2(&fvec1, &fvec2);
+				mag1 = vm_vec_normalize_quick(&fvec1);
+				if (mag1 > F1_0/256) {
+					rvec1 = ConsoleObject->orient.rvec;
+					vm_vec_scale(&rvec1, F1_0-factor);
+					rvec2 = Real_orient.rvec;
+					vm_vec_scale(&rvec2, factor);
+					vm_vec_add2(&rvec1, &rvec2);
+					vm_vec_normalize_quick(&rvec1); // Note: Doesn't matter if this is null, if null, vm_vector_2_matrix will just use fvec1
+					vm_vector_2_matrix(&ConsoleObject->orient, &fvec1, NULL, &rvec1);
+				}
+
+				// Update position.
+				vms_vector vec_diff;
+				vm_vec_sub(&vec_diff, &Real_pos, &ConsoleObject->pos);
+				vm_vec_scale(&vec_diff, factor);
+				
+				vm_vec_add2(&ConsoleObject->pos, &vec_diff);
+			}
+		}
+	}
 
 	if (Newdemo_state == ND_STATE_PLAYBACK)
 		update_vcr_state();
