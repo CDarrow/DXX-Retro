@@ -2366,8 +2366,9 @@ int newdemo_read_frame_information(int rewrite)
 			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
 
-				if (Current_obs_player == pnum)
-					Current_obs_player = OBSERVER_PLAYER_ID;
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
 
 				if (!new_player) {
 					memcpy(Players[pnum].callsign, old_callsign, CALLSIGN_LEN+1);
@@ -2399,8 +2400,9 @@ int newdemo_read_frame_information(int rewrite)
 			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
 
-				if (Current_obs_player == pnum)
-					Current_obs_player = OBSERVER_PLAYER_ID;
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
 			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;
@@ -2418,8 +2420,9 @@ int newdemo_read_frame_information(int rewrite)
 			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
 
-				if (Current_obs_player == pnum)
-					Current_obs_player = OBSERVER_PLAYER_ID;
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
 			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;

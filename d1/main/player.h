@@ -186,12 +186,19 @@ extern player_ship *Player_ship;
 // Probably should go in player struct, but I don't want to break savegames for this
 extern int RespawningConcussions[MAX_PLAYERS]; 
 
+vms_vector Last_pos; // Saved position of observer prior to following a player.
+vms_matrix Last_orient; // Saved orientation of observer prior to following a player.
+
 /*
  * reads a player_ship structure from a PHYSFS_file
  */
 void player_ship_read(player_ship *ps, PHYSFS_file *fp);
 
 void player_rw_swap(player_rw *p, int swap);
+
+// Observer setting.
+void reset_obs();
+void set_obs(int pnum);
 
 #endif
  

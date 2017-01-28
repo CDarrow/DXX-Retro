@@ -689,6 +689,8 @@ int HandleSystemKey(int key)
 
 int HandleGameKey(int key)
 {
+	int new_obs = Current_obs_player;
+
 	switch (key) {
 		case KEY_ALTED+KEY_F7:
 		KEY_MAC(case KEY_COMMAND+KEY_ALTED+KEY_7:)
@@ -739,79 +741,44 @@ int HandleGameKey(int key)
 		case KEY_CTRLED + KEY_5:
 		case KEY_CTRLED + KEY_6:
 		case KEY_CTRLED + KEY_7:
-			if (Current_obs_player == OBSERVER_PLAYER_ID) {
-				Last_pos = Objects[Players[OBSERVER_PLAYER_ID].objnum].pos;
-				Last_orient = Objects[Players[OBSERVER_PLAYER_ID].objnum].orient;
-			}
-
-			if (Players[key - KEY_CTRLED - KEY_1].connected == CONNECT_PLAYING) {
-				if (Current_obs_player != key - KEY_CTRLED - KEY_1) {
-					HUD_init_message(HM_DEFAULT, "Observing %s!", Players[key - KEY_CTRLED - KEY_1].callsign);
-				}
-				Current_obs_player = key - KEY_CTRLED - KEY_1;
-			} else {
-				if (Current_obs_player != 7) {
-					HUD_init_message_literal(HM_MULTI, "Observing freely.");
-				}
-				Current_obs_player = 7;
-			}
+			set_obs(key - KEY_CTRLED - KEY_1);
 			break;
 		case KEY_CTRLED + KEY_8:
-			if (Current_obs_player != 7) {
-				HUD_init_message_literal(HM_MULTI, "Observing freely.");
-			}
-			Current_obs_player = 7;
-			Objects[Players[OBSERVER_PLAYER_ID].objnum].pos = Last_pos;
-			Objects[Players[OBSERVER_PLAYER_ID].objnum].orient = Last_orient;
-			break;
+			reset_obs();
 		case KEY_CTRLED + KEY_9:
-			if (Current_obs_player == OBSERVER_PLAYER_ID) {
-				Last_pos = Objects[Players[OBSERVER_PLAYER_ID].objnum].pos;
-				Last_orient = Objects[Players[OBSERVER_PLAYER_ID].objnum].orient;
-			}
-
 			while (1) {
-				Current_obs_player = (Current_obs_player - 1) % MAX_PLAYERS;
-				if (Current_obs_player == 7) {
-					HUD_init_message_literal(HM_MULTI, "Observing freely.");
-					Objects[Players[OBSERVER_PLAYER_ID].objnum].pos = Last_pos;
-					Objects[Players[OBSERVER_PLAYER_ID].objnum].orient = Last_orient;
+				new_obs = (MAX_PLAYERS + new_obs - 1) % MAX_PLAYERS;
+				if (new_obs == OBSERVER_PLAYER_ID) {
+					reset_obs();
 					break;
 				}
-				if (Players[Current_obs_player].connected == CONNECT_PLAYING) {
-					HUD_init_message(HM_MULTI, "Observing %s!", Players[Current_obs_player].callsign);
+				if (Players[new_obs].connected == CONNECT_PLAYING) {
+					set_obs(new_obs);
 					break;
 				}
 			}
 			break;
 		case KEY_CTRLED + KEY_0:
-			if (Current_obs_player == OBSERVER_PLAYER_ID) {
-				Last_pos = Objects[Players[OBSERVER_PLAYER_ID].objnum].pos;
-				Last_orient = Objects[Players[OBSERVER_PLAYER_ID].objnum].orient;
-			}
-
 			while (1) {
-				Current_obs_player = (Current_obs_player + 1) % MAX_PLAYERS;
-				if (Current_obs_player == 7) {
-					HUD_init_message_literal(HM_MULTI, "Observing freely.");
-					Objects[Players[OBSERVER_PLAYER_ID].objnum].pos = Last_pos;
-					Objects[Players[OBSERVER_PLAYER_ID].objnum].orient = Last_orient;
+				new_obs = (new_obs + 1) % MAX_PLAYERS;
+				if (new_obs == OBSERVER_PLAYER_ID) {
+					reset_obs();
 					break;
 				}
-				if (Players[Current_obs_player].connected == CONNECT_PLAYING) {
-					HUD_init_message(HM_MULTI, "Observing %s!", Players[Current_obs_player].callsign);
+				if (Players[new_obs].connected == CONNECT_PLAYING) {
+					set_obs(new_obs);
 					break;
 				}
 			}
 			break;
 		case KEY_CTRLED + KEY_MINUS:
-			if (Obs_at_distance == 1 && Current_obs_player != 7) {
+			if (Obs_at_distance == 1 && Current_obs_player != OBSERVER_PLAYER_ID) {
 				HUD_init_message_literal(HM_MULTI, "Observing first person.");
 				Obs_at_distance = 0;
 			}
 			break;
 		case KEY_CTRLED + KEY_EQUAL:
-			if (Obs_at_distance == 0 && Current_obs_player != 7) {
+			if (Obs_at_distance == 0 && Current_obs_player != OBSERVER_PLAYER_ID) {
 				HUD_init_message_literal(HM_MULTI, "Observing third person.");
 				Obs_at_distance = 1;
 			}
@@ -1364,7 +1331,7 @@ int ReadControls(d_event *event)
 			}
 		}
 
-	if (Game_mode & GM_OBSERVER) {
+	if (Game_mode & GM_OBSERVER && Newdemo_state < ND_STATE_PLAYBACK) {
 		ConsoleObject->pos = Objects[Players[Current_obs_player].objnum].pos;
 		ConsoleObject->orient = Objects[Players[Current_obs_player].objnum].orient;
 	}
