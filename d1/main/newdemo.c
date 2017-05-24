@@ -1495,7 +1495,7 @@ int newdemo_read_demo_start(enum purpose_type purpose)
 			Game_mode = Newdemo_game_mode;
 			if (purpose != PURPOSE_REWRITE)
 				multi_sort_kill_list();
-			Game_mode = GM_NORMAL;
+			Game_mode = GM_NORMAL | (Game_mode & GM_OBSERVER);
 		}
 	}
 #endif
@@ -2329,7 +2329,7 @@ int newdemo_read_frame_information(int rewrite)
 			}
 			Game_mode = Newdemo_game_mode;
 			multi_sort_kill_list();
-			Game_mode = GM_NORMAL;
+			Game_mode = GM_NORMAL | (Game_mode & GM_OBSERVER);
 			break;
 		}
 
@@ -2428,7 +2428,7 @@ int newdemo_read_frame_information(int rewrite)
 				Players[pnum].score += score;
 			Game_mode = Newdemo_game_mode;
 			multi_sort_kill_list();
-			Game_mode = GM_NORMAL;
+			Game_mode = GM_NORMAL | (Game_mode & GM_OBSERVER);
 			break;
 		}
 
@@ -3210,7 +3210,9 @@ void newdemo_stop_recording()
 
 		char p2[16];
 
-		if(Game_mode & GM_MULTI_COOP) {
+		if(Game_mode & GM_OBSERVER) {
+			sprintf(p2, "OBS");
+		} else if(Game_mode & GM_MULTI_COOP) {
 			sprintf(p2, "COOP");
 		} else if (strlen(Players[0].callsign) && strlen(Players[1].callsign) && ! strlen(Players[2].callsign)) {
 			int me = Player_num;
@@ -3290,6 +3292,7 @@ try_again:
 	}
 	// Nooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 	if (exit == -1) {               // pressed ESC
+		HUD_init_message_literal( HM_DEFAULT|HM_MULTI, "Demo saved as tmpdemo.dem" );
 	//	PHYSFS_delete(DEMO_FILENAME);   // might as well remove the file
 		return;                     // return without doing anything
 	}
@@ -3398,7 +3401,7 @@ void newdemo_start_playback(char * filename)
 		return;
 	}
 
-	Game_mode = GM_NORMAL;
+	Game_mode = GM_NORMAL | (Game_mode & GM_OBSERVER);
 	Newdemo_state = ND_STATE_PLAYBACK;
 	Newdemo_vcr_state = ND_STATE_PLAYBACK;
 	nd_playback_v_demosize = PHYSFS_fileLength(infile);

@@ -790,7 +790,7 @@ void hud_show_score_added()
 
 		gr_get_string_size(score_str, &w, &h, &aw );
 		gr_set_fontcolor(BM_XRGB(0, color, 0),-1 );
-		gr_string(grd_curcanv->cv_bitmap.bm_w-w-FSPACX(12), LINE_SPACING+FSPACY(1), score_str);
+		gr_string(grd_curcanv->cv_bitmap.bm_w-w-FSPACX(1), LINE_SPACING+FSPACY(1), score_str);
 	} else {
 		score_time = 0;
 		score_display = 0;
@@ -2371,7 +2371,7 @@ void hud_show_kill_list()
 		}
 
 		
-		if(Show_network_stats && player_num != Player_num && Players[player_num].connected && Show_kill_list != 3) {
+		if((Show_network_stats && !(Game_mode & GM_OBSERVER)) && player_num != Player_num && Players[player_num].connected && Show_kill_list != 3) {
 			int lag = -1; 
 			
 			if(Netgame.RetroProtocol) {
@@ -2487,7 +2487,7 @@ void show_HUD_names()
 		is_friend = (Game_mode & GM_MULTI_COOP || (Game_mode & GM_TEAM && get_team(pnum) == get_team(Player_num)));
 		show_friend_name = Show_reticle_name;
 		show_enemy_name = Show_reticle_name && Netgame.ShowEnemyNames && !(Players[pnum].flags & PLAYER_FLAGS_CLOAKED);
-		show_name = ((is_friend && show_friend_name) || (!is_friend && show_enemy_name));
+		show_name = ((is_friend && show_friend_name) || (!is_friend && show_enemy_name)) || ((Game_mode & GM_OBSERVER) && (PlayerCfg.ObsShowNames)) ;
 		show_typing = is_friend || !(Players[pnum].flags & PLAYER_FLAGS_CLOAKED);
 		show_indi = ((/*(Game_mode & ( GM_CAPTURE | GM_HOARD ) && Players[pnum].flags & PLAYER_FLAGS_FLAG) || */(Game_mode & GM_BOUNTY &&  pnum == Bounty_target)) && (is_friend || !(Players[pnum].flags & PLAYER_FLAGS_CLOAKED)));
 
@@ -2502,7 +2502,7 @@ void show_HUD_names()
 		else
 			objnum = Players[pnum].objnum;
 
-		if ((show_name || show_typing || show_indi) && see_object(objnum))
+		if ((show_name || show_typing || show_indi) && (see_object(objnum) || (Game_mode & GM_OBSERVER)))
 		{
 			g3s_point player_point;
 			g3_rotate_point(&player_point,&Objects[objnum].pos);

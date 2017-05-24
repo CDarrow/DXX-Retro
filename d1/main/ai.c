@@ -2101,6 +2101,11 @@ void do_ai_frame(object *obj)
 		return;
 	}
 
+	// Robots do nothing for observers; those controlling them handle their actions
+	if(Game_mode & GM_OBSERVER) {
+		return;
+	}
+
 	//	Kind of a hack.  If a robot is flinching, but it is time for it to fire, unflinch it.
 	//	Else, you can turn a big nasty robot into a wimp by firing flares at it.
 	//	This also allows the player to see the cool flinch effect for mechs without unbalancing the game.
@@ -2924,6 +2929,10 @@ int add_awareness_event(object *objp, int type)
 // The object (probably player or weapon) which created the awareness is objp.
 void create_awareness_event(object *objp, int type)
 {
+	if( (Game_mode & GM_OBSERVER) && objp->id == Player_num) {
+		return;
+	}
+
 		if (add_awareness_event(objp, type)) {
 			if (((d_rand() * (type+4)) >> 15) > 4)
 				Overall_agitation++;

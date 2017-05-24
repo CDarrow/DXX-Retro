@@ -64,7 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2944 // Retromod 1.4.X4
+#define MULTI_PROTO_VERSION 2945 // Retromod 1.4.5
 
 // PROTOCOL VARIABLES AND DEFINES - END
 
@@ -117,6 +117,7 @@ extern int multi_protocol; // set and determinate used protocol
 	VALUE(MULTI_KILL_CLIENT          , 5)	\
 	VALUE(MULTI_RANK                 , 3)	\
 	VALUE(MULTI_RESPAWN_ROBOT        , 60)	\
+	VALUE(MULTI_OBS_UPDATE           , 4 + 8*MAX_OBSERVERS)	\
 	AFTER
 for_each_multiplayer_command(enum {, define_multiplayer_command, });
 
@@ -267,6 +268,7 @@ void multi_object_to_object_rw(object *obj, object_rw *obj_rw);
 void multi_object_rw_to_object(object_rw *obj_rw, object *obj);
 int get_color_for_player(int id, int missile); 
 int get_color_for_team(int team, int missile);
+void multi_send_obs_update(ubyte event, ubyte event_data);
 
 // Exported variables
 
@@ -381,6 +383,7 @@ typedef struct netplayer_info
 	ubyte						rank;
 	ubyte						color;
 	ubyte						missilecolor;
+	ubyte                       observer;
 	fix							ping;
 	ubyte						loss; 
 	ubyte						rx_loss; 
@@ -409,6 +412,7 @@ typedef struct netgame_info
 	} protocol;	
 #endif
 	struct netplayer_info 				players[MAX_PLAYERS+4];
+	struct netplayer_info               observers[MAX_OBSERVERS]; 
 	char    					game_name[NETGAME_NAME_LEN+1];
 	char    					mission_title[MISSION_NAME_LEN+1];
 	char    					mission_name[9];
@@ -418,7 +422,10 @@ typedef struct netgame_info
 	ubyte   					difficulty;
 	ubyte   					game_status;
 	ubyte   					numplayers;
+	ubyte                       numobservers; 
 	ubyte   					max_numplayers;
+	ubyte                       max_numobservers;
+	ubyte                       obs_delay;
 	ubyte   					numconnected;
 	ubyte   					game_flags;
 	ubyte   					team_vector;

@@ -284,6 +284,11 @@ void do_controlcen_frame(object *obj)
 		return;
 	}
 
+	if(Game_mode & GM_OBSERVER) {
+		Control_center_player_been_seen = 0; 
+		return;
+	}
+
 	if (Player_is_dead)
 		controlcen_death_silence += FrameTime;
 	else
