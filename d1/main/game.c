@@ -620,6 +620,10 @@ int allowed_to_fire_laser(void)
 		return 0;
 	}
 
+	if(Game_mode & GM_OBSERVER) {
+		return 0; 
+	}
+
 	//	Make sure enough time has elapsed to fire laser
 	if (Next_laser_fire_time > GameTime64)
 		return 0;
@@ -632,6 +636,10 @@ int allowed_to_fire_flare(void)
 	if (Next_flare_fire_time > GameTime64)
 		return 0;
 
+	if(Game_mode & GM_OBSERVER) {
+		return 0; 
+	}
+
 	Next_flare_fire_time = GameTime64 + F1_0/4;
 
 	return 1;
@@ -642,6 +650,10 @@ int allowed_to_fire_missile(void)
 	//	Make sure enough time has elapsed to fire missile
 	if (Next_missile_fire_time > GameTime64)
 		return 0;
+
+	if(Game_mode & GM_OBSERVER) {
+		return 0; 
+	}
 
 	return 1;
 }

@@ -13,6 +13,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "joy.h"
 #include "dxxerror.h"
@@ -402,6 +403,8 @@ void fix_illegal_wall_intersection(object *obj, vms_vector *origin)
 //Simulate a physics object for this frame
 void do_physics_sim(object *obj)
 {
+	bool observer = (Game_mode & GM_OBSERVER) != 0;
+	 
 	int ignore_obj_list[MAX_IGNORE_OBJS],n_ignore_objs;
 	int iseg;
 	int try_again;
@@ -596,6 +599,15 @@ void do_physics_sim(object *obj)
 
 		vm_vec_add(&new_pos,&obj->pos,&frame_vec);
 
+		// The rest of this function is collision stuff
+		// Observers just fly free
+		
+		if(Game_mode & GM_OBSERVER && obj->id == Player_num) {
+			obj->pos = new_pos;
+			return;
+		}
+		
+
 		ignore_obj_list[n_ignore_objs] = -1;
 
 		fq.p0						= &obj->pos;
@@ -733,6 +745,7 @@ void do_physics_sim(object *obj)
 		switch( fate )		{
 
 			case HIT_WALL:		{
+
 				vms_vector moved_v;
 				fix hit_speed=0,wall_part=0;
 
@@ -900,7 +913,7 @@ void do_physics_sim(object *obj)
 		do_physics_align_object( obj );
 
 	//hack to keep player from going through closed doors
-	if (obj->type==OBJ_PLAYER && obj->segnum!=orig_segnum && (!cheats.ghostphysics) ) {
+	if (obj->type==OBJ_PLAYER && obj->segnum!=orig_segnum && (!cheats.ghostphysics) && (! (Game_mode & GM_OBSERVER)) ) {
 		int sidenum;
 
 		sidenum = find_connect_side(&Segments[obj->segnum],&Segments[orig_segnum]);
@@ -955,8 +968,11 @@ void do_physics_sim(object *obj)
 				obj_relink(objnum, n );
 			}
 			else {
-				compute_segment_center(&obj->pos,&Segments[obj->segnum]);
-				obj->pos.x += objnum;
+				// Don't center the player object if they are in observer mode, because they are allowed to be outside the level.
+				if (!(observer && obj == ConsoleObject)) {
+					compute_segment_center(&obj->pos,&Segments[obj->segnum]);
+					obj->pos.x += objnum;
+				}
 			}
 			if (obj->type == OBJ_WEAPON)
 				obj->flags |= OF_SHOULD_BE_DEAD;

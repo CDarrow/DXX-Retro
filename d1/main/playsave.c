@@ -82,7 +82,7 @@ int new_player_config()
 	PlayerCfg.JoystickSens[0] = PlayerCfg.JoystickSens[1] = PlayerCfg.JoystickSens[2] = PlayerCfg.JoystickSens[3] = PlayerCfg.JoystickSens[4] = PlayerCfg.JoystickSens[5] = 8;
 	PlayerCfg.JoystickDead[0] = PlayerCfg.JoystickDead[1] = PlayerCfg.JoystickDead[2] = PlayerCfg.JoystickDead[3] = PlayerCfg.JoystickDead[4] = PlayerCfg.JoystickDead[5] = 0;
 	PlayerCfg.JoystickUndercalibrate[0] = PlayerCfg.JoystickUndercalibrate[1] = PlayerCfg.JoystickUndercalibrate[2] = PlayerCfg.JoystickUndercalibrate[3] = PlayerCfg.JoystickUndercalibrate[4] = PlayerCfg.JoystickUndercalibrate[5] = 0;
-	PlayerCfg.MouseControlStyle = MOUSE_CONTROL_OLDSCHOOL; /* Old School Mouse */
+	PlayerCfg.MouseControlStyle = MOUSE_CONTROL_REBIRTH; /* Old School Mouse */
 	PlayerCfg.MouseImpulse = 8;
 	PlayerCfg.MouseSens[0] = PlayerCfg.MouseSens[1] = PlayerCfg.MouseSens[2] = PlayerCfg.MouseSens[3] = PlayerCfg.MouseSens[4] = PlayerCfg.MouseSens[5] = 8;
     PlayerCfg.MouseOverrun[0] = PlayerCfg.MouseOverrun[1] = PlayerCfg.MouseOverrun[2] = PlayerCfg.MouseOverrun[3] = PlayerCfg.MouseOverrun[4] = PlayerCfg.MouseOverrun[5] = 0;
@@ -115,7 +115,9 @@ int new_player_config()
 	PlayerCfg.maxFps = GameArg.SysMaxFPS; 
 	PlayerCfg.ShipColor = 8;
 	PlayerCfg.MissileColor = 8;	
-	
+	PlayerCfg.ObsTurbo = 0;
+	PlayerCfg.ObsShowNames = 0;
+	PlayerCfg.ObsShowObs = 1; 
 
 	// Default taunt macros
 	#ifdef NETWORK
@@ -411,7 +413,13 @@ int read_player_d1x(char *filename)
 				if(!strcmp(word,"SHIPCOLOR"))
 					PlayerCfg.ShipColor = atoi(line);	
 				if(!strcmp(word,"MISSILECOLOR"))
-					PlayerCfg.MissileColor = atoi(line);									
+					PlayerCfg.MissileColor = atoi(line);
+				if(!strcmp(word,"OBSTURBO"))
+					PlayerCfg.ObsTurbo = atoi(line);
+				if(!strcmp(word,"OBSSHOWNAMES"))
+					PlayerCfg.ObsShowNames = atoi(line);
+				if(!strcmp(word,"OBSSHOWOBS"))
+					PlayerCfg.ObsShowObs = atoi(line);
 				//if(!strcmp(word,"QUIETPLASMA"))
 				//	PlayerCfg.QuietPlasma = atoi(line);							
 				if(!strcmp(word,"MAXFPS")) {
@@ -778,7 +786,10 @@ int write_player_d1x(char *filename)
 		PHYSFSX_printf(fout,"autodemo=%i\n",PlayerCfg.AutoDemo);					
 		PHYSFSX_printf(fout,"showcustomcolors=%i\n",PlayerCfg.ShowCustomColors);	
 		PHYSFSX_printf(fout,"shipcolor=%i\n",PlayerCfg.ShipColor);	
-		PHYSFSX_printf(fout,"missilecolor=%i\n",PlayerCfg.MissileColor);			
+		PHYSFSX_printf(fout,"missilecolor=%i\n",PlayerCfg.MissileColor);	
+		PHYSFSX_printf(fout,"obsturbo=%i\n",PlayerCfg.ObsTurbo);
+		PHYSFSX_printf(fout,"obsshownames=%i\n",PlayerCfg.ObsShowNames);
+		PHYSFSX_printf(fout,"obsshowobs=%i\n",PlayerCfg.ObsShowObs);		
 		//PHYSFSX_printf(fout,"quietplasma=%i\n",PlayerCfg.QuietPlasma);	
 		PHYSFSX_printf(fout,"maxfps=%i\n",PlayerCfg.maxFps);	
 		PHYSFSX_printf(fout,"[end]\n");
@@ -1173,6 +1184,7 @@ void read_netgame_profile(netgame_info *ng)
 	if (!file)
 		return;
 
+
 	// NOTE that we do not set any defaults here or even initialize netgame_info. For flexibility, leave that to the function calling this.
 	while (!PHYSFS_eof(file))
 	{
@@ -1199,6 +1211,10 @@ void read_netgame_profile(netgame_info *ng)
 				ng->RefusePlayers = strtol(value, NULL, 10);
 			else if (!strcmp(token, "difficulty"))
 				ng->difficulty = strtol(value, NULL, 10);
+			else if (!strcmp(token, "maxplayers"))
+				ng->max_numplayers = strtol(value, NULL, 10);
+			else if (!strcmp(token, "maxobservers"))
+				ng->max_numobservers = strtol(value, NULL, 10);			
 			else if (!strcmp(token, "game_flags"))
 				ng->game_flags = strtol(value, NULL, 10);
 			else if (!strcmp(token, "AllowedItems"))
@@ -1236,7 +1252,9 @@ void read_netgame_profile(netgame_info *ng)
 			else if (!strcmp(token, "FairColors"))
 				ng->FairColors = strtol(value, NULL, 10);	
 			else if (!strcmp(token, "BlackAndWhitePyros"))
-				ng->BlackAndWhitePyros = strtol(value, NULL, 10);																		
+				ng->BlackAndWhitePyros = strtol(value, NULL, 10);		
+			else if (!strcmp(token, "ObsDelay"))
+				ng->obs_delay = strtol(value, NULL, 10);																	
 #ifdef USE_TRACKER
 			else if (!strcmp(token, "Tracker"))
 				ng->Tracker = strtol(value, NULL, 10);
@@ -1264,6 +1282,8 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "gamemode=%i\n", ng->gamemode);
 	PHYSFSX_printf(file, "RefusePlayers=%i\n", ng->RefusePlayers);
 	PHYSFSX_printf(file, "difficulty=%i\n", ng->difficulty);
+	PHYSFSX_printf(file, "numplayers=%i\n", ng->max_numplayers);
+	PHYSFSX_printf(file, "maxobservers=%i\n", ng->max_numobservers);
 	PHYSFSX_printf(file, "game_flags=%i\n", ng->game_flags);
 	PHYSFSX_printf(file, "AllowedItems=%i\n", ng->AllowedItems);
 	PHYSFSX_printf(file, "ShowEnemyNames=%i\n", ng->ShowEnemyNames);
@@ -1283,6 +1303,7 @@ void write_netgame_profile(netgame_info *ng)
 	PHYSFSX_printf(file, "AllowColoredLighting=%i\n", ng->AllowColoredLighting);
 	PHYSFSX_printf(file, "FairColors=%i\n", ng->FairColors);
 	PHYSFSX_printf(file, "BlackAndWhitePyros=%i\n", ng->BlackAndWhitePyros);
+	PHYSFSX_printf(file, "ObsDelay=%i\n", ng->obs_delay);
 #ifdef USE_TRACKER
 	PHYSFSX_printf(file, "Tracker=%i\n", ng->Tracker);
 #else
