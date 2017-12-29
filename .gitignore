@@ -48,3 +48,7 @@ Thumbs.db
 *.pbxuser
 *xcworkspace*
 *xcuserdata*
+
+# VS Code #
+###########
+.vscode/*
