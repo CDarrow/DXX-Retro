@@ -1112,7 +1112,7 @@ void do_laser_firing_player(void)
 	int 		nfires = 1;
 
 	if (Player_is_dead)
-		return 0;
+		return;
 
 	weapon_index = Primary_weapon_to_weapon_info[Primary_weapon];
 	energy_used = Weapon_info[weapon_index].energy_usage;
@@ -1228,7 +1228,7 @@ void do_laser_firing_player(void)
 
 	Global_laser_firing_count = 0;
 
-	return rval;
+	return;
 }
 
 //	--------------------------------------------------------------------------------------------------
