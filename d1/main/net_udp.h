@@ -22,6 +22,7 @@ void net_udp_dump_player(struct _sockaddr dump_addr, int their_token, int why);
 void net_udp_disconnect_player(int playernum);
 int net_udp_level_sync();
 void net_udp_send_mdata_direct(ubyte *data, int data_len, int pnum, int priority);
+void forward_to_observers(ubyte *data, int data_len);
 
 // Some defines
 #ifdef IPv6
