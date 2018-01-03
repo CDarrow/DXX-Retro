@@ -246,7 +246,11 @@ int do_powerup(object *obj)
 			break;
 		case POW_SHIELD_BOOST:
 			if (Players[Player_num].shields < MAX_SHIELDS) {
-				Players[Player_num].shields += 3*F1_0 + 3*F1_0*(NDL - Difficulty_level);
+				fix repair = 3*F1_0 + 3*F1_0*(NDL - Difficulty_level);
+				if (Game_mode & GM_MULTI)
+					multi_send_repair(repair, Players[Player_num].shields, OBJ_POWERUP);
+
+				Players[Player_num].shields += repair;
 				if (Players[Player_num].shields > MAX_SHIELDS)
 					Players[Player_num].shields = MAX_SHIELDS;
 				powerup_basic(0, 0, 15, SHIELD_SCORE, "%s %s %d",TXT_SHIELD,TXT_BOOSTED_TO,f2ir(Players[Player_num].shields));

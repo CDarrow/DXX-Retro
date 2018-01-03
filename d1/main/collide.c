@@ -173,7 +173,7 @@ void apply_force_damage(object *obj,fix force,object *other_obj)
 			{
 				con_printf(CON_NORMAL, "You took %0.1f damage from colliding with a ship!\n", (double)(damage) / (double)(F1_0)); 
 
-				multi_send_damage(damage, Players[Player_num].shields - damage, OBJ_PLAYER, other_obj->id, DAMAGE_COLLISION, NULL);
+				multi_send_damage(damage, Players[Player_num].shields, OBJ_PLAYER, other_obj->id, DAMAGE_COLLISION, NULL);
 			}
 			#endif
 			apply_damage_to_player(obj,other_obj,damage,0);
@@ -320,7 +320,7 @@ void collide_player_and_wall( object * player, fix hitspeed, short hitseg, short
 				{
 			  		con_printf(CON_NORMAL, "You took %0.1f damage from hitting a wall!\n", (double)(damage) / (double)(F1_0)); 
 
-					multi_send_damage(damage, Players[Player_num].shields - damage, NULL, NULL, DAMAGE_WALL, NULL);
+					multi_send_damage(damage, Players[Player_num].shields, NULL, NULL, DAMAGE_WALL, NULL);
 				}
 			  	#endif
 			  	apply_damage_to_player( player, player, damage, 0 );			  	
@@ -354,7 +354,7 @@ void scrape_player_on_wall(object *obj, short hitseg, short hitside, vms_vector 
 			{
 				con_printf(CON_NORMAL, "You took %0.1f damage from lava!\n", (double)(damage) / (double)(F1_0)); 
 
-				multi_send_damage(damage, Players[Player_num].shields - damage, NULL, NULL, DAMAGE_LAVA, NULL);
+				multi_send_damage(damage, Players[Player_num].shields, NULL, NULL, DAMAGE_LAVA, NULL);
 			}
 			#endif
 			  	
@@ -1488,7 +1488,7 @@ void collide_player_and_weapon( object * player, object * weapon, vms_vector *co
 					con_printf(CON_NORMAL, "You took %0.1f damage from %s's %s!\n", 
 						(double)(damage)/(double)(F1_0), killer_name, weapon_name); 
 
-					multi_send_damage(damage, Players[Player_num].shields - damage, killer->type, killer->id, DAMAGE_WEAPON, NULL);
+					multi_send_damage(damage, Players[Player_num].shields, killer->type, killer->id, DAMAGE_WEAPON, NULL);
 				}
 				#endif
 			}
@@ -1524,7 +1524,7 @@ void collide_player_and_nasty_robot( object * player, object * robot, vms_vector
 		{
 			con_printf(CON_NORMAL, "You took %0.1f damage from bumping a robot!\n", (double)(damage) / (double)(F1_0)); 
 
-			multi_send_damage(damage, Players[Player_num].shields - damage, OBJ_ROBOT, NULL, DAMAGE_COLLISION, NULL);
+			multi_send_damage(damage, Players[Player_num].shields, OBJ_ROBOT, NULL, DAMAGE_COLLISION, NULL);
 		}
 	#endif
 	apply_damage_to_player( player, robot, damage, 0);
