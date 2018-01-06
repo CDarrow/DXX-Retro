@@ -2923,7 +2923,7 @@ void show_HUD_names()
 				if (!(player_point.p3_flags & PF_OVERFLOW))
 				{
 					fix x,y,dx,dy;
-					char s[CALLSIGN_LEN+10];
+					char s[CALLSIGN_LEN+20];
 					int w, h, aw, x1, y1, color_num;
 
 					x = player_point.p3_sx;
@@ -2931,12 +2931,17 @@ void show_HUD_names()
 					dy = -fixmuldiv(fixmul(Objects[objnum].size,Matrix_scale.y),i2f(grd_curcanv->cv_bitmap.bm_h)/2,player_point.p3_z);
 					dx = fixmul(dy,grd_curscreen->sc_aspect);
 					color_num = (Game_mode & GM_TEAM)?get_team(pnum):Netgame.players[pnum].color;//pnum;
-					memset(&s, '\0', CALLSIGN_LEN+10);
+					memset(&s, '\0', CALLSIGN_LEN+20);
 					/* Set the text to show */
 					if( Game_mode & GM_BOUNTY && pnum == Bounty_target )
 						strncpy( s, "Target", 6 );
 					else if (show_name)
-						snprintf( s, sizeof(s), "%s", Players[pnum].callsign );
+					{
+						if (Game_mode & GM_OBSERVER)
+							snprintf( s, sizeof(s), "%s (%0.1f)", Players[pnum].callsign, f2db(Players[pnum].shields) );
+						else
+							snprintf( s, sizeof(s), "%s", Players[pnum].callsign );
+					}
 					if (show_typing && multi_sending_message[pnum])
 					{
 						if (s[0])
@@ -2951,6 +2956,23 @@ void show_HUD_names()
 						x1 = f2i(x)-w/2;
 						y1 = f2i(y-dy)+FSPACY(1);
 						gr_string (x1, y1, s);
+					}
+
+					if (Game_mode & GM_OBSERVER)
+					{
+						if (Players[pnum].shields_delta != 0 && (Players[Player_num].hours_total - Players[pnum].shields_time_hours == 1 && i2f(3600) + Players[Player_num].time_total - Players[pnum].shields_time < i2f(2) || Players[Player_num].time_total - Players[pnum].shields_time < i2f(2)))
+						{
+							double diff = (double)(int)Players[pnum].shields_delta / 65536;
+
+							memset(&s, '\0', CALLSIGN_LEN+20);
+							snprintf( s, sizeof(s), "%+0.1f", diff);
+
+							gr_get_string_size(s, &w, &h, &aw);
+							gr_set_fontcolor(BM_XRGB(diff < 0 ? (diff < -50 ? 32 : (diff > -10 ? 8 : 32 - (diff + 50) * 24 / 40)) : 0, diff > 0 ? 32 : 0, 0), -1);
+							x1 = f2i(x)-w/2;
+							y1 = f2i(y+dy)-FSPACY(6);
+							gr_string (x1, y1, s);
+						}
 					}
 
 					/* Draw box on HUD */

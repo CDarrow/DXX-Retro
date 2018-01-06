@@ -4052,6 +4052,120 @@ int multi_maybe_disable_friendly_fire(object *killer)
 	return 0; // all other cases -> harm me!
 }
 
+void multi_send_damage(fix damage, fix shields, ubyte killer_type, ubyte killer_id, ubyte damage_type, object* source)
+{
+	if (Game_mode & GM_OBSERVER) { return; }
+
+	// Sending damage to the host isn't interesting if there cannot be any observers.
+	if (Netgame.max_numobservers == 0) { return; }
+
+	// Calculate new shields amount.
+	if (shields < damage)
+		shields = 0;
+	else
+		shields -= damage;
+
+	// Setup damage packet.
+	multibuf[0] = MULTI_DAMAGE;
+	multibuf[1] = Player_num;
+	multibuf[2] = (damage >> 24) & 0xFF;
+	multibuf[3] = (damage >> 16) & 0xFF;
+	multibuf[4] = (damage >> 8) & 0xFF;
+	multibuf[5] = damage & 0xFF;
+	multibuf[6] = (shields >> 24) & 0xFF;
+	multibuf[7] = (shields >> 16) & 0xFF;
+	multibuf[8] = (shields >> 8) & 0xFF;
+	multibuf[9] = shields & 0xFF;
+	multibuf[10] = killer_type;
+	multibuf[11] = killer_id;
+	multibuf[12] = damage_type;
+	if (source == NULL)
+	{
+		multibuf[13] = 0;
+		multibuf[14] = 0;
+	}
+	else if (source->type == OBJ_WEAPON)
+	{
+		multibuf[13] = OBJ_WEAPON;
+		multibuf[14] = 0;
+	}
+	else if (source->type == OBJ_PLAYER)
+	{
+		multibuf[13] = OBJ_WEAPON;
+		multibuf[14] = source->id;
+	}
+	else
+	{
+		multibuf[13] = 0;
+		multibuf[14] = 0;
+	}
+
+	if (multi_i_am_master())
+		multi_do_damage( multibuf );
+
+	multi_send_data_direct( multibuf, 15, multi_who_is_master(), 2 );
+}
+
+void multi_do_damage( const ubyte *buf )
+{
+	if (Game_mode & GM_OBSERVER)
+	{
+		Players[buf[1]].shields = ((fix)buf[6] << 24) + ((fix)buf[7] << 16) + ((fix)buf[8] << 8) + (fix)buf[9];
+		if (Players[Player_num].hours_total - Players[buf[1]].shields_time_hours > 1 || Players[Player_num].hours_total - Players[buf[1]].shields_time_hours == 1 && i2f(3600) + Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2) || Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2)) {
+			Players[buf[1]].shields_delta = 0;
+		}
+		Players[buf[1]].shields_delta -= ((fix)buf[2] << 24) + ((fix)buf[3] << 16) + ((fix)buf[4] << 8) + (fix)buf[5];
+		Players[buf[1]].shields_time = Players[Player_num].time_total;
+		Players[buf[1]].shields_time_hours = Players[Player_num].hours_total;
+	}
+}
+
+void multi_send_repair(fix repair, fix shields, ubyte sourcetype)
+{
+	if (Game_mode & GM_OBSERVER) { return; }
+
+	// Sending damage to the host isn't interesting if there cannot be any observers.
+	if (Netgame.max_numobservers == 0) { return; }
+
+	// Calculate new shields amount.
+	if (shields + repair > MAX_SHIELDS)
+		shields = MAX_SHIELDS;
+	else
+		shields += repair;
+	
+	// Setup repair packet.
+	multibuf[0] = MULTI_REPAIR;
+	multibuf[1] = Player_num;
+	multibuf[2] = (repair >> 24) & 0xFF;
+	multibuf[3] = (repair >> 16) & 0xFF;
+	multibuf[4] = (repair >> 8) & 0xFF;
+	multibuf[5] = repair & 0xFF;
+	multibuf[6] = (shields >> 24) & 0xFF;
+	multibuf[7] = (shields >> 16) & 0xFF;
+	multibuf[8] = (shields >> 8) & 0xFF;
+	multibuf[9] = shields & 0xFF;
+	multibuf[10] = sourcetype;
+
+	if (multi_i_am_master())
+		multi_do_repair( multibuf );
+	
+	multi_send_data_direct( multibuf, 11, multi_who_is_master(), 2);
+}
+
+void multi_do_repair( const ubyte *buf )
+{
+	if (Game_mode & GM_OBSERVER)
+	{
+		Players[buf[1]].shields = ((fix)buf[6] << 24) + ((fix)buf[7] << 16) + ((fix)buf[8] << 8) + (fix)buf[9];
+		if (Players[Player_num].hours_total - Players[buf[1]].shields_time_hours > 1 || Players[Player_num].hours_total - Players[buf[1]].shields_time_hours == 1 && i2f(3600) + Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2) || Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2)) {
+			Players[buf[1]].shields_delta = 0;
+		}
+		Players[buf[1]].shields_delta += ((fix)buf[2] << 24) + ((fix)buf[3] << 16) + ((fix)buf[4] << 8) + (fix)buf[5];
+		Players[buf[1]].shields_time = Players[Player_num].time_total;
+		Players[buf[1]].shields_time_hours = Players[Player_num].hours_total;
+	}
+}
+
 /* Bounty packer sender and handler */
 void multi_send_bounty( void )
 {
@@ -4491,6 +4605,10 @@ multi_process_data(const ubyte *buf, int len)
 			multi_do_kill(buf); break;
 		case MULTI_OBS_UPDATE:
 			multi_do_obs_update(buf); break;
+		case MULTI_DAMAGE:
+			multi_do_damage(buf); break;
+		case MULTI_REPAIR:
+			multi_do_repair(buf); break;
 		default:
 			Int3();
 	}

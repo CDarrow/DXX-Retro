@@ -42,9 +42,18 @@ ehthumbs.db
 Thumbs.db
 
 # Xcode generated files #
-######################
+#########################
 # Note: committing these is optional
 *.mode1v3
 *.pbxuser
 *xcworkspace*
 *xcuserdata*
+
+# VS Code #
+###########
+.vscode/*
+
+# Executables #
+###############
+*.app
+d*x-rebirth
