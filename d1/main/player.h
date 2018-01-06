@@ -28,6 +28,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "weapon.h"
 
 #define MAX_PLAYERS 8
+#define OBSERVER_PLAYER_ID 7
 #define MAX_MULTI_PLAYERS MAX_PLAYERS+3
 #define MAX_OBSERVERS 16
 
@@ -74,6 +75,9 @@ typedef struct player {
 	uint    flags;                  // Powerup flags, see below...
 	fix     energy;                 // Amount of energy remaining.
 	fix     shields;                // shields remaining (protection)
+	fix     shields_delta;          // recent change to shields
+	fix     shields_time;           // the time the shields recently changed
+	sbyte   shields_time_hours;     // the time the shields recently changed (hours)
 	ubyte   lives;                  // Lives remaining, 0 = game over.
 	sbyte   level;                  // Current level player is playing. (must be signed for secret levels)
 	ubyte   laser_level;            // Current level of the laser.
@@ -185,12 +189,22 @@ extern player_ship *Player_ship;
 // Probably should go in player struct, but I don't want to break savegames for this
 extern int RespawningConcussions[MAX_PLAYERS]; 
 
+vms_vector Last_pos; // Saved position of observer prior to following a player.
+vms_matrix Last_orient; // Saved orientation of observer prior to following a player.
+fix Last_real_update; // How long ago in seconds the observed player's real position got updated.
+vms_vector Real_pos; // The observed player's position.
+vms_matrix Real_orient; // The observed player's orientation.
+
 /*
  * reads a player_ship structure from a PHYSFS_file
  */
 void player_ship_read(player_ship *ps, PHYSFS_file *fp);
 
 void player_rw_swap(player_rw *p, int swap);
+
+// Observer setting.
+void reset_obs();
+void set_obs(int pnum);
 
 #endif
  

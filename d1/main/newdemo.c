@@ -1632,6 +1632,7 @@ int newdemo_read_frame_information(int rewrite)
 	int done, segnum, side, objnum, soundno, angle, volume, i;
 	object *obj;
 	sbyte c;
+	bool shields_updated = 0, energy_updated = 0; // Flags to indicate if shields or energy has already been updated when rewinding.  Rewinds should only take the first update.
 
 	done = 0;
 
@@ -2008,8 +2009,10 @@ int newdemo_read_frame_information(int rewrite)
 				if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD)) {
 					Players[Player_num].energy = i2f(energy);
 				} else if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
-					if (old_energy != 255)
+					if (!energy_updated && old_energy != 255) {
 						Players[Player_num].energy = i2f(old_energy);
+						energy_updated = 1;
+					}
 				}
 			}
 			break;
@@ -2039,8 +2042,10 @@ int newdemo_read_frame_information(int rewrite)
 				if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD)) {
 					Players[Player_num].shields = i2f(shield);
 				} else if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
-					if (old_shield != 255)
+					if (!shields_updated && old_shield != 255) {
 						Players[Player_num].shields = i2f(old_shield);
+						shields_updated = 1;
+					}
 				}
 			}
 			break;
@@ -2360,6 +2365,11 @@ int newdemo_read_frame_information(int rewrite)
 			}
 			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
+
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
+
 				if (!new_player) {
 					memcpy(Players[pnum].callsign, old_callsign, CALLSIGN_LEN+1);
 					Players[pnum].net_killed_total = killed_total;
@@ -2387,9 +2397,13 @@ int newdemo_read_frame_information(int rewrite)
 				nd_write_byte(pnum);
 				break;
 			}
-			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD))
+			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
-			else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
+
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
+			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;
 		}
@@ -2403,9 +2417,13 @@ int newdemo_read_frame_information(int rewrite)
 				nd_write_byte(pnum);
 				break;
 			}
-			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD))
+			if ((Newdemo_vcr_state == ND_STATE_REWINDING) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEBACKWARD)) {
 				Players[pnum].connected = CONNECT_DISCONNECTED;
-			else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
+
+				if (Current_obs_player == pnum) {
+					reset_obs();
+				}
+			} else if ((Newdemo_vcr_state == ND_STATE_PLAYBACK) || (Newdemo_vcr_state == ND_STATE_FASTFORWARD) || (Newdemo_vcr_state == ND_STATE_ONEFRAMEFORWARD))
 				Players[pnum].connected = CONNECT_PLAYING;
 			break;
 		}

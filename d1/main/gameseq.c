@@ -189,8 +189,9 @@ gameseq_init_network_players()
 		{
 #ifndef SHAREWARE
 			if ( (!(Game_mode & GM_MULTI_COOP) && ((Objects[i].type == OBJ_PLAYER)||(Objects[i].type==OBJ_GHOST))) ||
-	           ((Game_mode & GM_MULTI_COOP) && ((j == 0) || ( Objects[i].type==OBJ_COOP ))) )
+	           ((Game_mode & GM_MULTI_COOP) && ((j == 0) || ( Objects[i].type==OBJ_COOP ) )) )
 			{
+
 				Objects[i].type=OBJ_PLAYER;
 #endif
 				Player_init[k].pos = Objects[i].pos;
@@ -208,6 +209,20 @@ gameseq_init_network_players()
 		}
 	}
 	NumNetPlayerPositions = k;
+
+	if((Game_mode & GM_MULTI_COOP) && (Game_mode & GM_OBSERVER)) {
+		Objects[OBSERVER_PLAYER_ID].type=OBJ_PLAYER;
+		Objects[OBSERVER_PLAYER_ID].pos = Objects[0].pos;
+		Objects[OBSERVER_PLAYER_ID].orient = Objects[0].orient;
+		Objects[OBSERVER_PLAYER_ID].segnum = Objects[0].segnum; 
+
+		Player_init[OBSERVER_PLAYER_ID].pos = Objects[i].pos;
+		Player_init[OBSERVER_PLAYER_ID].pos.z = Player_init[OBSERVER_PLAYER_ID].pos.z + F1_0;
+		Player_init[OBSERVER_PLAYER_ID].orient = Objects[i].orient;
+		Player_init[OBSERVER_PLAYER_ID].segnum = Objects[i].segnum;
+		Players[OBSERVER_PLAYER_ID].objnum = OBSERVER_PLAYER_ID;
+		Objects[OBSERVER_PLAYER_ID].id = OBSERVER_PLAYER_ID;
+	}
 }
 
 void gameseq_remove_unused_players()
@@ -263,6 +278,8 @@ void init_player_stats_game(ubyte pnum)
 	Players[pnum].hostages_total = 0;
 	Players[pnum].laser_level = 0;
 	Players[pnum].flags = 0;
+	Players[pnum].shields_delta = 0;
+	Players[pnum].shields_time = 0;
 
 	init_player_stats_new_ship(pnum);
 
@@ -848,12 +865,13 @@ void PlayerFinishedLevel(int secret_flag)
 
 #ifdef NETWORK
 	if (Game_mode & GM_NETWORK)
-         {
+	{
 		if (secret_flag)
 			Players[Player_num].connected = CONNECT_FOUND_SECRET; // Finished and went to secret level
 		else
 			Players[Player_num].connected = CONNECT_WAITING; // Finished but did not die
-         }
+	}
+
 #endif
 	last_drawn_cockpit = -1;
 
@@ -1285,6 +1303,11 @@ void InitPlayerPosition(int random)
 	if ((Game_mode & GM_MULTI) && (Netgame.SpawnStyle == SPAWN_STYLE_PREVIEW) && Dead_player_camera != NULL) {
 		ConsoleObject->orient = Dead_player_camera->orient;  
 		Dead_player_camera = NULL; 
+	}
+
+	if (Game_mode & GM_OBSERVER) {
+		ConsoleObject->pos = Objects[Players[Current_obs_player].objnum].pos;
+		ConsoleObject->orient = Objects[Players[Current_obs_player].objnum].orient;
 	}
 #endif	
 	obj_relink(ConsoleObject-Objects,Player_init[NewPlayer].segnum);

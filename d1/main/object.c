@@ -648,6 +648,11 @@ void render_object(object *obj)
 
 	if ( obj == Viewer )
 		return;
+	
+	// Don't draw a player if we are observing them in first person.
+	if (Game_mode & GM_OBSERVER && Obs_at_distance == 0 && obj->type == OBJ_PLAYER && Current_obs_player != OBSERVER_PLAYER_ID && Players[Current_obs_player].objnum == obj - Objects) {
+		return;
+	}
 
 	if ( obj->type==OBJ_NONE )
 	{
@@ -1632,7 +1637,7 @@ void start_player_death_sequence(object *player)
 	player->flags &= ~OF_SHOULD_BE_DEAD;
 //	Players[Player_num].flags |= PLAYER_FLAGS_INVULNERABLE;
 	player->control_type = CT_NONE;
-	player->shields = F1_0*1000;
+	player->shields = INITIAL_SHIELDS;
 
 	PALETTE_FLASH_SET(0,0,0);
 }

@@ -753,6 +753,13 @@ void show_netgame_help()
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "(Use \x85-# for F#. e.g. \x85-1 for F1)";
 #endif
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "OBSERVERS:";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "CTRL+1 to CTRL+7\t  OBSERVE SPECIFIC PLAYER";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "CTRL+8\t  FLY FREELY";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "CTRL+9/0\t  OBSERVE PREVIOUS/NEXT PLAYER";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "CTRL+MINUS\t  OBSERVE PLAYER IN FIRST PERSON";
+	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "CTRL+EQUALS\t  OBSERVE PLAYER IN THIRD PERSON";
 
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "";
 	m[nitems].type = NM_TYPE_TEXT; m[nitems++].text = "MULTIPLAYER MESSAGE COMMANDS:";
@@ -1184,10 +1191,7 @@ void GameProcessFrame(void)
 		}
 
 		if (Global_laser_firing_count)
-			Global_laser_firing_count -= do_laser_firing_player();
-
-		if (Global_laser_firing_count < 0)
-			Global_laser_firing_count = 0;
+			do_laser_firing_player();
 
 		delayed_autoselect(); /* SelectAfterFire */ 
 		do_shield_warnings(); 
@@ -1264,6 +1268,8 @@ void FireLaser()
 					if(Game_mode & GM_MULTI) {
 						multi_send_play_sound(11, F1_0);
 						con_printf(CON_NORMAL, "You took %0.1f damage from overcharging fusion!\n", (double)(damage)/(double)(F1_0)); 
+
+						multi_send_damage(damage, Players[Player_num].shields, OBJ_PLAYER, Player_num, DAMAGE_OVERCHARGE, NULL);
 					}
 #endif
 					

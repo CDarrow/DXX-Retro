@@ -154,6 +154,9 @@ const char GMNamesShrt[MULTI_GAME_TYPE_COUNT][8]={
 	"BOUNTY"
 };
 
+int Current_obs_player = OBSERVER_PLAYER_ID; // Current player being observed. Defaults to the observer player ID.
+bool Obs_at_distance = 0; // True if you're viewing the player from a cube back.
+
 // For rejoin object syncing (used here and all protocols - globally)
 
 int	Network_send_objects = 0;  // Are we in the process of sending objects to a player?
@@ -398,9 +401,7 @@ void multi_endlevel_score(void)
 
 	// Restore connect state
 	if (Game_mode & GM_NETWORK)
-	{
 		Players[Player_num].connected = old_connect;
-	}
 
 	if (Game_mode & GM_MULTI_COOP)
 	{
@@ -452,6 +453,11 @@ multi_new_game(void)
 	{
 		sorted_kills[i] = i;
 		Players[i].connected = CONNECT_DISCONNECTED;
+
+		if (Current_obs_player == i) {
+			reset_obs();
+		}
+
 		Players[i].net_killed_total = 0;
 		Players[i].net_kills_total = 0;
 		Players[i].flags = 0;
@@ -1876,8 +1882,13 @@ multi_do_escape(const ubyte *buf)
                 digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
 		HUD_init_message(HM_MULTI, "%s %s", Players[(int)buf[1]].callsign, TXT_HAS_ESCAPED);
 
-		if (Game_mode & GM_NETWORK)
+		if (Game_mode & GM_NETWORK) {
 			Players[(int)buf[1]].connected = CONNECT_ESCAPE_TUNNEL;
+
+			if (Current_obs_player == (int)buf[1]) {
+				reset_obs();
+			}
+		}
 
 		if (!multi_goto_secret)
 			multi_goto_secret = 2;
@@ -1887,8 +1898,13 @@ multi_do_escape(const ubyte *buf)
                 digi_play_sample(SOUND_HUD_MESSAGE, F1_0);
 		HUD_init_message(HM_MULTI, "%s %s", Players[(int)buf[1]].callsign, TXT_HAS_FOUND_SECRET);
 
-		if (Game_mode & GM_NETWORK)
+		if (Game_mode & GM_NETWORK) {
 			Players[(int)buf[1]].connected = CONNECT_FOUND_SECRET;
+
+			if (Current_obs_player == (int)buf[1]) {
+				reset_obs();
+			}
+		}
 
 		if (!multi_goto_secret)
 			multi_goto_secret = 1;
@@ -2044,6 +2060,9 @@ void multi_disconnect_player(int pnum)
 	}
 
 	Players[pnum].connected = CONNECT_DISCONNECTED;
+	if (Current_obs_player == pnum) {
+		reset_obs();
+	}
 	Netgame.players[pnum].connected = CONNECT_DISCONNECTED;
 	PKilledFlags[pnum] = 1;
 
@@ -2597,6 +2616,7 @@ multi_send_endlevel_start(int secret)
 	if (Game_mode & GM_NETWORK)
 	{
 		Players[Player_num].connected = CONNECT_ESCAPE_TUNNEL;
+
 		switch (multi_protocol)
 		{
 #ifdef USE_UDP
@@ -2992,7 +3012,7 @@ multi_send_remobj(int objnum)
 		int plr_count = 0;
 		for(int i = 0; i < MAX_PLAYERS; i++) {
 			if(Players[i].connected == CONNECT_PLAYING ) {
-				plr_count += 1; 
+				plr_count += 1;
 			}
 		}
 		
@@ -3953,6 +3973,120 @@ int multi_maybe_disable_friendly_fire(object *killer)
 	return 0; // all other cases -> harm me!
 }
 
+void multi_send_damage(fix damage, fix shields, ubyte killer_type, ubyte killer_id, ubyte damage_type, object* source)
+{
+	if (Game_mode & GM_OBSERVER) { return; }
+
+	// Sending damage to the host isn't interesting if there cannot be any observers.
+	if (Netgame.max_numobservers == 0) { return; }
+
+	// Calculate new shields amount.
+	if (shields < damage)
+		shields = 0;
+	else
+		shields -= damage;
+
+	// Setup damage packet.
+	multibuf[0] = MULTI_DAMAGE;
+	multibuf[1] = Player_num;
+	multibuf[2] = (damage >> 24) & 0xFF;
+	multibuf[3] = (damage >> 16) & 0xFF;
+	multibuf[4] = (damage >> 8) & 0xFF;
+	multibuf[5] = damage & 0xFF;
+	multibuf[6] = (shields >> 24) & 0xFF;
+	multibuf[7] = (shields >> 16) & 0xFF;
+	multibuf[8] = (shields >> 8) & 0xFF;
+	multibuf[9] = shields & 0xFF;
+	multibuf[10] = killer_type;
+	multibuf[11] = killer_id;
+	multibuf[12] = damage_type;
+	if (source == NULL)
+	{
+		multibuf[13] = 0;
+		multibuf[14] = 0;
+	}
+	else if (source->type == OBJ_WEAPON)
+	{
+		multibuf[13] = OBJ_WEAPON;
+		multibuf[14] = 0;
+	}
+	else if (source->type == OBJ_PLAYER)
+	{
+		multibuf[13] = OBJ_WEAPON;
+		multibuf[14] = source->id;
+	}
+	else
+	{
+		multibuf[13] = 0;
+		multibuf[14] = 0;
+	}
+
+	if (multi_i_am_master())
+		multi_do_damage( multibuf );
+
+	multi_send_data_direct( multibuf, 15, multi_who_is_master(), 2 );
+}
+
+void multi_do_damage( const ubyte *buf )
+{
+	if (Game_mode & GM_OBSERVER)
+	{
+		Players[buf[1]].shields = ((fix)buf[6] << 24) + ((fix)buf[7] << 16) + ((fix)buf[8] << 8) + (fix)buf[9];
+		if (Players[Player_num].hours_total - Players[buf[1]].shields_time_hours > 1 || Players[Player_num].hours_total - Players[buf[1]].shields_time_hours == 1 && i2f(3600) + Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2) || Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2)) {
+			Players[buf[1]].shields_delta = 0;
+		}
+		Players[buf[1]].shields_delta -= ((fix)buf[2] << 24) + ((fix)buf[3] << 16) + ((fix)buf[4] << 8) + (fix)buf[5];
+		Players[buf[1]].shields_time = Players[Player_num].time_total;
+		Players[buf[1]].shields_time_hours = Players[Player_num].hours_total;
+	}
+}
+
+void multi_send_repair(fix repair, fix shields, ubyte sourcetype)
+{
+	if (Game_mode & GM_OBSERVER) { return; }
+
+	// Sending damage to the host isn't interesting if there cannot be any observers.
+	if (Netgame.max_numobservers == 0) { return; }
+
+	// Calculate new shields amount.
+	if (shields + repair > MAX_SHIELDS)
+		shields = MAX_SHIELDS;
+	else
+		shields += repair;
+	
+	// Setup repair packet.
+	multibuf[0] = MULTI_REPAIR;
+	multibuf[1] = Player_num;
+	multibuf[2] = (repair >> 24) & 0xFF;
+	multibuf[3] = (repair >> 16) & 0xFF;
+	multibuf[4] = (repair >> 8) & 0xFF;
+	multibuf[5] = repair & 0xFF;
+	multibuf[6] = (shields >> 24) & 0xFF;
+	multibuf[7] = (shields >> 16) & 0xFF;
+	multibuf[8] = (shields >> 8) & 0xFF;
+	multibuf[9] = shields & 0xFF;
+	multibuf[10] = sourcetype;
+
+	if (multi_i_am_master())
+		multi_do_repair( multibuf );
+	
+	multi_send_data_direct( multibuf, 11, multi_who_is_master(), 2);
+}
+
+void multi_do_repair( const ubyte *buf )
+{
+	if (Game_mode & GM_OBSERVER)
+	{
+		Players[buf[1]].shields = ((fix)buf[6] << 24) + ((fix)buf[7] << 16) + ((fix)buf[8] << 8) + (fix)buf[9];
+		if (Players[Player_num].hours_total - Players[buf[1]].shields_time_hours > 1 || Players[Player_num].hours_total - Players[buf[1]].shields_time_hours == 1 && i2f(3600) + Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2) || Players[Player_num].time_total - Players[buf[1]].shields_time > i2f(2)) {
+			Players[buf[1]].shields_delta = 0;
+		}
+		Players[buf[1]].shields_delta += ((fix)buf[2] << 24) + ((fix)buf[3] << 16) + ((fix)buf[4] << 8) + (fix)buf[5];
+		Players[buf[1]].shields_time = Players[Player_num].time_total;
+		Players[buf[1]].shields_time_hours = Players[Player_num].hours_total;
+	}
+}
+
 /* Bounty packer sender and handler */
 void multi_send_bounty( void )
 {
@@ -4217,8 +4351,13 @@ void multi_restore_game(ubyte slot, uint id)
 		multi_strip_robots(i);
 	if (multi_i_am_master()) // put all players to wait-state again so we can sync up properly
 		for (i = 0; i < MAX_PLAYERS; i++)
-			if (Players[i].connected == CONNECT_PLAYING && i != Player_num)
+			if (Players[i].connected == CONNECT_PLAYING && i != Player_num) {
 				Players[i].connected = CONNECT_WAITING;
+
+				if (Current_obs_player == i) {
+					reset_obs();
+				}
+			}
    
 	thisid=state_get_game_id(filename);
 	if (thisid!=id)
@@ -4387,6 +4526,10 @@ multi_process_data(const ubyte *buf, int len)
 			multi_do_kill(buf); break;
 		case MULTI_OBS_UPDATE:
 			multi_do_obs_update(buf); break;
+		case MULTI_DAMAGE:
+			multi_do_damage(buf); break;
+		case MULTI_REPAIR:
+			multi_do_repair(buf); break;
 		default:
 			Int3();
 	}

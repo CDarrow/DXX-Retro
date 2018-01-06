@@ -64,7 +64,7 @@ extern int multi_protocol; // set and determinate used protocol
 #define MULTI_PROTO_UDP 1 // UDP protocol
 
 // What version of the multiplayer protocol is this? Increment each time something drastic changes in Multiplayer without the version number changes. Can be reset to 0 each time the version of the game changes
-#define MULTI_PROTO_VERSION 2945 // Retromod 1.4.5
+#define MULTI_PROTO_VERSION 2946 // Retromod 1.4.6
 
 // PROTOCOL VARIABLES AND DEFINES - END
 
@@ -118,6 +118,8 @@ extern int multi_protocol; // set and determinate used protocol
 	VALUE(MULTI_RANK                 , 3)	\
 	VALUE(MULTI_RESPAWN_ROBOT        , 60)	\
 	VALUE(MULTI_OBS_UPDATE           , 4 + 8*MAX_OBSERVERS)	\
+	VALUE(MULTI_DAMAGE               , 15)  \
+	VALUE(MULTI_REPAIR               , 11)  \
 	AFTER
 for_each_multiplayer_command(enum {, define_multiplayer_command, });
 
@@ -195,6 +197,9 @@ extern char *multi_allow_powerup_text[MULTI_ALLOW_POWERUP_MAX];
 extern const char GMNames[MULTI_GAME_TYPE_COUNT][MULTI_GAME_NAME_LENGTH];
 extern const char GMNamesShrt[MULTI_GAME_TYPE_COUNT][8];
 
+int Current_obs_player; // Current player being observed.
+bool Obs_at_distance; // True if you're viewing the player from a cube back.
+
 // Exported functions
 
 extern int GetMyNetRanking();
@@ -233,6 +238,10 @@ void multi_send_audio_taunt(int taunt_num);
 void multi_send_score(void);
 void multi_send_trigger(int trigger);
 void multi_send_hostage_door_status(int wallnum);
+void multi_send_damage(fix damage, fix shields, ubyte killer_type, ubyte killer_id, ubyte damage_type, object* source);
+void multi_do_damage( const ubyte *buf );
+void multi_send_repair(fix repair, fix shields, ubyte sourcetype);
+void multi_do_repair( const ubyte *buf );
 
 void multi_send_bounty( void );
 void multi_endlevel_score(void);
@@ -469,4 +478,16 @@ typedef struct netgame_info
 	ubyte						LowVulcan;
 	ubyte						AllowPreferredColors;
 } __pack__ netgame_info;
+
+enum damage_type
+{
+	DAMAGE_WEAPON = 0,
+	DAMAGE_BLAST = 1,
+	DAMAGE_COLLISION = 2,
+	DAMAGE_WALL	= 3,
+	DAMAGE_LAVA = 4,
+	DAMAGE_OVERCHARGE = 5,
+	DAMAGE_UNKNOWN = 255
+};
+
 #endif /* _MULTI_H */
