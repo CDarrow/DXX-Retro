@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
 #define DXX_HOGFILE_NAMES	"descent2.hog or d2demo.hog"
 #if defined(__unix__) && !defined(__APPLE__)
 #define DXX_HOGFILE_PROGRAM_DATA_DIRECTORY	\
-			      "\t$HOME/.d" DXX_NAME_NUMBER "x-rebirth\n"	\
+			      "\t$HOME/.d" DXX_NAME_NUMBER "x-retro\n"	            \
 			      "\t" SHAREPATH "\n"
 #else
 #define DXX_HOGFILE_PROGRAM_DATA_DIRECTORY	\
