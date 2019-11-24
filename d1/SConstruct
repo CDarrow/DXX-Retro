@@ -15,7 +15,7 @@ class argumentIndirection:
 # endianess-checker
 def checkEndian():
     import struct
-    array = struct.pack('cccc', '\x01', '\x02', '\x03', '\x04')
+    array = struct.pack('cccc', b'\x01', b'\x02', b'\x03', b'\x04')
     i = struct.unpack('i', array)
     if i == struct.unpack('<i', array):
         return "little"
@@ -129,7 +129,7 @@ class DXXCommon:
 				flags = self.__pkg_config_sdl[cmd]
 			except KeyError as e:
 				if (program.user_settings.verbosebuild != 0):
-					print "%s: reading SDL settings from `%s`" % (program.PROGRAM_NAME, cmd)
+					print("%s: reading SDL settings from `%s`" % (program.PROGRAM_NAME, cmd))
 				self.__pkg_config_sdl[cmd] = env.backtick(cmd)
 				flags = self.__pkg_config_sdl[cmd]
 			env.MergeFlags(flags)
@@ -154,34 +154,34 @@ class DXXCommon:
 		self.env.Append(CPPDEFINES = ['NETWORK'])
 		# Get traditional compiler environment variables
 		for cc in ['CC', 'CXX']:
-			if os.environ.has_key(cc):
+			if cc in os.environ:
 				self.env[cc] = os.environ[cc]
 		for flags in ['CFLAGS', 'CXXFLAGS']:
-			if os.environ.has_key(flags):
+			if flags in os.environ:
 				self.env[flags] += SCons.Util.CLVar(os.environ[flags])
 
 	def check_endian(self):
 		# set endianess
 		if (self.__endian == "big"):
-			print "%s: BigEndian machine detected" % self.PROGRAM_NAME
+			print("%s: BigEndian machine detected" % self.PROGRAM_NAME)
 			self.asm = 0
 			self.env.Append(CPPDEFINES = ['WORDS_BIGENDIAN'])
 		elif (self.__endian == "little"):
-			print "%s: LittleEndian machine detected" % self.PROGRAM_NAME
+			print("%s: LittleEndian machine detected" % self.PROGRAM_NAME)
 
 	def check_platform(self):
 		# windows or *nix?
 		if sys.platform == 'win32':
-			print "%s: compiling on Windows" % self.PROGRAM_NAME
+			print("%s: compiling on Windows" % self.PROGRAM_NAME)
 			platform = self.Win32PlatformSettings
 		elif sys.platform == 'darwin':
-			print "%s: compiling on Mac OS X" % self.PROGRAM_NAME
+			print("%s: compiling on Mac OS X" % self.PROGRAM_NAME)
 			platform = self.DarwinPlatformSettings
 		elif sys.platform == 'cygwin':
-			print "%s: compiling on Widnows Cygwin" % self.PROGRAM_NAME
+			print("%s: compiling on Widnows Cygwin" % self.PROGRAM_NAME)
 			platform = self.Win32PlatformSettings
 		else:
-			print "%s: compiling on *NIX" % self.PROGRAM_NAME
+			print("%s: compiling on *NIX" % self.PROGRAM_NAME)
 			platform = self.LinuxPlatformSettings
 		self.platform_settings = platform(self.user_settings)
 		# Acquire environment object...
@@ -195,15 +195,15 @@ class DXXCommon:
 		# opengl or software renderer?
 		if (self.user_settings.opengl == 1) or (self.user_settings.opengles == 1):
 			if (self.user_settings.opengles == 1):
-				print "%s: building with OpenGL ES" % self.PROGRAM_NAME
+				print("%s: building with OpenGL ES" % self.PROGRAM_NAME)
 				env.Append(CPPDEFINES = ['OGLES'])
 			else:
-				print "%s: building with OpenGL" % self.PROGRAM_NAME
+				print("%s: building with OpenGL" % self.PROGRAM_NAME)
 			env.Append(CPPDEFINES = ['OGL'])
 
 		# assembler code?
 		if (self.user_settings.asm == 1) and (self.user_settings.opengl == 0):
-			print "%s: including: ASSEMBLER" % self.PROGRAM_NAME
+			print("%s: including: ASSEMBLER" % self.PROGRAM_NAME)
 			env.Replace(AS = 'nasm')
 			env.Append(ASCOM = ' -f ' + str(self.platform_settings.osasmdef) + ' -d' + str(self.platform_settings.osdef) + ' -Itexmap/ ')
 			self.common_sources += asm_sources
@@ -212,12 +212,12 @@ class DXXCommon:
 
 		# SDL_mixer support?
 		if (self.user_settings.sdlmixer == 1):
-			print "%s: including SDL_mixer" % self.PROGRAM_NAME
+			print("%s: including SDL_mixer" % self.PROGRAM_NAME)
 			env.Append(CPPDEFINES = ['USE_SDLMIXER'])
 
 		# debug?
 		if (self.user_settings.debug == 1):
-			print "%s: including: DEBUG" % self.PROGRAM_NAME
+			print("%s: including: DEBUG" % self.PROGRAM_NAME)
 			if (sys.platform == 'cygwin'):
 				# C preprocessor macro expansion for gdb
 				env.Append(CPPFLAGS = ['-g3'])
@@ -249,7 +249,7 @@ class DXXCommon:
 
 		# Raspberry Pi?
 		if (self.user_settings.raspberrypi == 1):
-			print "using Raspberry Pi vendor libs in %s" % self.user_settings.rpi_vc_path
+			print("using Raspberry Pi vendor libs in %s" % self.user_settings.rpi_vc_path)
 			env.Append(CPPDEFINES = ['RPI', 'WORDS_NEED_ALIGNMENT'])
 			env.Append(CPPPATH = [
 				self.user_settings.rpi_vc_path+'/include',
@@ -304,7 +304,7 @@ class DXXProgram(DXXCommon):
 		def __init__(self,user_settings):
 			DXXCommon.LinuxPlatformSettings.__init__(self,user_settings)
 			user_settings.sharepath += '/'
-			self.lflags = os.environ["LDFLAGS"] if os.environ.has_key('LDFLAGS') else ''
+			self.lflags = os.environ.get("LDFLAGS", "")
 		def adjust_environment(self,program,env):
 			DXXCommon.LinuxPlatformSettings.adjust_environment(self, program, env)
 			self.libs = env['LIBS']
@@ -326,7 +326,7 @@ class DXXProgram(DXXCommon):
 		self.env.Append(CPPDEFINES = [('DXX_VERSION_MAJORi', str(self.VERSION_MAJOR)), ('DXX_VERSION_MINORi', str(self.VERSION_MINOR)), ('DXX_VERSION_MICROi', str(self.VERSION_MICRO))])
 
 	def banner(self):
-		print '\n===== ' + self.PROGRAM_NAME + self.VERSION_STRING + ' =====\n'
+		print('\n===== ' + self.PROGRAM_NAME + self.VERSION_STRING + ' =====\n')
 
 	def process_user_settings(self):
 		DXXCommon.process_user_settings(self)
@@ -339,7 +339,7 @@ class DXXProgram(DXXCommon):
 			else:
 				env.Append(FRAMEWORKS = ['OpenGL'])
 		else:
-			print "%s: building with Software Renderer" % self.PROGRAM_NAME
+			print("%s: building with Software Renderer" % self.PROGRAM_NAME)
 			self.common_sources += self.arch_sdl_sources
 
 		# SDL_mixer support?
@@ -390,6 +390,217 @@ class DXXProgram(DXXCommon):
 					subst_dict={'%sgl' % dxxstr : exe_target},	# This is required; manually update version for Xcode compatibility
 					resources=[['English.lproj/InfoPlist.strings', 'English.lproj/InfoPlist.strings']])
 
+
+
+COMMON_SOURCES_FILE_LIST = [
+	'2d/2dsline.c',
+	'2d/bitblt.c',
+	'2d/bitmap.c',
+	'2d/box.c',
+	'2d/canvas.c',
+	'2d/circle.c',
+	'2d/disc.c',
+	'2d/font.c',
+	'2d/gpixel.c',
+	'2d/line.c',
+	'2d/palette.c',
+	'2d/pcx.c',
+	'2d/pixel.c',
+	'2d/poly.c',
+	'2d/rect.c',
+	'2d/rle.c',
+	'2d/scalec.c',
+	'3d/clipper.c',
+	'3d/draw.c',
+	'3d/globvars.c',
+	'3d/instance.c',
+	'3d/interp.c',
+	'3d/matrix.c',
+	'3d/points.c',
+	'3d/rod.c',
+	'3d/setup.c',
+	'arch/sdl/event.c',
+	'arch/sdl/init.c',
+	'arch/sdl/joy.c',
+	'arch/sdl/key.c',
+	'arch/sdl/mouse.c',
+	'arch/sdl/rbaudio.c',
+	'arch/sdl/timer.c',
+	'arch/sdl/window.c',
+	'arch/sdl/digi.c',
+	'arch/sdl/digi_audio.c',
+	'iff/iff.c',
+	'main/ai.c',
+	'main/aipath.c',
+	'main/automap.c',
+	'main/bm.c',
+	'main/bmread.c',
+	'main/cntrlcen.c',
+	'main/collide.c',
+	'main/config.c',
+	'main/console.c',
+	'main/controls.c',
+	'main/credits.c',
+	'main/custom.c',
+	'main/digiobj.c',
+	'main/dumpmine.c',
+	'main/effects.c',
+	'main/endlevel.c',
+	'main/fireball.c',
+	'main/fuelcen.c',
+	'main/fvi.c',
+	'main/game.c',
+	'main/gamecntl.c',
+	'main/gamefont.c',
+	'main/gamemine.c',
+	'main/gamerend.c',
+	'main/gamesave.c',
+	'main/gameseg.c',
+	'main/gameseq.c',
+	'main/gauges.c',
+	'main/hostage.c',
+	'main/hud.c',
+	'main/inferno.c',
+	'main/kconfig.c',
+	'main/kmatrix.c',
+	'main/laser.c',
+	'main/lighting.c',
+	'main/menu.c',
+	'main/mglobal.c',
+	'main/mission.c',
+	'main/morph.c',
+	'main/multi.c',
+	'main/multibot.c',
+	'main/newdemo.c',
+	'main/newmenu.c',
+	'main/object.c',
+	'main/paging.c',
+	'main/physics.c',
+	'main/piggy.c',
+	'main/player.c',
+	'main/playsave.c',
+	'main/polyobj.c',
+	'main/powerup.c',
+	'main/render.c',
+	'main/robot.c',
+	'main/scores.c',
+	'main/slew.c',
+	'main/snddecom.c',
+	'main/songs.c',
+	'main/state.c',
+	'main/switch.c',
+	'main/terrain.c',
+	'main/texmerge.c',
+	'main/text.c',
+	'main/titles.c',
+	'main/vclip.c',
+	'main/wall.c',
+	'main/weapon.c',
+	'maths/fixc.c',
+	'maths/rand.c',
+	'maths/tables.c',
+	'maths/vecmat.c',
+	'mem/mem.c',
+	'misc/args.c',
+	'misc/dl_list.c',
+	'misc/error.c',
+	'misc/hash.c',
+	'misc/hmp.c',
+	'misc/ignorecase.c',
+	'misc/physfsx.c',
+	'misc/strio.c',
+	'misc/strutil.c',
+	'texmap/ntmap.c',
+	'texmap/scanline.c'
+	#'tracker/client/tracker_client.c'
+]
+
+EDITOR_SOURCES_FILE_LIST = [
+	'editor/centers.c',
+	'editor/curves.c',
+	'editor/autosave.c',
+	'editor/eglobal.c',
+	'editor/ehostage.c',
+	'editor/elight.c',
+	'editor/eobject.c',
+	'editor/eswitch.c',
+	'editor/fixseg.c',
+	'editor/func.c',
+	'editor/group.c',
+	'editor/info.c',
+	'editor/kbuild.c',
+	'editor/kcurve.c',
+	'editor/kfuncs.c',
+	'editor/kgame.c',
+	'editor/khelp.c',
+	'editor/kmine.c',
+	'editor/ksegmove.c',
+	'editor/ksegsel.c',
+	'editor/ksegsize.c',
+	'editor/ktmap.c',
+	'editor/kview.c',
+	'editor/med.c',
+	'editor/meddraw.c',
+	'editor/medmisc.c',
+	'editor/medrobot.c',
+	'editor/medsel.c',
+	'editor/medwall.c',
+	'editor/mine.c',
+	'editor/objpage.c',
+	'editor/segment.c',
+	'editor/seguvs.c',
+	'editor/texpage.c',
+	'editor/texture.c',
+	'ui/button.c',
+	'ui/checkbox.c',
+	'ui/dialog.c',
+	'ui/file.c',
+	'ui/gadget.c',
+	'ui/icon.c',
+	'ui/inputbox.c',
+	'ui/keypad.c',
+	'ui/keypress.c',
+	'ui/keytrap.c',
+	'ui/listbox.c',
+	'ui/menu.c',
+	'ui/menubar.c',
+	'ui/message.c',
+	'ui/popup.c',
+	'ui/radio.c',
+	'ui/scroll.c',
+	'ui/ui.c',
+	'ui/uidraw.c',
+	'ui/userbox.c'
+]
+
+SDL_MIXER_FILE_LIST = [
+	'arch/sdl/digi_mixer.c',
+	'arch/sdl/digi_mixer_music.c',
+	'arch/sdl/jukebox.c'
+]
+
+OGL_SOURCE_FILE_LIST = [
+	'arch/ogl/gr.c',
+	'arch/ogl/ogl.c',
+]
+
+UDP_FILE_LIST = [
+	'main/net_udp.c'
+]
+
+SDL_FILE_LIST = [
+	'arch/sdl/gr.c',
+	'texmap/tmapflat.c'
+]
+
+ASM_FILE_LIST = [
+	'texmap/tmap_ll.asm',
+	'texmap/tmap_flt.asm',
+	'texmap/tmapfade.asm',
+	'texmap/tmap_lin.asm',
+	'texmap/tmap_per.asm'
+]
+
 class D1XProgram(DXXProgram):
 	PROGRAM_NAME = 'D1X-Rebirth'
 	target = 'd1x-rebirth'
@@ -401,225 +612,28 @@ class D1XProgram(DXXProgram):
 		self.env.Append(CPPPATH = [os.path.join(self.srcdir, f) for f in ['include', 'main', 'arch/include']])
 
 	def __init__(self):
-	# general source files
-		self.common_sources = [os.path.join(self.srcdir, f) for f in [
-'2d/2dsline.c',
-'2d/bitblt.c',
-'2d/bitmap.c',
-'2d/box.c',
-'2d/canvas.c',
-'2d/circle.c',
-'2d/disc.c',
-'2d/font.c',
-'2d/gpixel.c',
-'2d/line.c',
-'2d/palette.c',
-'2d/pcx.c',
-'2d/pixel.c',
-'2d/poly.c',
-'2d/rect.c',
-'2d/rle.c',
-'2d/scalec.c',
-'3d/clipper.c',
-'3d/draw.c',
-'3d/globvars.c',
-'3d/instance.c',
-'3d/interp.c',
-'3d/matrix.c',
-'3d/points.c',
-'3d/rod.c',
-'3d/setup.c',
-'arch/sdl/event.c',
-'arch/sdl/init.c',
-'arch/sdl/joy.c',
-'arch/sdl/key.c',
-'arch/sdl/mouse.c',
-'arch/sdl/rbaudio.c',
-'arch/sdl/timer.c',
-'arch/sdl/window.c',
-'arch/sdl/digi.c',
-'arch/sdl/digi_audio.c',
-'iff/iff.c',
-'main/ai.c',
-'main/aipath.c',
-'main/automap.c',
-'main/bm.c',
-'main/bmread.c',
-'main/cntrlcen.c',
-'main/collide.c',
-'main/config.c',
-'main/console.c',
-'main/controls.c',
-'main/credits.c',
-'main/custom.c',
-'main/digiobj.c',
-'main/dumpmine.c',
-'main/effects.c',
-'main/endlevel.c',
-'main/fireball.c',
-'main/fuelcen.c',
-'main/fvi.c',
-'main/game.c',
-'main/gamecntl.c',
-'main/gamefont.c',
-'main/gamemine.c',
-'main/gamerend.c',
-'main/gamesave.c',
-'main/gameseg.c',
-'main/gameseq.c',
-'main/gauges.c',
-'main/hostage.c',
-'main/hud.c',
-'main/inferno.c',
-'main/kconfig.c',
-'main/kmatrix.c',
-'main/laser.c',
-'main/lighting.c',
-'main/menu.c',
-'main/mglobal.c',
-'main/mission.c',
-'main/morph.c',
-'main/multi.c',
-'main/multibot.c',
-'main/newdemo.c',
-'main/newmenu.c',
-'main/object.c',
-'main/paging.c',
-'main/physics.c',
-'main/piggy.c',
-'main/player.c',
-'main/playsave.c',
-'main/polyobj.c',
-'main/powerup.c',
-'main/render.c',
-'main/robot.c',
-'main/scores.c',
-'main/slew.c',
-'main/snddecom.c',
-'main/songs.c',
-'main/state.c',
-'main/switch.c',
-'main/terrain.c',
-'main/texmerge.c',
-'main/text.c',
-'main/titles.c',
-'main/vclip.c',
-'main/wall.c',
-'main/weapon.c',
-'maths/fixc.c',
-'maths/rand.c',
-'maths/tables.c',
-'maths/vecmat.c',
-'mem/mem.c',
-'misc/args.c',
-'misc/dl_list.c',
-'misc/error.c',
-'misc/hash.c',
-'misc/hmp.c',
-'misc/ignorecase.c',
-'misc/physfsx.c',
-'misc/strio.c',
-'misc/strutil.c',
-'texmap/ntmap.c',
-'texmap/scanline.c'
-#'tracker/client/tracker_client.c'
-]
-]
+		# general source files
+		self.common_sources = [os.path.join(self.srcdir, f) for f in COMMON_SOURCES_FILE_LIST]
 
-	# for editor
-		self.editor_sources = [os.path.join(self.srcdir, f) for f in [
-'editor/centers.c',
-'editor/curves.c',
-'editor/autosave.c',
-'editor/eglobal.c',
-'editor/ehostage.c',
-'editor/elight.c',
-'editor/eobject.c',
-'editor/eswitch.c',
-'editor/fixseg.c',
-'editor/func.c',
-'editor/group.c',
-'editor/info.c',
-'editor/kbuild.c',
-'editor/kcurve.c',
-'editor/kfuncs.c',
-'editor/kgame.c',
-'editor/khelp.c',
-'editor/kmine.c',
-'editor/ksegmove.c',
-'editor/ksegsel.c',
-'editor/ksegsize.c',
-'editor/ktmap.c',
-'editor/kview.c',
-'editor/med.c',
-'editor/meddraw.c',
-'editor/medmisc.c',
-'editor/medrobot.c',
-'editor/medsel.c',
-'editor/medwall.c',
-'editor/mine.c',
-'editor/objpage.c',
-'editor/segment.c',
-'editor/seguvs.c',
-'editor/texpage.c',
-'editor/texture.c',
-'ui/button.c',
-'ui/checkbox.c',
-'ui/dialog.c',
-'ui/file.c',
-'ui/gadget.c',
-'ui/icon.c',
-'ui/inputbox.c',
-'ui/keypad.c',
-'ui/keypress.c',
-'ui/keytrap.c',
-'ui/listbox.c',
-'ui/menu.c',
-'ui/menubar.c',
-'ui/message.c',
-'ui/popup.c',
-'ui/radio.c',
-'ui/scroll.c',
-'ui/ui.c',
-'ui/uidraw.c',
-'ui/userbox.c'
-]
-]
+
+		# for editor
+		self.editor_sources = [os.path.join(self.srcdir, f) for f in EDITOR_SOURCES_FILE_LIST]
+
+		self.sources_use_udp = [os.path.join(self.srcdir, f) for f in UDP_FILE_LIST]
+
+		# SDL_mixer sound implementation
+		self.arch_sdlmixer = [os.path.join(self.srcdir, f) for f in SDL_MIXER_FILE_LIST]
+
+		# for opengl
+		self.arch_ogl_sources = [os.path.join(self.srcdir, f) for f in OGL_SOURCE_FILE_LIST]
+
+		# for non-ogl
+		self.arch_sdl_sources = [os.path.join(self.srcdir, f) for f in SDL_FILE_LIST]
+
+		# assembler related
+		self.asm_sources = [os.path.join(self.srcdir, f) for f in ASM_FILE_LIST]
+		
 		DXXProgram.__init__(self)
-
-	sources_use_udp = [os.path.join(srcdir, 'main/net_udp.c')]
-
-	# SDL_mixer sound implementation
-	arch_sdlmixer = [os.path.join(srcdir, f) for f in [
-'arch/sdl/digi_mixer.c',
-'arch/sdl/digi_mixer_music.c',
-'arch/sdl/jukebox.c'
-]
-]
-
-	# for opengl
-	arch_ogl_sources = [os.path.join(srcdir, f) for f in [
-'arch/ogl/gr.c',
-'arch/ogl/ogl.c',
-]
-]
-
-	# for non-ogl
-	arch_sdl_sources = [os.path.join(srcdir, f) for f in [
-'arch/sdl/gr.c',
-'texmap/tmapflat.c'
-]
-]
-
-	# assembler related
-	asm_sources = [os.path.join(srcdir, f) for f in [
-'texmap/tmap_ll.asm',
-'texmap/tmap_flt.asm',
-'texmap/tmapfade.asm',
-'texmap/tmap_lin.asm',
-'texmap/tmap_per.asm'
-]
-]
 
 	def register_program(self):
 		self._register_program('d1x')
