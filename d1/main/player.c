@@ -14,6 +14,7 @@ int RespawningConcussions[MAX_PLAYERS];
 
 void player_rw_swap(player_rw *p, int swap)
 {
+#if 0
 	int i;
 
 	if (!swap)
@@ -45,6 +46,7 @@ void player_rw_swap(player_rw *p, int swap)
 	p->hostages_rescued_total = SWAPSHORT(p->hostages_rescued_total);
 	p->hostages_total = SWAPSHORT(p->hostages_total);
 	p->homing_object_dist = SWAPINT(p->homing_object_dist);
+#endif
 }
 
 void player_ship_read(player_ship *ps, PHYSFS_file *fp)

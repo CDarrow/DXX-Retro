@@ -74,12 +74,12 @@ static inline ushort GET_INTEL_SHORT(const void *s)
 	memcpy((void *)&tmp, s, 2);
 	return INTEL_SHORT(tmp);
 }
-#define PUT_INTEL_INT64(d, s)     { uint tmp = INTEL_INT64(s); \
-                                  memcpy((void *)(d), (void *)&tmp, 8); }
-#define PUT_INTEL_INT(d, s)     { uint tmp = INTEL_INT(s); \
-                                  memcpy((void *)(d), (void *)&tmp, 4); }
-#define PUT_INTEL_SHORT(d, s)   { ushort tmp = INTEL_SHORT(s); \
-                                  memcpy((void *)(d), (void *)&tmp, 2); }
+#define PUT_INTEL_INT64(d, s)     do { uint tmp = INTEL_INT64(s); \
+                                  memcpy((void *)(d), (void *)&tmp, 8); } while (0)
+#define PUT_INTEL_INT(d, s)     do { uint tmp = INTEL_INT(s); \
+                                  memcpy((void *)(d), (void *)&tmp, 4); } while (0)
+#define PUT_INTEL_SHORT(d, s)   do { ushort tmp = INTEL_SHORT(s); \
+                                  memcpy((void *)(d), (void *)&tmp, 2); } while (0)
 #endif // ! WORDS_NEED_ALIGNMENT
 
 #endif // ! _BYTESWAP_H

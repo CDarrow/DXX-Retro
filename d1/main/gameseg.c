@@ -1001,6 +1001,13 @@ sbyte convert_to_byte(fix f)
 
 #define VEL_PRECISION 12
 
+#define SWAP_PSHORT(x) { ubyte t = x[0]; x[0] = x[1]; x[1] = t; }
+#ifdef WORDS_BIGENDIAN
+#define IS_BIG 1
+#else
+#define IS_BIG 0
+#endif
+
 //	Create a shortpos struct from an object.
 //	Extract the matrix into byte values.
 //	Create a position relative to vertex 0 with 1/256 normal "fix" precision.
@@ -1022,26 +1029,26 @@ void create_shortpos(shortpos *spp, object *objp, int swap_bytes)
 	*sp++ = convert_to_byte(objp->orient.uvec.z);
 	*sp++ = convert_to_byte(objp->orient.fvec.z);
 
-	spp->xo = (objp->pos.x - Vertices[Segments[objp->segnum].verts[0]].x) >> RELPOS_PRECISION;
-	spp->yo = (objp->pos.y - Vertices[Segments[objp->segnum].verts[0]].y) >> RELPOS_PRECISION;
-	spp->zo = (objp->pos.z - Vertices[Segments[objp->segnum].verts[0]].z) >> RELPOS_PRECISION;
+	PUT_INTEL_SHORT(&spp->xo, (objp->pos.x - Vertices[Segments[objp->segnum].verts[0]].x) >> RELPOS_PRECISION);
+	PUT_INTEL_SHORT(&spp->yo, (objp->pos.y - Vertices[Segments[objp->segnum].verts[0]].y) >> RELPOS_PRECISION);
+	PUT_INTEL_SHORT(&spp->zo, (objp->pos.z - Vertices[Segments[objp->segnum].verts[0]].z) >> RELPOS_PRECISION);
 
-	spp->segment = objp->segnum;
+	PUT_INTEL_SHORT(&spp->segment, objp->segnum);
 
- 	spp->velx = (objp->mtype.phys_info.velocity.x) >> VEL_PRECISION;
-	spp->vely = (objp->mtype.phys_info.velocity.y) >> VEL_PRECISION;
-	spp->velz = (objp->mtype.phys_info.velocity.z) >> VEL_PRECISION;
+	PUT_INTEL_SHORT(&spp->velx, (objp->mtype.phys_info.velocity.x) >> VEL_PRECISION);
+	PUT_INTEL_SHORT(&spp->vely, (objp->mtype.phys_info.velocity.y) >> VEL_PRECISION);
+	PUT_INTEL_SHORT(&spp->velz, (objp->mtype.phys_info.velocity.z) >> VEL_PRECISION);
 
 // swap the short values for the big-endian machines.
 
-	if (swap_bytes) {
-		spp->xo = INTEL_SHORT(spp->xo);
-		spp->yo = INTEL_SHORT(spp->yo);
-		spp->zo = INTEL_SHORT(spp->zo);
-		spp->segment = INTEL_SHORT(spp->segment);
-		spp->velx = INTEL_SHORT(spp->velx);
-		spp->vely = INTEL_SHORT(spp->vely);
-		spp->velz = INTEL_SHORT(spp->velz);
+	if (!!swap_bytes != IS_BIG) {
+		SWAP_PSHORT(spp->xo);
+		SWAP_PSHORT(spp->yo);
+		SWAP_PSHORT(spp->zo);
+		SWAP_PSHORT(spp->segment);
+		SWAP_PSHORT(spp->velx);
+		SWAP_PSHORT(spp->vely);
+		SWAP_PSHORT(spp->velz);
 	}
 }
 
@@ -1062,27 +1069,27 @@ void extract_shortpos(object *objp, shortpos *spp, int swap_bytes)
 	objp->orient.uvec.z = *sp++ << MATRIX_PRECISION;
 	objp->orient.fvec.z = *sp++ << MATRIX_PRECISION;
 
-	if (swap_bytes) {
-		spp->xo = INTEL_SHORT(spp->xo);
-		spp->yo = INTEL_SHORT(spp->yo);
-		spp->zo = INTEL_SHORT(spp->zo);
-		spp->segment = INTEL_SHORT(spp->segment);
-		spp->velx = INTEL_SHORT(spp->velx);
-		spp->vely = INTEL_SHORT(spp->vely);
-		spp->velz = INTEL_SHORT(spp->velz);
+	if (!!swap_bytes != IS_BIG) {
+		SWAP_PSHORT(spp->xo);
+		SWAP_PSHORT(spp->yo);
+		SWAP_PSHORT(spp->zo);
+		SWAP_PSHORT(spp->segment);
+		SWAP_PSHORT(spp->velx);
+		SWAP_PSHORT(spp->vely);
+		SWAP_PSHORT(spp->velz);
 	}
 
-	segnum = spp->segment;
+	segnum = (short)GET_INTEL_SHORT(&spp->segment);
 
 	Assert((segnum >= 0) && (segnum <= Highest_segment_index));
 
-	objp->pos.x = (spp->xo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].x;
-	objp->pos.y = (spp->yo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].y;
-	objp->pos.z = (spp->zo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].z;
+	objp->pos.x = ((short)GET_INTEL_SHORT(&spp->xo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].x;
+	objp->pos.y = ((short)GET_INTEL_SHORT(&spp->yo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].y;
+	objp->pos.z = ((short)GET_INTEL_SHORT(&spp->zo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].z;
 
-	objp->mtype.phys_info.velocity.x = (spp->velx << VEL_PRECISION);
-	objp->mtype.phys_info.velocity.y = (spp->vely << VEL_PRECISION);
-	objp->mtype.phys_info.velocity.z = (spp->velz << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.x = ((short)GET_INTEL_SHORT(&spp->velx) << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.y = ((short)GET_INTEL_SHORT(&spp->vely) << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.z = ((short)GET_INTEL_SHORT(&spp->velz) << VEL_PRECISION);
 
 	obj_relink(objp-Objects, segnum);
 }

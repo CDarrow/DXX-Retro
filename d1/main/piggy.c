@@ -102,12 +102,16 @@ typedef struct DiskBitmapHeader {
 	int offset;
 } __pack__ DiskBitmapHeader;
 
+#define DISKBITMAPHEADER_SIZE 17
+
 typedef struct DiskSoundHeader {
 	char name[8];
 	int length;
 	int data_length;
 	int offset;
 } __pack__ DiskSoundHeader;
+
+#define DISKSOUNDHEADER_SIZE 20
 
 /*
  * reads a DiskBitmapHeader structure from a PHYSFS_file
@@ -388,7 +392,7 @@ int properties_init()
 	N_sounds = PHYSFSX_readInt(Piggy_fp);
 	size -= sizeof(int);
 
-	header_size = (N_bitmaps*sizeof(DiskBitmapHeader)) + (N_sounds*sizeof(DiskSoundHeader));
+	header_size = (N_bitmaps*DISKBITMAPHEADER_SIZE) + (N_sounds*DISKSOUNDHEADER_SIZE);
 
 	for (i=0; i<N_bitmaps; i++ ) {
 		DiskBitmapHeader_read(&bmh, Piggy_fp);
@@ -402,7 +406,7 @@ int properties_init()
 		GameBitmapOffset[i+1] = bmh.offset + header_size + (sizeof(int)*2) + Pigdata_start;
 		Assert( (i+1) == Num_bitmap_files );
 
-		//size -= sizeof(DiskBitmapHeader);
+		//size -= DISKBITMAPHEADER_SIZE;
 		memcpy( temp_name_read, bmh.name, 8 );
 		temp_name_read[8] = 0;
 		if ( bmh.dflags & DBM_FLAG_ABM )
@@ -437,7 +441,7 @@ int properties_init()
 	for (i=0; !MacPig && i<N_sounds; i++ ) {
 		DiskSoundHeader_read(&sndh, Piggy_fp);
 		
-		//size -= sizeof(DiskSoundHeader);
+		//size -= DISKSOUNDHEADER_SIZE;
 #ifdef ALLEGRO
 		temp_sound.len = sndh.length;
 #else
@@ -827,7 +831,7 @@ void piggy_dump_all()
 	PHYSFS_write( fp, &Num_sound_files, sizeof(int), 1 );
 
 	header_offset = PHYSFS_tell(fp);
-	header_offset += ((Num_bitmap_files-1)*sizeof(DiskBitmapHeader)) + (Num_sound_files*sizeof(DiskSoundHeader));
+	header_offset += ((Num_bitmap_files-1)*DISKBITMAPHEADER_SIZE) + (Num_sound_files*DISKSOUNDHEADER_SIZE);
 	data_offset = header_offset;
 
 	for (i=1; i < Num_bitmap_files; i++ ) {
@@ -909,7 +913,8 @@ void piggy_dump_all()
 			bmh.flags &= ~BM_FLAG_PAGED_OUT;
 		}
 		bmh.avg_color=GameBitmaps[i].avg_color;
-		PHYSFS_write( fp, &bmh, sizeof(DiskBitmapHeader), 1 );	// Mark as a bitmap
+		PHYSFS_write( fp, &bmh, DISKBITMAPHEADER_SIZE, 1 );	// Mark as a bitmap
+		#error "write bmh in parts"
 	}
 
 	for (i=0; i < Num_sound_files; i++ )
@@ -932,7 +937,8 @@ void piggy_dump_all()
 		PHYSFS_write( fp, snd->data, sizeof(ubyte), sndh.length );
 		data_offset += sndh.length;
 		PHYSFSX_fseek( fp, org_offset, SEEK_SET );
-		PHYSFS_write( fp, &sndh, sizeof(DiskSoundHeader), 1 );			// Mark as a bitmap
+		PHYSFS_write( fp, &sndh, DISKSOUNDHEADER_SIZE, 1 );			// Mark as a bitmap
+		#error "write sndh in parts"
 
 #ifndef RELEASE
 		PHYSFSX_printf( fp1, "SND: %s, size %d bytes\n", AllSounds[i].name, sndh.length );

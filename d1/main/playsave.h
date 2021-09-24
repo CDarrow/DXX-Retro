@@ -47,6 +47,8 @@ typedef struct saved_game_sw {
 	int		auto_leveling_on;		//does player have autoleveling on?
 } __pack__ saved_game_sw;
 
+#define SAVED_GAME_SW_SIZE (GAME_NAME_LEN + 1 + PLAYER_RW_SIZE + 8 * 4)
+
 typedef struct hli {
 	char	Shortname[9];
 	ubyte	LevelNum;

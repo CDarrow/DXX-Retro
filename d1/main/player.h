@@ -26,6 +26,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "fix.h"
 #include "vecmat.h"
 #include "weapon.h"
+#include "packtype.h"
 
 #define MAX_PLAYERS 8
 #define OBSERVER_PLAYER_ID 7
@@ -121,51 +122,53 @@ typedef struct player_rw {
 	char    callsign[CALLSIGN_LEN+1];   // The callsign of this player, for net purposes.
 	ubyte   net_address[6];         // The network address of the player.
 	sbyte   connected;              // Is the player connected or not?
-	int     objnum;                 // What object number this player is. (made an int by mk because it's very often referenced)
-	int     n_packets_got;          // How many packets we got from them
-	int     n_packets_sent;         // How many packets we sent to them
+	pint     objnum;                 // What object number this player is. (made an int by mk because it's very often referenced)
+	pint     n_packets_got;          // How many packets we got from them
+	pint     n_packets_sent;         // How many packets we sent to them
 
 	//  -- make sure you're 4 byte aligned now!
 
 	// Game data
-	uint    flags;                  // Powerup flags, see below...
-	fix     energy;                 // Amount of energy remaining.
-	fix     shields;                // shields remaining (protection)
+	puint    flags;                  // Powerup flags, see below...
+	pfix     energy;                 // Amount of energy remaining.
+	pfix     shields;                // shields remaining (protection)
 	ubyte   lives;                  // Lives remaining, 0 = game over.
 	sbyte   level;                  // Current level player is playing. (must be signed for secret levels)
 	ubyte   laser_level;            // Current level of the laser.
 	sbyte   starting_level;         // What level the player started on.
-	short   killer_objnum;          // Who killed me.... (-1 if no one)
+	pshort   killer_objnum;          // Who killed me.... (-1 if no one)
 	ubyte		primary_weapon_flags;					//	bit set indicates the player has this weapon.
 	ubyte		secondary_weapon_flags;					//	bit set indicates the player has this weapon.
-	ushort  primary_ammo[MAX_PRIMARY_WEAPONS]; // How much ammo of each type.
-	ushort  secondary_ammo[MAX_SECONDARY_WEAPONS]; // How much ammo of each type.
+	pushort  primary_ammo[MAX_PRIMARY_WEAPONS]; // How much ammo of each type.
+	pushort  secondary_ammo[MAX_SECONDARY_WEAPONS]; // How much ammo of each type.
 
 	//	-- make sure you're 4 byte aligned now
 
 	// Statistics...
-	int     last_score;             // Score at beginning of current level.
-	int     score;                  // Current score.
-	fix     time_level;             // Level time played
-	fix     time_total;             // Game time played (high word = seconds)
+	pint     last_score;             // Score at beginning of current level.
+	pint     score;                  // Current score.
+	pfix     time_level;             // Level time played
+	pfix     time_total;             // Game time played (high word = seconds)
 
-	fix     cloak_time;             // Time cloaked
-	fix     invulnerable_time;      // Time invulnerable
+	pfix     cloak_time;             // Time cloaked
+	pfix     invulnerable_time;      // Time invulnerable
 
-	short   net_killed_total;       // Number of times killed total
-	short   net_kills_total;        // Number of net kills total
-	short   num_kills_level;        // Number of kills this level
-	short   num_kills_total;        // Number of kills total
-	short   num_robots_level;       // Number of initial robots this level
-	short   num_robots_total;       // Number of robots total
-	ushort  hostages_rescued_total; // Total number of hostages rescued.
-	ushort  hostages_total;         // Total number of hostages.
+	pshort   net_killed_total;       // Number of times killed total
+	pshort   net_kills_total;        // Number of net kills total
+	pshort   num_kills_level;        // Number of kills this level
+	pshort   num_kills_total;        // Number of kills total
+	pshort   num_robots_level;       // Number of initial robots this level
+	pshort   num_robots_total;       // Number of robots total
+	pushort  hostages_rescued_total; // Total number of hostages rescued.
+	pushort  hostages_total;         // Total number of hostages.
 	ubyte   hostages_on_board;      // Number of hostages on ship.
 	ubyte   hostages_level;         // Number of hostages on this level.
-	fix     homing_object_dist;     // Distance of nearest homing object.
+	pfix     homing_object_dist;     // Distance of nearest homing object.
 	sbyte   hours_level;            // Hours played (since time_total can only go up to 9 hours)
 	sbyte   hours_total;            // Hours played (since time_total can only go up to 9 hours)
 } __pack__ player_rw;
+
+#define PLAYER_RW_SIZE 116
 
 #define N_PLAYER_GUNS 8
 #define N_PLAYER_SHIP_TEXTURES 32

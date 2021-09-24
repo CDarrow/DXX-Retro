@@ -2138,6 +2138,7 @@ void obj_detach_all(object *parent)
 // Swap endianess of given object_rw if swap == 1
 void object_rw_swap(object_rw *obj, int swap)
 {
+#if 0
 	if (!swap)
 		return;
 
@@ -2268,5 +2269,328 @@ void object_rw_swap(object_rw *obj, int swap)
 		case RT_LASER:
 			break;
 			
+	}
+#endif
+}
+
+#define COPY_B(a, b) a = b;
+#define COPY_S(a, b) PUT_INTEL_SHORT(&a, b);
+#define COPY_I(a, b) PUT_INTEL_INT(&a, b);
+
+// Following functions convert object to object_rw and back.
+// turn object to object_rw for sending
+void object_to_object_rw(object *obj, object_rw *obj_rw)
+{
+	COPY_I(obj_rw->signature     , obj->signature)
+	COPY_B(obj_rw->type          , obj->type)
+	COPY_B(obj_rw->id            , obj->id)
+	COPY_S(obj_rw->next          , obj->next)
+	COPY_S(obj_rw->prev          , obj->prev)
+	COPY_B(obj_rw->control_type  , obj->control_type)
+	COPY_B(obj_rw->movement_type , obj->movement_type)
+	COPY_B(obj_rw->render_type   , obj->render_type)
+	COPY_B(obj_rw->flags         , obj->flags)
+	COPY_S(obj_rw->segnum        , obj->segnum)
+	COPY_S(obj_rw->attached_obj  , obj->attached_obj)
+	COPY_I(obj_rw->pos.x         , obj->pos.x)
+	COPY_I(obj_rw->pos.y         , obj->pos.y)
+	COPY_I(obj_rw->pos.z         , obj->pos.z)
+	COPY_I(obj_rw->orient.rvec.x , obj->orient.rvec.x)
+	COPY_I(obj_rw->orient.rvec.y , obj->orient.rvec.y)
+	COPY_I(obj_rw->orient.rvec.z , obj->orient.rvec.z)
+	COPY_I(obj_rw->orient.fvec.x , obj->orient.fvec.x)
+	COPY_I(obj_rw->orient.fvec.y , obj->orient.fvec.y)
+	COPY_I(obj_rw->orient.fvec.z , obj->orient.fvec.z)
+	COPY_I(obj_rw->orient.uvec.x , obj->orient.uvec.x)
+	COPY_I(obj_rw->orient.uvec.y , obj->orient.uvec.y)
+	COPY_I(obj_rw->orient.uvec.z , obj->orient.uvec.z)
+	COPY_I(obj_rw->size          , obj->size)
+	COPY_I(obj_rw->shields       , obj->shields)
+	COPY_I(obj_rw->last_pos.x    , obj->last_pos.x)
+	COPY_I(obj_rw->last_pos.y    , obj->last_pos.y)
+	COPY_I(obj_rw->last_pos.z    , obj->last_pos.z)
+	COPY_B(obj_rw->contains_type , obj->contains_type)
+	COPY_B(obj_rw->contains_id   , obj->contains_id)
+	COPY_B(obj_rw->contains_count, obj->contains_count)
+	COPY_B(obj_rw->matcen_creator, obj->matcen_creator)
+	COPY_I(obj_rw->lifeleft      , obj->lifeleft)
+
+	switch (obj->movement_type)
+	{
+		case MT_PHYSICS:
+			COPY_I(obj_rw->mtype.phys_info.velocity.x  , obj->mtype.phys_info.velocity.x)
+			COPY_I(obj_rw->mtype.phys_info.velocity.y  , obj->mtype.phys_info.velocity.y)
+			COPY_I(obj_rw->mtype.phys_info.velocity.z  , obj->mtype.phys_info.velocity.z)
+			COPY_I(obj_rw->mtype.phys_info.thrust.x    , obj->mtype.phys_info.thrust.x)
+			COPY_I(obj_rw->mtype.phys_info.thrust.y    , obj->mtype.phys_info.thrust.y)
+			COPY_I(obj_rw->mtype.phys_info.thrust.z    , obj->mtype.phys_info.thrust.z)
+			COPY_I(obj_rw->mtype.phys_info.mass        , obj->mtype.phys_info.mass)
+			COPY_I(obj_rw->mtype.phys_info.drag        , obj->mtype.phys_info.drag)
+			COPY_I(obj_rw->mtype.phys_info.brakes      , obj->mtype.phys_info.brakes)
+			COPY_I(obj_rw->mtype.phys_info.rotvel.x    , obj->mtype.phys_info.rotvel.x)
+			COPY_I(obj_rw->mtype.phys_info.rotvel.y    , obj->mtype.phys_info.rotvel.y)
+			COPY_I(obj_rw->mtype.phys_info.rotvel.z    , obj->mtype.phys_info.rotvel.z)
+			COPY_I(obj_rw->mtype.phys_info.rotthrust.x , obj->mtype.phys_info.rotthrust.x)
+			COPY_I(obj_rw->mtype.phys_info.rotthrust.y , obj->mtype.phys_info.rotthrust.y)
+			COPY_I(obj_rw->mtype.phys_info.rotthrust.z , obj->mtype.phys_info.rotthrust.z)
+			COPY_S(obj_rw->mtype.phys_info.turnroll    , obj->mtype.phys_info.turnroll)
+			COPY_S(obj_rw->mtype.phys_info.flags       , obj->mtype.phys_info.flags)
+			break;
+
+		case MT_SPINNING:
+			COPY_I(obj_rw->mtype.spin_rate.x , obj->mtype.spin_rate.x)
+			COPY_I(obj_rw->mtype.spin_rate.y , obj->mtype.spin_rate.y)
+			COPY_I(obj_rw->mtype.spin_rate.z , obj->mtype.spin_rate.z)
+			break;
+	}
+
+	switch (obj->control_type)
+	{
+		case CT_WEAPON:
+			COPY_S(obj_rw->ctype.laser_info.parent_type      , obj->ctype.laser_info.parent_type)
+			COPY_S(obj_rw->ctype.laser_info.parent_num       , obj->ctype.laser_info.parent_num)
+			COPY_I(obj_rw->ctype.laser_info.parent_signature , obj->ctype.laser_info.parent_signature)
+			if (obj->ctype.laser_info.creation_time - GameTime64 < F1_0*(-18000)) {
+				fix creation_time = F1_0*(-18000);
+				COPY_I(obj_rw->ctype.laser_info.creation_time , creation_time);
+			} else
+				COPY_I(obj_rw->ctype.laser_info.creation_time , obj->ctype.laser_info.creation_time - GameTime64)
+			COPY_S(obj_rw->ctype.laser_info.last_hitobj      , obj->ctype.laser_info.last_hitobj)
+			COPY_S(obj_rw->ctype.laser_info.track_goal       , obj->ctype.laser_info.track_goal)
+			COPY_I(obj_rw->ctype.laser_info.multiplier       , obj->ctype.laser_info.multiplier)
+			break;
+
+		case CT_EXPLOSION:
+			COPY_I(obj_rw->ctype.expl_info.spawn_time    , obj->ctype.expl_info.spawn_time)
+			COPY_I(obj_rw->ctype.expl_info.delete_time   , obj->ctype.expl_info.delete_time)
+			COPY_S(obj_rw->ctype.expl_info.delete_objnum , obj->ctype.expl_info.delete_objnum)
+			COPY_S(obj_rw->ctype.expl_info.attach_parent , obj->ctype.expl_info.attach_parent)
+			COPY_S(obj_rw->ctype.expl_info.prev_attach   , obj->ctype.expl_info.prev_attach)
+			COPY_S(obj_rw->ctype.expl_info.next_attach   , obj->ctype.expl_info.next_attach)
+			break;
+
+		case CT_AI:
+		{
+			int i;
+			COPY_B(obj_rw->ctype.ai_info.behavior               , obj->ctype.ai_info.behavior)
+			for (i = 0; i < MAX_AI_FLAGS; i++)
+				COPY_B(obj_rw->ctype.ai_info.flags[i]       , obj->ctype.ai_info.flags[i])
+			COPY_S(obj_rw->ctype.ai_info.hide_segment           , obj->ctype.ai_info.hide_segment)
+			COPY_S(obj_rw->ctype.ai_info.hide_index             , obj->ctype.ai_info.hide_index)
+			COPY_S(obj_rw->ctype.ai_info.path_length            , obj->ctype.ai_info.path_length)
+			COPY_S(obj_rw->ctype.ai_info.cur_path_index         , obj->ctype.ai_info.cur_path_index)
+			COPY_S(obj_rw->ctype.ai_info.follow_path_start_seg  , obj->ctype.ai_info.follow_path_start_seg)
+			COPY_S(obj_rw->ctype.ai_info.follow_path_end_seg    , obj->ctype.ai_info.follow_path_end_seg)
+			COPY_I(obj_rw->ctype.ai_info.danger_laser_signature , obj->ctype.ai_info.danger_laser_signature)
+			COPY_S(obj_rw->ctype.ai_info.danger_laser_num       , obj->ctype.ai_info.danger_laser_num)
+			break;
+		}
+
+		case CT_LIGHT:
+			COPY_I(obj_rw->ctype.light_info.intensity , obj->ctype.light_info.intensity)
+			break;
+
+		case CT_POWERUP:
+			COPY_I(obj_rw->ctype.powerup_info.count         , obj->ctype.powerup_info.count)
+			break;
+	}
+
+	switch (obj->render_type)
+	{
+		case RT_MORPH:
+		case RT_POLYOBJ:
+		case RT_NONE: // HACK below
+		{
+			int i;
+			if (obj->render_type == RT_NONE && obj->type != OBJ_GHOST) // HACK: when a player is dead or not connected yet, clients still expect to get polyobj data - even if render_type == RT_NONE at this time.
+				break;
+			COPY_I(obj_rw->rtype.pobj_info.model_num                , obj->rtype.pobj_info.model_num)
+			for (i=0;i<MAX_SUBMODELS;i++)
+			{
+				COPY_S(obj_rw->rtype.pobj_info.anim_angles[i].p , obj->rtype.pobj_info.anim_angles[i].p)
+				COPY_S(obj_rw->rtype.pobj_info.anim_angles[i].b , obj->rtype.pobj_info.anim_angles[i].b)
+				COPY_S(obj_rw->rtype.pobj_info.anim_angles[i].h , obj->rtype.pobj_info.anim_angles[i].h)
+			}
+			COPY_I(obj_rw->rtype.pobj_info.subobj_flags             , obj->rtype.pobj_info.subobj_flags)
+			COPY_I(obj_rw->rtype.pobj_info.tmap_override            , obj->rtype.pobj_info.tmap_override)
+			COPY_I(obj_rw->rtype.pobj_info.alt_textures             , obj->rtype.pobj_info.alt_textures)
+			break;
+		}
+
+		case RT_WEAPON_VCLIP:
+		case RT_HOSTAGE:
+		case RT_POWERUP:
+		case RT_FIREBALL:
+			COPY_I(obj_rw->rtype.vclip_info.vclip_num , obj->rtype.vclip_info.vclip_num)
+			COPY_I(obj_rw->rtype.vclip_info.frametime , obj->rtype.vclip_info.frametime)
+			COPY_B(obj_rw->rtype.vclip_info.framenum  , obj->rtype.vclip_info.framenum)
+			break;
+
+		case RT_LASER:
+			break;
+
+	}
+}
+
+#undef COPY_S
+#undef COPY_I
+#define COPY_S(a, b) a = GET_INTEL_SHORT(&b);
+#define COPY_I(a, b) a = GET_INTEL_INT(&b);
+
+void object_rw_to_object(object_rw *obj_rw, object *obj)
+{
+	COPY_I(obj->signature     , obj_rw->signature)
+	COPY_B(obj->type          , obj_rw->type)
+	COPY_B(obj->id            , obj_rw->id)
+	COPY_S(obj->next          , obj_rw->next)
+	COPY_S(obj->prev          , obj_rw->prev)
+	COPY_B(obj->control_type  , obj_rw->control_type)
+	COPY_B(obj->movement_type , obj_rw->movement_type)
+	COPY_B(obj->render_type   , obj_rw->render_type)
+	COPY_B(obj->flags         , obj_rw->flags)
+	COPY_S(obj->segnum        , obj_rw->segnum)
+	COPY_S(obj->attached_obj  , obj_rw->attached_obj)
+	COPY_I(obj->pos.x         , obj_rw->pos.x)
+	COPY_I(obj->pos.y         , obj_rw->pos.y)
+	COPY_I(obj->pos.z         , obj_rw->pos.z)
+	COPY_I(obj->orient.rvec.x , obj_rw->orient.rvec.x)
+	COPY_I(obj->orient.rvec.y , obj_rw->orient.rvec.y)
+	COPY_I(obj->orient.rvec.z , obj_rw->orient.rvec.z)
+	COPY_I(obj->orient.fvec.x , obj_rw->orient.fvec.x)
+	COPY_I(obj->orient.fvec.y , obj_rw->orient.fvec.y)
+	COPY_I(obj->orient.fvec.z , obj_rw->orient.fvec.z)
+	COPY_I(obj->orient.uvec.x , obj_rw->orient.uvec.x)
+	COPY_I(obj->orient.uvec.y , obj_rw->orient.uvec.y)
+	COPY_I(obj->orient.uvec.z , obj_rw->orient.uvec.z)
+	COPY_I(obj->size          , obj_rw->size)
+	COPY_I(obj->shields       , obj_rw->shields)
+	COPY_I(obj->last_pos.x    , obj_rw->last_pos.x)
+	COPY_I(obj->last_pos.y    , obj_rw->last_pos.y)
+	COPY_I(obj->last_pos.z    , obj_rw->last_pos.z)
+	COPY_B(obj->contains_type , obj_rw->contains_type)
+	COPY_B(obj->contains_id   , obj_rw->contains_id)
+	COPY_B(obj->contains_count, obj_rw->contains_count)
+	COPY_B(obj->matcen_creator, obj_rw->matcen_creator)
+	COPY_I(obj->lifeleft      , obj_rw->lifeleft)
+
+	switch (obj->movement_type)
+	{
+		case MT_PHYSICS:
+			COPY_I(obj->mtype.phys_info.velocity.x  , obj_rw->mtype.phys_info.velocity.x)
+			COPY_I(obj->mtype.phys_info.velocity.y  , obj_rw->mtype.phys_info.velocity.y)
+			COPY_I(obj->mtype.phys_info.velocity.z  , obj_rw->mtype.phys_info.velocity.z)
+			COPY_I(obj->mtype.phys_info.thrust.x    , obj_rw->mtype.phys_info.thrust.x)
+			COPY_I(obj->mtype.phys_info.thrust.y    , obj_rw->mtype.phys_info.thrust.y)
+			COPY_I(obj->mtype.phys_info.thrust.z    , obj_rw->mtype.phys_info.thrust.z)
+			COPY_I(obj->mtype.phys_info.mass        , obj_rw->mtype.phys_info.mass)
+			COPY_I(obj->mtype.phys_info.drag        , obj_rw->mtype.phys_info.drag)
+			COPY_I(obj->mtype.phys_info.brakes      , obj_rw->mtype.phys_info.brakes)
+			COPY_I(obj->mtype.phys_info.rotvel.x    , obj_rw->mtype.phys_info.rotvel.x)
+			COPY_I(obj->mtype.phys_info.rotvel.y    , obj_rw->mtype.phys_info.rotvel.y)
+			COPY_I(obj->mtype.phys_info.rotvel.z    , obj_rw->mtype.phys_info.rotvel.z)
+			COPY_I(obj->mtype.phys_info.rotthrust.x , obj_rw->mtype.phys_info.rotthrust.x)
+			COPY_I(obj->mtype.phys_info.rotthrust.y , obj_rw->mtype.phys_info.rotthrust.y)
+			COPY_I(obj->mtype.phys_info.rotthrust.z , obj_rw->mtype.phys_info.rotthrust.z)
+			COPY_S(obj->mtype.phys_info.turnroll    , obj_rw->mtype.phys_info.turnroll)
+			COPY_S(obj->mtype.phys_info.flags       , obj_rw->mtype.phys_info.flags)
+			break;
+
+		case MT_SPINNING:
+			COPY_I(obj->mtype.spin_rate.x , obj_rw->mtype.spin_rate.x)
+			COPY_I(obj->mtype.spin_rate.y , obj_rw->mtype.spin_rate.y)
+			COPY_I(obj->mtype.spin_rate.z , obj_rw->mtype.spin_rate.z)
+			break;
+	}
+
+	switch (obj->control_type)
+	{
+		case CT_WEAPON:
+			COPY_S(obj->ctype.laser_info.parent_type      , obj_rw->ctype.laser_info.parent_type)
+			COPY_S(obj->ctype.laser_info.parent_num       , obj_rw->ctype.laser_info.parent_num)
+			COPY_I(obj->ctype.laser_info.parent_signature , obj_rw->ctype.laser_info.parent_signature)
+			COPY_I(obj->ctype.laser_info.creation_time    , obj_rw->ctype.laser_info.creation_time)
+			COPY_S(obj->ctype.laser_info.last_hitobj      , obj_rw->ctype.laser_info.last_hitobj)
+			COPY_S(obj->ctype.laser_info.track_goal       , obj_rw->ctype.laser_info.track_goal)
+			COPY_I(obj->ctype.laser_info.multiplier       , obj_rw->ctype.laser_info.multiplier)
+			break;
+
+		case CT_EXPLOSION:
+			COPY_I(obj->ctype.expl_info.spawn_time    , obj_rw->ctype.expl_info.spawn_time)
+			COPY_I(obj->ctype.expl_info.delete_time   , obj_rw->ctype.expl_info.delete_time)
+			COPY_S(obj->ctype.expl_info.delete_objnum , obj_rw->ctype.expl_info.delete_objnum)
+			COPY_S(obj->ctype.expl_info.attach_parent , obj_rw->ctype.expl_info.attach_parent)
+			COPY_S(obj->ctype.expl_info.prev_attach   , obj_rw->ctype.expl_info.prev_attach)
+			COPY_S(obj->ctype.expl_info.next_attach   , obj_rw->ctype.expl_info.next_attach)
+			break;
+
+		case CT_AI:
+		{
+			int i;
+			COPY_B(obj->ctype.ai_info.behavior               , obj_rw->ctype.ai_info.behavior)
+			for (i = 0; i < MAX_AI_FLAGS; i++)
+				COPY_B(obj->ctype.ai_info.flags[i]       , obj_rw->ctype.ai_info.flags[i])
+			COPY_S(obj->ctype.ai_info.hide_segment           , obj_rw->ctype.ai_info.hide_segment)
+			COPY_S(obj->ctype.ai_info.hide_index             , obj_rw->ctype.ai_info.hide_index)
+			COPY_S(obj->ctype.ai_info.path_length            , obj_rw->ctype.ai_info.path_length)
+			COPY_S(obj->ctype.ai_info.cur_path_index         , obj_rw->ctype.ai_info.cur_path_index)
+			COPY_S(obj->ctype.ai_info.follow_path_start_seg  , obj_rw->ctype.ai_info.follow_path_start_seg)
+			COPY_S(obj->ctype.ai_info.follow_path_end_seg    , obj_rw->ctype.ai_info.follow_path_end_seg)
+			COPY_I(obj->ctype.ai_info.danger_laser_signature , obj_rw->ctype.ai_info.danger_laser_signature)
+			COPY_S(obj->ctype.ai_info.danger_laser_num       , obj_rw->ctype.ai_info.danger_laser_num)
+			break;
+		}
+
+		case CT_LIGHT:
+			COPY_I(obj->ctype.light_info.intensity , obj_rw->ctype.light_info.intensity)
+			break;
+
+		case CT_POWERUP:
+			COPY_I(obj->ctype.powerup_info.count         , obj_rw->ctype.powerup_info.count)
+			break;
+		case CT_CNTRLCEN:
+		{
+			// gun points of reactor now part of the object but of course not saved in object_rw. Let's just recompute them.
+			int i = 0;
+			reactor *reactor = get_reactor_definition(obj->id);
+			for (i=0; i<reactor->n_guns; i++)
+				calc_controlcen_gun_point(reactor, obj, i);
+			break;
+		}
+	}
+
+	switch (obj->render_type)
+	{
+		case RT_MORPH:
+		case RT_POLYOBJ:
+		case RT_NONE: // HACK below
+		{
+			int i;
+			if (obj->render_type == RT_NONE && obj->type != OBJ_GHOST) // HACK: when a player is dead or not connected yet, clients still expect to get polyobj data - even if render_type == RT_NONE at this time.
+				break;
+			COPY_I(obj->rtype.pobj_info.model_num                , obj_rw->rtype.pobj_info.model_num)
+			for (i=0;i<MAX_SUBMODELS;i++)
+			{
+				COPY_S(obj->rtype.pobj_info.anim_angles[i].p , obj_rw->rtype.pobj_info.anim_angles[i].p)
+				COPY_S(obj->rtype.pobj_info.anim_angles[i].b , obj_rw->rtype.pobj_info.anim_angles[i].b)
+				COPY_S(obj->rtype.pobj_info.anim_angles[i].h , obj_rw->rtype.pobj_info.anim_angles[i].h)
+			}
+			COPY_I(obj->rtype.pobj_info.subobj_flags             , obj_rw->rtype.pobj_info.subobj_flags)
+			COPY_I(obj->rtype.pobj_info.tmap_override            , obj_rw->rtype.pobj_info.tmap_override)
+			COPY_I(obj->rtype.pobj_info.alt_textures             , obj_rw->rtype.pobj_info.alt_textures)
+			break;
+		}
+
+		case RT_WEAPON_VCLIP:
+		case RT_HOSTAGE:
+		case RT_POWERUP:
+		case RT_FIREBALL:
+			COPY_I(obj->rtype.vclip_info.vclip_num , obj_rw->rtype.vclip_info.vclip_num)
+			COPY_I(obj->rtype.vclip_info.frametime , obj_rw->rtype.vclip_info.frametime)
+			COPY_B(obj->rtype.vclip_info.framenum  , obj_rw->rtype.vclip_info.framenum)
+			break;
+
+		case RT_LASER:
+			break;
+
 	}
 }

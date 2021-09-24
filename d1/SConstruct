@@ -152,6 +152,7 @@ class DXXCommon:
 		self.env.Append(CCFLAGS = ['-Wall', '-funsigned-char', '-Werror=implicit-int', '-Werror=implicit-function-declaration', '-pthread'])
 		self.env.Append(CFLAGS = ['-std=gnu99'])
 		self.env.Append(CPPDEFINES = ['NETWORK'])
+		self.env.Append(CPPDEFINES = ['WORDS_NEED_ALIGNMENT']) # for testing enable this always
 		# Get traditional compiler environment variables
 		for cc in ['CC', 'CXX']:
 			if os.environ.has_key(cc):
@@ -216,14 +217,14 @@ class DXXCommon:
 			env.Append(CPPDEFINES = ['USE_SDLMIXER'])
 
 		# debug?
-		if (self.user_settings.debug == 1):
+		if True: #(self.user_settings.debug == 1):
 			print "%s: including: DEBUG" % self.PROGRAM_NAME
 			if (sys.platform == 'cygwin'):
 				# C preprocessor macro expansion for gdb
 				env.Append(CPPFLAGS = ['-g3'])
 			else:
 				env.Append(CPPFLAGS = ['-g'])
-		else:
+		if (self.user_settings.debug == 0):
 			env.Append(CPPDEFINES = ['NDEBUG', 'RELEASE'])
 			env.Append(CPPFLAGS = ['-O2'])
 

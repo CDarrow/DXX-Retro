@@ -97,314 +97,15 @@ uint state_game_id;
 // turn object to object_rw to be saved to Savegame.
 void state_object_to_object_rw(object *obj, object_rw *obj_rw)
 {
-	obj_rw->signature     = obj->signature;
-	obj_rw->type          = obj->type;
-	obj_rw->id            = obj->id;
-	obj_rw->next          = obj->next;
-	obj_rw->prev          = obj->prev;
-	obj_rw->control_type  = obj->control_type;
-	obj_rw->movement_type = obj->movement_type;
-	obj_rw->render_type   = obj->render_type;
-	obj_rw->flags         = obj->flags;
-	obj_rw->segnum        = obj->segnum;
-	obj_rw->attached_obj  = obj->attached_obj;
-	obj_rw->pos.x         = obj->pos.x;
-	obj_rw->pos.y         = obj->pos.y;
-	obj_rw->pos.z         = obj->pos.z;
-	obj_rw->orient.rvec.x = obj->orient.rvec.x;
-	obj_rw->orient.rvec.y = obj->orient.rvec.y;
-	obj_rw->orient.rvec.z = obj->orient.rvec.z;
-	obj_rw->orient.fvec.x = obj->orient.fvec.x;
-	obj_rw->orient.fvec.y = obj->orient.fvec.y;
-	obj_rw->orient.fvec.z = obj->orient.fvec.z;
-	obj_rw->orient.uvec.x = obj->orient.uvec.x;
-	obj_rw->orient.uvec.y = obj->orient.uvec.y;
-	obj_rw->orient.uvec.z = obj->orient.uvec.z;
-	obj_rw->size          = obj->size;
-	obj_rw->shields       = obj->shields;
-	obj_rw->last_pos.x    = obj->last_pos.x;
-	obj_rw->last_pos.y    = obj->last_pos.y;
-	obj_rw->last_pos.z    = obj->last_pos.z;
-	obj_rw->contains_type = obj->contains_type;
-	obj_rw->contains_id   = obj->contains_id;
-	obj_rw->contains_count= obj->contains_count;
-	obj_rw->matcen_creator= obj->matcen_creator;
-	obj_rw->lifeleft      = obj->lifeleft;
-	
-	switch (obj_rw->movement_type)
-	{
-		case MT_PHYSICS:
-			obj_rw->mtype.phys_info.velocity.x  = obj->mtype.phys_info.velocity.x;
-			obj_rw->mtype.phys_info.velocity.y  = obj->mtype.phys_info.velocity.y;
-			obj_rw->mtype.phys_info.velocity.z  = obj->mtype.phys_info.velocity.z;
-			obj_rw->mtype.phys_info.thrust.x    = obj->mtype.phys_info.thrust.x;
-			obj_rw->mtype.phys_info.thrust.y    = obj->mtype.phys_info.thrust.y;
-			obj_rw->mtype.phys_info.thrust.z    = obj->mtype.phys_info.thrust.z;
-			obj_rw->mtype.phys_info.mass        = obj->mtype.phys_info.mass;
-			obj_rw->mtype.phys_info.drag        = obj->mtype.phys_info.drag;
-			obj_rw->mtype.phys_info.brakes      = obj->mtype.phys_info.brakes;
-			obj_rw->mtype.phys_info.rotvel.x    = obj->mtype.phys_info.rotvel.x;
-			obj_rw->mtype.phys_info.rotvel.y    = obj->mtype.phys_info.rotvel.y;
-			obj_rw->mtype.phys_info.rotvel.z    = obj->mtype.phys_info.rotvel.z;
-			obj_rw->mtype.phys_info.rotthrust.x = obj->mtype.phys_info.rotthrust.x;
-			obj_rw->mtype.phys_info.rotthrust.y = obj->mtype.phys_info.rotthrust.y;
-			obj_rw->mtype.phys_info.rotthrust.z = obj->mtype.phys_info.rotthrust.z;
-			obj_rw->mtype.phys_info.turnroll    = obj->mtype.phys_info.turnroll;
-			obj_rw->mtype.phys_info.flags       = obj->mtype.phys_info.flags;
-			break;
-			
-		case MT_SPINNING:
-			obj_rw->mtype.spin_rate.x = obj->mtype.spin_rate.x;
-			obj_rw->mtype.spin_rate.y = obj->mtype.spin_rate.y;
-			obj_rw->mtype.spin_rate.z = obj->mtype.spin_rate.z;
-			break;
-	}
-	
-	switch (obj_rw->control_type)
-	{
-		case CT_WEAPON:
-			obj_rw->ctype.laser_info.parent_type      = obj->ctype.laser_info.parent_type;
-			obj_rw->ctype.laser_info.parent_num       = obj->ctype.laser_info.parent_num;
-			obj_rw->ctype.laser_info.parent_signature = obj->ctype.laser_info.parent_signature;
-			if (obj->ctype.laser_info.creation_time - GameTime64 < F1_0*(-18000))
-				obj_rw->ctype.laser_info.creation_time = F1_0*(-18000);
-			else
-				obj_rw->ctype.laser_info.creation_time = obj->ctype.laser_info.creation_time - GameTime64;
-			obj_rw->ctype.laser_info.last_hitobj      = obj->ctype.laser_info.last_hitobj;
-			obj_rw->ctype.laser_info.track_goal       = obj->ctype.laser_info.track_goal;
-			obj_rw->ctype.laser_info.multiplier       = obj->ctype.laser_info.multiplier;
-			break;
-			
-		case CT_EXPLOSION:
-			obj_rw->ctype.expl_info.spawn_time    = obj->ctype.expl_info.spawn_time;
-			obj_rw->ctype.expl_info.delete_time   = obj->ctype.expl_info.delete_time;
-			obj_rw->ctype.expl_info.delete_objnum = obj->ctype.expl_info.delete_objnum;
-			obj_rw->ctype.expl_info.attach_parent = obj->ctype.expl_info.attach_parent;
-			obj_rw->ctype.expl_info.prev_attach   = obj->ctype.expl_info.prev_attach;
-			obj_rw->ctype.expl_info.next_attach   = obj->ctype.expl_info.next_attach;
-			break;
-			
-		case CT_AI:
-		{
-			int i;
-			obj_rw->ctype.ai_info.behavior               = obj->ctype.ai_info.behavior; 
-			for (i = 0; i < MAX_AI_FLAGS; i++)
-				obj_rw->ctype.ai_info.flags[i]       = obj->ctype.ai_info.flags[i]; 
-			obj_rw->ctype.ai_info.hide_segment           = obj->ctype.ai_info.hide_segment;
-			obj_rw->ctype.ai_info.hide_index             = obj->ctype.ai_info.hide_index;
-			obj_rw->ctype.ai_info.path_length            = obj->ctype.ai_info.path_length;
-			obj_rw->ctype.ai_info.cur_path_index         = obj->ctype.ai_info.cur_path_index;
-			obj_rw->ctype.ai_info.follow_path_start_seg  = obj->ctype.ai_info.follow_path_start_seg;
-			obj_rw->ctype.ai_info.follow_path_end_seg    = obj->ctype.ai_info.follow_path_end_seg;
-			obj_rw->ctype.ai_info.danger_laser_signature = obj->ctype.ai_info.danger_laser_signature;
-			obj_rw->ctype.ai_info.danger_laser_num       = obj->ctype.ai_info.danger_laser_num;
-			break;
-		}
-			
-		case CT_LIGHT:
-			obj_rw->ctype.light_info.intensity = obj->ctype.light_info.intensity;
-			break;
-			
-		case CT_POWERUP:
-			obj_rw->ctype.powerup_info.count         = obj->ctype.powerup_info.count;
-			break;
-	}
-	
-	switch (obj_rw->render_type)
-	{
-		case RT_MORPH:
-		case RT_POLYOBJ:
-		case RT_NONE: // HACK below
-		{
-			int i;
-			if (obj->render_type == RT_NONE && obj->type != OBJ_GHOST) // HACK: when a player is dead or not connected yet, clients still expect to get polyobj data - even if render_type == RT_NONE at this time. Here it's not important, but it might be for Multiplayer Savegames.
-				break;
-			obj_rw->rtype.pobj_info.model_num                = obj->rtype.pobj_info.model_num;
-			for (i=0;i<MAX_SUBMODELS;i++)
-			{
-				obj_rw->rtype.pobj_info.anim_angles[i].p = obj->rtype.pobj_info.anim_angles[i].p;
-				obj_rw->rtype.pobj_info.anim_angles[i].b = obj->rtype.pobj_info.anim_angles[i].b;
-				obj_rw->rtype.pobj_info.anim_angles[i].h = obj->rtype.pobj_info.anim_angles[i].h;
-			}
-			obj_rw->rtype.pobj_info.subobj_flags             = obj->rtype.pobj_info.subobj_flags;
-			obj_rw->rtype.pobj_info.tmap_override            = obj->rtype.pobj_info.tmap_override;
-			obj_rw->rtype.pobj_info.alt_textures             = obj->rtype.pobj_info.alt_textures;
-			break;
-		}
-			
-		case RT_WEAPON_VCLIP:
-		case RT_HOSTAGE:
-		case RT_POWERUP:
-		case RT_FIREBALL:
-			obj_rw->rtype.vclip_info.vclip_num = obj->rtype.vclip_info.vclip_num;
-			obj_rw->rtype.vclip_info.frametime = obj->rtype.vclip_info.frametime;
-			obj_rw->rtype.vclip_info.framenum  = obj->rtype.vclip_info.framenum;
-			break;
-			
-		case RT_LASER:
-			break;
-			
-	}
+	object_to_object_rw(obj, obj_rw);
 }
 
 // turn object_rw to object after reading from Savegame
 void state_object_rw_to_object(object_rw *obj_rw, object *obj)
 {
-	obj->signature     = obj_rw->signature;
-	obj->type          = obj_rw->type;
-	obj->id            = obj_rw->id;
-	obj->next          = obj_rw->next;
-	obj->prev          = obj_rw->prev;
-	obj->control_type  = obj_rw->control_type;
-	obj->movement_type = obj_rw->movement_type;
-	obj->render_type   = obj_rw->render_type;
-	obj->flags         = obj_rw->flags;
-	obj->segnum        = obj_rw->segnum;
-	obj->attached_obj  = obj_rw->attached_obj;
-	obj->pos.x         = obj_rw->pos.x;
-	obj->pos.y         = obj_rw->pos.y;
-	obj->pos.z         = obj_rw->pos.z;
-	obj->orient.rvec.x = obj_rw->orient.rvec.x;
-	obj->orient.rvec.y = obj_rw->orient.rvec.y;
-	obj->orient.rvec.z = obj_rw->orient.rvec.z;
-	obj->orient.fvec.x = obj_rw->orient.fvec.x;
-	obj->orient.fvec.y = obj_rw->orient.fvec.y;
-	obj->orient.fvec.z = obj_rw->orient.fvec.z;
-	obj->orient.uvec.x = obj_rw->orient.uvec.x;
-	obj->orient.uvec.y = obj_rw->orient.uvec.y;
-	obj->orient.uvec.z = obj_rw->orient.uvec.z;
-	obj->size          = obj_rw->size;
-	obj->shields       = obj_rw->shields;
-	obj->last_pos.x    = obj_rw->last_pos.x;
-	obj->last_pos.y    = obj_rw->last_pos.y;
-	obj->last_pos.z    = obj_rw->last_pos.z;
-	obj->contains_type = obj_rw->contains_type;
-	obj->contains_id   = obj_rw->contains_id;
-	obj->contains_count= obj_rw->contains_count;
-	obj->matcen_creator= obj_rw->matcen_creator;
-	obj->lifeleft      = obj_rw->lifeleft;
-	
-	switch (obj->movement_type)
-	{
-		case MT_PHYSICS:
-			obj->mtype.phys_info.velocity.x  = obj_rw->mtype.phys_info.velocity.x;
-			obj->mtype.phys_info.velocity.y  = obj_rw->mtype.phys_info.velocity.y;
-			obj->mtype.phys_info.velocity.z  = obj_rw->mtype.phys_info.velocity.z;
-			obj->mtype.phys_info.thrust.x    = obj_rw->mtype.phys_info.thrust.x;
-			obj->mtype.phys_info.thrust.y    = obj_rw->mtype.phys_info.thrust.y;
-			obj->mtype.phys_info.thrust.z    = obj_rw->mtype.phys_info.thrust.z;
-			obj->mtype.phys_info.mass        = obj_rw->mtype.phys_info.mass;
-			obj->mtype.phys_info.drag        = obj_rw->mtype.phys_info.drag;
-			obj->mtype.phys_info.brakes      = obj_rw->mtype.phys_info.brakes;
-			obj->mtype.phys_info.rotvel.x    = obj_rw->mtype.phys_info.rotvel.x;
-			obj->mtype.phys_info.rotvel.y    = obj_rw->mtype.phys_info.rotvel.y;
-			obj->mtype.phys_info.rotvel.z    = obj_rw->mtype.phys_info.rotvel.z;
-			obj->mtype.phys_info.rotthrust.x = obj_rw->mtype.phys_info.rotthrust.x;
-			obj->mtype.phys_info.rotthrust.y = obj_rw->mtype.phys_info.rotthrust.y;
-			obj->mtype.phys_info.rotthrust.z = obj_rw->mtype.phys_info.rotthrust.z;
-			obj->mtype.phys_info.turnroll    = obj_rw->mtype.phys_info.turnroll;
-			obj->mtype.phys_info.flags       = obj_rw->mtype.phys_info.flags;
-			break;
-			
-		case MT_SPINNING:
-			obj->mtype.spin_rate.x = obj_rw->mtype.spin_rate.x;
-			obj->mtype.spin_rate.y = obj_rw->mtype.spin_rate.y;
-			obj->mtype.spin_rate.z = obj_rw->mtype.spin_rate.z;
-			break;
-	}
-	
-	switch (obj->control_type)
-	{
-		case CT_WEAPON:
-			obj->ctype.laser_info.parent_type      = obj_rw->ctype.laser_info.parent_type;
-			obj->ctype.laser_info.parent_num       = obj_rw->ctype.laser_info.parent_num;
-			obj->ctype.laser_info.parent_signature = obj_rw->ctype.laser_info.parent_signature;
-			obj->ctype.laser_info.creation_time    = obj_rw->ctype.laser_info.creation_time;
-			obj->ctype.laser_info.last_hitobj      = obj_rw->ctype.laser_info.last_hitobj;
+	object_rw_to_object(obj_rw, obj);
+	if (obj->control_type == CT_WEAPON)
 			obj->ctype.laser_info.hitobj_list[obj->ctype.laser_info.last_hitobj] = 1; // restore most recent hitobj to hitobj_list
-			obj->ctype.laser_info.track_goal       = obj_rw->ctype.laser_info.track_goal;
-			obj->ctype.laser_info.multiplier       = obj_rw->ctype.laser_info.multiplier;
-			break;
-			
-		case CT_EXPLOSION:
-			obj->ctype.expl_info.spawn_time    = obj_rw->ctype.expl_info.spawn_time;
-			obj->ctype.expl_info.delete_time   = obj_rw->ctype.expl_info.delete_time;
-			obj->ctype.expl_info.delete_objnum = obj_rw->ctype.expl_info.delete_objnum;
-			obj->ctype.expl_info.attach_parent = obj_rw->ctype.expl_info.attach_parent;
-			obj->ctype.expl_info.prev_attach   = obj_rw->ctype.expl_info.prev_attach;
-			obj->ctype.expl_info.next_attach   = obj_rw->ctype.expl_info.next_attach;
-			break;
-			
-		case CT_AI:
-		{
-			int i;
-			obj->ctype.ai_info.behavior               = obj_rw->ctype.ai_info.behavior; 
-			for (i = 0; i < MAX_AI_FLAGS; i++)
-				obj->ctype.ai_info.flags[i]       = obj_rw->ctype.ai_info.flags[i]; 
-			obj->ctype.ai_info.hide_segment           = obj_rw->ctype.ai_info.hide_segment;
-			obj->ctype.ai_info.hide_index             = obj_rw->ctype.ai_info.hide_index;
-			obj->ctype.ai_info.path_length            = obj_rw->ctype.ai_info.path_length;
-			obj->ctype.ai_info.cur_path_index         = obj_rw->ctype.ai_info.cur_path_index;
-			obj->ctype.ai_info.follow_path_start_seg  = obj_rw->ctype.ai_info.follow_path_start_seg;
-			obj->ctype.ai_info.follow_path_end_seg    = obj_rw->ctype.ai_info.follow_path_end_seg;
-			obj->ctype.ai_info.danger_laser_signature = obj_rw->ctype.ai_info.danger_laser_signature;
-			obj->ctype.ai_info.danger_laser_num       = obj_rw->ctype.ai_info.danger_laser_num;
-			break;
-		}
-			
-		case CT_LIGHT:
-			obj->ctype.light_info.intensity = obj_rw->ctype.light_info.intensity;
-			break;
-			
-		case CT_POWERUP:
-			obj->ctype.powerup_info.count         = obj_rw->ctype.powerup_info.count;
-			break;
-		case CT_CNTRLCEN:
-		{
-			// gun points of reactor now part of the object but of course not saved in object_rw and overwritten due to reset_objects(). Let's just recompute them.
-			int i = 0;
-			reactor *reactor = get_reactor_definition(obj->id);
-			for (i=0; i<reactor->n_guns; i++)
-				calc_controlcen_gun_point(reactor, obj, i);
-			break;
-		}
-	}
-	
-	switch (obj->render_type)
-	{
-		case RT_MORPH:
-		case RT_POLYOBJ:
-		case RT_NONE: // HACK below
-		{
-			int i;
-			if (obj->render_type == RT_NONE && obj->type != OBJ_GHOST) // HACK: when a player is dead or not connected yet, clients still expect to get polyobj data - even if render_type == RT_NONE at this time. Here it's not important, but it might be for Multiplayer Savegames.
-				break;
-			obj->rtype.pobj_info.model_num                = obj_rw->rtype.pobj_info.model_num;
-			for (i=0;i<MAX_SUBMODELS;i++)
-			{
-				obj->rtype.pobj_info.anim_angles[i].p = obj_rw->rtype.pobj_info.anim_angles[i].p;
-				obj->rtype.pobj_info.anim_angles[i].b = obj_rw->rtype.pobj_info.anim_angles[i].b;
-				obj->rtype.pobj_info.anim_angles[i].h = obj_rw->rtype.pobj_info.anim_angles[i].h;
-			}
-			obj->rtype.pobj_info.subobj_flags             = obj_rw->rtype.pobj_info.subobj_flags;
-			obj->rtype.pobj_info.tmap_override            = obj_rw->rtype.pobj_info.tmap_override;
-			obj->rtype.pobj_info.alt_textures             = obj_rw->rtype.pobj_info.alt_textures;
-			break;
-		}
-			
-		case RT_WEAPON_VCLIP:
-		case RT_HOSTAGE:
-		case RT_POWERUP:
-		case RT_FIREBALL:
-			obj->rtype.vclip_info.vclip_num = obj_rw->rtype.vclip_info.vclip_num;
-			obj->rtype.vclip_info.frametime = obj_rw->rtype.vclip_info.frametime;
-			obj->rtype.vclip_info.framenum  = obj_rw->rtype.vclip_info.framenum;
-			break;
-			
-		case RT_LASER:
-			break;
-			
-	}
 }
 
 // Following functions convert player to player_rw and back to be written to/read from Savegames. player only differ to player_rw in terms of timer values (fix/fix64). as we reset GameTime64 for writing so it can fit into fix it's not necessary to increment savegame version. But if we once store something else into object which might be useful after restoring, it might be handy to increment Savegame version and actually store these new infos.
@@ -415,46 +116,46 @@ void state_player_to_player_rw(player *pl, player_rw *pl_rw)
 	memcpy(pl_rw->callsign, pl->callsign, CALLSIGN_LEN+1);
 	memcpy(pl_rw->net_address, pl->net_address, 6);
 	pl_rw->connected                 = pl->connected;
-	pl_rw->objnum                    = pl->objnum;
-	pl_rw->n_packets_got             = pl->n_packets_got;
-	pl_rw->n_packets_sent            = pl->n_packets_sent;
-	pl_rw->flags                     = pl->flags;
-	pl_rw->energy                    = pl->energy;
-	pl_rw->shields                   = pl->shields;
+	PUT_INTEL_INT(&pl_rw->objnum                    , pl->objnum);
+	PUT_INTEL_INT(&pl_rw->n_packets_got             , pl->n_packets_got);
+	PUT_INTEL_INT(&pl_rw->n_packets_sent            , pl->n_packets_sent);
+	PUT_INTEL_INT(&pl_rw->flags                     , pl->flags);
+	PUT_INTEL_INT(&pl_rw->energy                    , pl->energy);
+	PUT_INTEL_INT(&pl_rw->shields                   , pl->shields);
 	pl_rw->lives                     = pl->lives;
 	pl_rw->level                     = pl->level;
 	pl_rw->laser_level               = pl->laser_level;
 	pl_rw->starting_level            = pl->starting_level;
-	pl_rw->killer_objnum             = pl->killer_objnum;
+	PUT_INTEL_SHORT(&pl_rw->killer_objnum             , pl->killer_objnum);
 	pl_rw->primary_weapon_flags      = pl->primary_weapon_flags;
 	pl_rw->secondary_weapon_flags    = pl->secondary_weapon_flags;
 	for (i = 0; i < MAX_PRIMARY_WEAPONS; i++)
-		pl_rw->primary_ammo[i]   = pl->primary_ammo[i];
+		PUT_INTEL_SHORT(&pl_rw->primary_ammo[i]   , pl->primary_ammo[i]);
 	for (i = 0; i < MAX_SECONDARY_WEAPONS; i++)
-		pl_rw->secondary_ammo[i] = pl->secondary_ammo[i];
-	pl_rw->last_score                = pl->last_score;
-	pl_rw->score                     = pl->score;
-	pl_rw->time_level                = pl->time_level;
-	pl_rw->time_total                = pl->time_total;
+		PUT_INTEL_SHORT(&pl_rw->secondary_ammo[i] , pl->secondary_ammo[i]);
+	PUT_INTEL_INT(&pl_rw->last_score                , pl->last_score);
+	PUT_INTEL_INT(&pl_rw->score                     , pl->score);
+	PUT_INTEL_INT(&pl_rw->time_level                , pl->time_level);
+	PUT_INTEL_INT(&pl_rw->time_total                , pl->time_total);
 	if (pl->cloak_time - GameTime64 < F1_0*(-18000))
-		pl_rw->cloak_time        = F1_0*(-18000);
+		PUT_INTEL_INT(&pl_rw->cloak_time        , F1_0*(-18000));
 	else
-		pl_rw->cloak_time        = pl->cloak_time - GameTime64;
+		PUT_INTEL_INT(&pl_rw->cloak_time        , pl->cloak_time - GameTime64);
 	if (pl->invulnerable_time - GameTime64 < F1_0*(-18000))
-		pl_rw->invulnerable_time = F1_0*(-18000);
+		PUT_INTEL_INT(&pl_rw->invulnerable_time , F1_0*(-18000));
 	else
-		pl_rw->invulnerable_time = pl->invulnerable_time - GameTime64;
-	pl_rw->net_killed_total          = pl->net_killed_total;
-	pl_rw->net_kills_total           = pl->net_kills_total;
-	pl_rw->num_kills_level           = pl->num_kills_level;
-	pl_rw->num_kills_total           = pl->num_kills_total;
-	pl_rw->num_robots_level          = pl->num_robots_level;
-	pl_rw->num_robots_total          = pl->num_robots_total;
-	pl_rw->hostages_rescued_total    = pl->hostages_rescued_total;
-	pl_rw->hostages_total            = pl->hostages_total;
+		PUT_INTEL_INT(&pl_rw->invulnerable_time , pl->invulnerable_time - GameTime64);
+	PUT_INTEL_SHORT(&pl_rw->net_killed_total          , pl->net_killed_total);
+	PUT_INTEL_SHORT(&pl_rw->net_kills_total           , pl->net_kills_total);
+	PUT_INTEL_SHORT(&pl_rw->num_kills_level           , pl->num_kills_level);
+	PUT_INTEL_SHORT(&pl_rw->num_kills_total           , pl->num_kills_total);
+	PUT_INTEL_SHORT(&pl_rw->num_robots_level          , pl->num_robots_level);
+	PUT_INTEL_SHORT(&pl_rw->num_robots_total          , pl->num_robots_total);
+	PUT_INTEL_SHORT(&pl_rw->hostages_rescued_total    , pl->hostages_rescued_total);
+	PUT_INTEL_SHORT(&pl_rw->hostages_total            , pl->hostages_total);
 	pl_rw->hostages_on_board         = pl->hostages_on_board;
 	pl_rw->hostages_level            = pl->hostages_level;
-	pl_rw->homing_object_dist        = pl->homing_object_dist;
+	PUT_INTEL_INT(&pl_rw->homing_object_dist        , pl->homing_object_dist);
 	pl_rw->hours_level               = pl->hours_level;
 	pl_rw->hours_total               = pl->hours_total;
 }
@@ -466,40 +167,40 @@ void state_player_rw_to_player(player_rw *pl_rw, player *pl)
 	memcpy(pl->callsign, pl_rw->callsign, CALLSIGN_LEN+1);
 	memcpy(pl->net_address, pl_rw->net_address, 6);
 	pl->connected                 = pl_rw->connected;
-	pl->objnum                    = pl_rw->objnum;
-	pl->n_packets_got             = pl_rw->n_packets_got;
-	pl->n_packets_sent            = pl_rw->n_packets_sent;
-	pl->flags                     = pl_rw->flags;
-	pl->energy                    = pl_rw->energy;
-	pl->shields                   = pl_rw->shields;
+	pl->objnum                    = GET_INTEL_INT(&pl_rw->objnum);
+	pl->n_packets_got             = GET_INTEL_INT(&pl_rw->n_packets_got);
+	pl->n_packets_sent            = GET_INTEL_INT(&pl_rw->n_packets_sent);
+	pl->flags                     = GET_INTEL_INT(&pl_rw->flags);
+	pl->energy                    = GET_INTEL_INT(&pl_rw->energy);
+	pl->shields                   = GET_INTEL_INT(&pl_rw->shields);
 	pl->lives                     = pl_rw->lives;
 	pl->level                     = pl_rw->level;
 	pl->laser_level               = pl_rw->laser_level;
 	pl->starting_level            = pl_rw->starting_level;
-	pl->killer_objnum             = pl_rw->killer_objnum;
+	pl->killer_objnum             = GET_INTEL_SHORT(&pl_rw->killer_objnum);
 	pl->primary_weapon_flags      = pl_rw->primary_weapon_flags;
 	pl->secondary_weapon_flags    = pl_rw->secondary_weapon_flags;
 	for (i = 0; i < MAX_PRIMARY_WEAPONS; i++)
-		pl->primary_ammo[i]   = pl_rw->primary_ammo[i];
+		pl->primary_ammo[i]   = GET_INTEL_SHORT(&pl_rw->primary_ammo[i]);
 	for (i = 0; i < MAX_SECONDARY_WEAPONS; i++)
-		pl->secondary_ammo[i] = pl_rw->secondary_ammo[i];
-	pl->last_score                = pl_rw->last_score;
-	pl->score                     = pl_rw->score;
-	pl->time_level                = pl_rw->time_level;
-	pl->time_total                = pl_rw->time_total;
-	pl->cloak_time                = pl_rw->cloak_time;
-	pl->invulnerable_time         = pl_rw->invulnerable_time;
-	pl->net_killed_total          = pl_rw->net_killed_total;
-	pl->net_kills_total           = pl_rw->net_kills_total;
-	pl->num_kills_level           = pl_rw->num_kills_level;
-	pl->num_kills_total           = pl_rw->num_kills_total;
-	pl->num_robots_level          = pl_rw->num_robots_level;
-	pl->num_robots_total          = pl_rw->num_robots_total;
-	pl->hostages_rescued_total    = pl_rw->hostages_rescued_total;
-	pl->hostages_total            = pl_rw->hostages_total;
+		pl->secondary_ammo[i] = GET_INTEL_SHORT(&pl_rw->secondary_ammo[i]);
+	pl->last_score                = GET_INTEL_INT(&pl_rw->last_score);
+	pl->score                     = GET_INTEL_INT(&pl_rw->score);
+	pl->time_level                = GET_INTEL_INT(&pl_rw->time_level);
+	pl->time_total                = GET_INTEL_INT(&pl_rw->time_total);
+	pl->cloak_time                = GET_INTEL_INT(&pl_rw->cloak_time);
+	pl->invulnerable_time         = GET_INTEL_INT(&pl_rw->invulnerable_time);
+	pl->net_killed_total          = GET_INTEL_SHORT(&pl_rw->net_killed_total);
+	pl->net_kills_total           = GET_INTEL_SHORT(&pl_rw->net_kills_total);
+	pl->num_kills_level           = GET_INTEL_SHORT(&pl_rw->num_kills_level);
+	pl->num_kills_total           = GET_INTEL_SHORT(&pl_rw->num_kills_total);
+	pl->num_robots_level          = GET_INTEL_SHORT(&pl_rw->num_robots_level);
+	pl->num_robots_total          = GET_INTEL_SHORT(&pl_rw->num_robots_total);
+	pl->hostages_rescued_total    = GET_INTEL_SHORT(&pl_rw->hostages_rescued_total);
+	pl->hostages_total            = GET_INTEL_SHORT(&pl_rw->hostages_total);
 	pl->hostages_on_board         = pl_rw->hostages_on_board;
 	pl->hostages_level            = pl_rw->hostages_level;
-	pl->homing_object_dist        = pl_rw->homing_object_dist;
+	pl->homing_object_dist        = GET_INTEL_INT(&pl_rw->homing_object_dist);
 	pl->hours_level               = pl_rw->hours_level;
 	pl->hours_total               = pl_rw->hours_total;
 }

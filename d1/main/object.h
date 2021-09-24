@@ -27,6 +27,7 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #include "aistruct.h"
 #include "gr.h"
 #include "piggy.h"
+#include "packtype.h"
 
 /*
  * CONSTANTS
@@ -146,9 +147,9 @@ struct reactor_static {
 // A compressed form for sending crucial data
 typedef struct shortpos {
 	sbyte   bytemat[9];
-	short   xo,yo,zo;
-	short   segment;
-	short   velx, vely, velz;
+	pshort   xo,yo,zo;
+	pshort   segment;
+	pshort   velx, vely, velz;
 } __pack__ shortpos;
 
 // Another compressed form for object position, velocity, orientation and rotvel using quaternion
@@ -298,57 +299,116 @@ typedef struct object {
 #endif
 } __pack__ object;
 
+struct pai_static {
+	ubyte   behavior;
+	sbyte   flags[MAX_AI_FLAGS];
+	pshort   hide_segment;
+	pshort   hide_index;
+	pshort   path_length;
+	pshort   cur_path_index;
+	pshort   follow_path_start_seg;
+	pshort   follow_path_end_seg;
+	pint     danger_laser_signature;
+	pshort   danger_laser_num;
+};
+typedef struct pphysics_info {
+	pvms_vector  velocity;
+	pvms_vector  thrust;
+	pfix         mass;
+	pfix         drag;
+	pfix         brakes;
+	pvms_vector  rotvel;
+	pvms_vector  rotthrust;
+	pfixang      turnroll;
+	pushort      flags;
+} pphysics_info;
+struct plaser_info_rw {
+	pshort   parent_type;
+	pshort   parent_num;
+	pint     parent_signature;
+	pfix     creation_time;
+	pshort   last_hitobj;
+	pshort   track_goal;
+	pfix     multiplier;
+};
+struct pexplosion_info {
+    pfix     spawn_time;
+    pfix     delete_time;
+    pshort   delete_objnum;
+    pshort   attach_parent;
+    pshort   prev_attach;
+    pshort   next_attach;
+};
+struct plight_info {
+    pfix     intensity;
+};
+struct ppowerup_info {
+	pint     count;
+};
+struct pvclip_info {
+	pint     vclip_num;
+	pfix     frametime;
+	sbyte   framenum;
+};
+struct ppolyobj_info {
+	pint     model_num;
+	pvms_angvec anim_angles[MAX_SUBMODELS];
+	pint     subobj_flags;
+	pint     tmap_override;
+	pint     alt_textures;
+} ppolyobj_info;
+
 // Same as above but structure Savegames/Multiplayer objects expect
 typedef struct object_rw {
-	int     signature;      // Every object ever has a unique signature...
+	pint     signature;      // Every object ever has a unique signature...
 	ubyte   type;           // what type of object this is... robot, weapon, hostage, powerup, fireball
 	ubyte   id;             // which form of object...which powerup, robot, etc.
-#ifdef WORDS_NEED_ALIGNMENT
-	short   pad;
-#endif
-	short   next,prev;      // id of next and previous connected object in Objects, -1 = no connection
+//#ifdef WORDS_NEED_ALIGNMENT
+//	short   pad;
+//#endif
+	pshort   next,prev;      // id of next and previous connected object in Objects, -1 = no connection
 	ubyte   control_type;   // how this object is controlled
 	ubyte   movement_type;  // how this object moves
 	ubyte   render_type;    // how this object renders
 	ubyte   flags;          // misc flags
-	short   segnum;         // segment number containing object
-	short   attached_obj;   // number of attached fireball object
-	vms_vector pos;         // absolute x,y,z coordinate of center of object
-	vms_matrix orient;      // orientation of object in world
-	fix     size;           // 3d size of object - for collision detection
-	fix     shields;        // Starts at maximum, when <0, object dies..
-	vms_vector last_pos;    // where object was last frame
+	pshort   segnum;         // segment number containing object
+	pshort   attached_obj;   // number of attached fireball object
+	pvms_vector pos;         // absolute x,y,z coordinate of center of object
+	pvms_matrix orient;      // orientation of object in world
+	pfix     size;           // 3d size of object - for collision detection
+	pfix     shields;        // Starts at maximum, when <0, object dies..
+	pvms_vector last_pos;    // where object was last frame
 	sbyte   contains_type;  // Type of object this object contains (eg, spider contains powerup)
 	sbyte   contains_id;    // ID of object this object contains (eg, id = blue type = key)
 	sbyte   contains_count; // number of objects of type:id this object contains
 	sbyte   matcen_creator; // Materialization center that created this object, high bit set if matcen-created
-	fix     lifeleft;       // how long until goes away, or 7fff if immortal
+	pfix     lifeleft;       // how long until goes away, or 7fff if immortal
 	// -- Removed, MK, 10/16/95, using lifeleft instead: int     lightlevel;
 
 	// movement info, determined by MOVEMENT_TYPE
 	union {
-		physics_info phys_info; // a physics object
-		vms_vector   spin_rate; // for spinning objects
+		pphysics_info phys_info; // a physics object
+		pvms_vector   spin_rate; // for spinning objects
 	} __pack__ mtype ;
 
 	// control info, determined by CONTROL_TYPE
 	union {
-		struct laser_info_rw   laser_info;
-		struct explosion_info  expl_info;      // NOTE: debris uses this also
-		struct ai_static    ai_info;
-		struct light_info      light_info;     // why put this here?  Didn't know what else to do with it.
-		struct powerup_info powerup_info;
+		struct plaser_info_rw   laser_info;
+		struct pexplosion_info  expl_info;      // NOTE: debris uses this also
+		struct pai_static    ai_info;
+		struct plight_info      light_info;     // why put this here?  Didn't know what else to do with it.
+		struct ppowerup_info powerup_info;
 	} __pack__ ctype ;
 
 	// render info, determined by RENDER_TYPE
 	union {
-		struct polyobj_info    pobj_info;      // polygon model
-		struct vclip_info      vclip_info;     // vclip
+		struct ppolyobj_info    pobj_info;      // polygon model
+		struct pvclip_info      vclip_info;     // vclip
 	} __pack__ rtype;
 
-#ifdef WORDS_NEED_ALIGNMENT
-	short   pad2;
-#endif
+//#ifdef WORDS_NEED_ALIGNMENT
+//	short   pad2;
+//#endif
 } __pack__ object_rw;
 
 typedef struct obj_position {
@@ -535,6 +595,9 @@ void obj_attach(object *parent,object *sub);
 extern void create_small_fireball_on_object(object *objp, fix size_scale, int sound_flag);
 
 extern void object_rw_swap(object_rw *obj_rw, int swap);
+extern void object_rw_to_object(object_rw *obj_rw, object *obj);
+extern void object_to_object_rw(object *obj, object_rw *obj_rw);
+
 
 #endif
  

@@ -57,15 +57,18 @@ COPYRIGHT 1993-1998 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 #define COMPATIBLE_PLAYER_STRUCT_VERSION 16
 
 struct player_config PlayerCfg;
-saved_game_sw saved_games[N_SAVE_SLOTS];
+//saved_game_sw saved_games[N_SAVE_SLOTS];
+#define SAVED_GAMES_SIZE (SAVED_GAME_SW_SIZE * N_SAVE_SLOTS)
 extern void InitWeaponOrdering();
 
 int new_player_config()
 {
 	int i=0;
 	
+	#if 0
 	for (i=0;i<N_SAVE_SLOTS;i++)
 		saved_games[i].name[0] = 0;
+	#endif
 
 	InitWeaponOrdering (); //setup default weapon priorities
 	PlayerCfg.ControlType=0; // Assume keyboard
@@ -880,9 +883,9 @@ int read_player_file()
 			break;
 		case 7:
 			/* version 7 doesn't have the saved games array */
-			if ((player_file_size - (sizeof(hli)*PlayerCfg.NHighestLevels)) == (2212 - sizeof(saved_games)))
+			if ((player_file_size - (sizeof(hli)*PlayerCfg.NHighestLevels)) == (2212 - SAVED_GAMES_SIZE))
 				shareware_file = 1;
-			if ((player_file_size - (sizeof(hli)*PlayerCfg.NHighestLevels)) == (2252 - sizeof(saved_games)))
+			if ((player_file_size - (sizeof(hli)*PlayerCfg.NHighestLevels)) == (2252 - SAVED_GAMES_SIZE))
 				shareware_file = 0;
 			break;
 		case 8:
@@ -934,8 +937,13 @@ int read_player_file()
 	}
 
 	if ( saved_game_version != 7 ) {	// Read old & SW saved games.
+		#if 1 // direct reading doesn't work with unpacked struct, ignore SW saved games for now
+		PHYSFS_seek(file,PHYSFS_tell(file)+SAVED_GAMES_SIZE);
+		//memset(saved_games,0,sizeof(saved_games));
+		#else
 		if (PHYSFS_read(file,saved_games,sizeof(saved_games),1) != 1)
 			goto read_player_file_failed;
+		#endif
 	}
 
 	//read taunt macros
@@ -971,6 +979,7 @@ int read_player_file()
 			goto read_player_file_failed;
 	}
 
+	#if 0
 	if ( saved_game_version != 7 ) 	{
 		int i, found=0;
 		
@@ -988,6 +997,7 @@ int read_player_file()
 		if (found)
 			write_player_file();
 	}
+	#endif
 
 	if (!PHYSFS_close(file))
 		goto read_player_file_failed;
@@ -1107,7 +1117,9 @@ int write_player_file()
 		return errno_ret;
 	}
 
-	if (PHYSFS_write( file, saved_games,sizeof(saved_games),1) != 1) {
+	ubyte fake_saved_games[SAVED_GAMES_SIZE];
+	memset(fake_saved_games, 0, sizeof(fake_saved_games));
+	if (PHYSFS_write( file, fake_saved_games,sizeof(fake_saved_games),1) != 1) {
 		errno_ret = errno;
 		PHYSFS_close(file);
 		return errno_ret;
