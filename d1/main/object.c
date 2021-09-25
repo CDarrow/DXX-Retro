@@ -723,7 +723,7 @@ void render_object(object *obj)
 			break;
 
 		default:
-			Error("Unknown render_type <%d>",obj->render_type);
+			Error("Unknown render_type <%d> num %d type %d id %d sig %d owner %d",obj->render_type,obj-Objects,obj->type,obj->id,obj->signature,object_owner[obj-Objects]);
 	}
 
 	gr_settransblend( GR_FADE_OFF, GR_BLEND_NORMAL ); // revert any transparency/blending setting back to normal

@@ -235,7 +235,7 @@ char* msg_name(int type)
 	}
 }
 
-static PHYSFS_file *netlog_fp=NULL;
+PHYSFS_file *netlog_fp=NULL;
 static struct timeval program_start; 
 
 static void net_log_close(void)
@@ -284,7 +284,7 @@ void net_log_log(char tx, const void* msg, int len, const struct sockaddr *addre
 
 		
 		for(int i = 0; i < len; i++) {
-			PHYSFSX_printf(netlog_fp, "%03d ", cmsg[i]); 
+			PHYSFSX_printf(netlog_fp, "%02x ", cmsg[i]);
 		}
 		PHYSFSX_printf(netlog_fp, "\n"); 
 	}

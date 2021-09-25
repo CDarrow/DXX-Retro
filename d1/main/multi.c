@@ -187,6 +187,11 @@ static const int message_length[] = {
 	for_each_multiplayer_command(, define_message_length, )
 };
 
+static const char *message_name[] = {
+#define define_message_name(NAME,SIZE)	(#NAME),
+	for_each_multiplayer_command(, define_message_name, )
+};
+
 void multi_reset_player_object(object *objp);
 void multi_set_robot_ai(void);
 void multi_add_lifetime_killed();
@@ -1001,6 +1006,14 @@ multi_send_data(unsigned char *buf, int len, int priority)
 	if (buf[0] >= sizeof(message_length) / sizeof(message_length[0])) {
 		con_printf(CON_NORMAL, "multi_send_data: Illegal packet type %i\n", buf[0]);
 		return;
+	}
+
+	extern PHYSFS_file *netlog_fp;
+	if (netlog_fp) {
+		PHYSFSX_printf(netlog_fp, "tx %s (%d)", message_name[buf[0]], len);
+		for(int i = 0; i < len; i++)
+			PHYSFSX_printf(netlog_fp, " %02x", buf[i]);
+		PHYSFSX_printf(netlog_fp, "\n");
 	}
 
 	if (Game_mode & GM_NETWORK)
@@ -2628,6 +2641,14 @@ multi_process_bigdata(const ubyte *buf, unsigned len)
 			con_printf(CON_DEBUG, "multi_process_bigdata: packet type %d too short (%d>%d)!\n", type, (bytes_processed+sub_len), len );
 			Int3();
 			return;
+		}
+
+		extern PHYSFS_file *netlog_fp;
+		if (netlog_fp) {
+			PHYSFSX_printf(netlog_fp, "rx % 4d %s (%d)", bytes_processed, message_name[type], sub_len);
+			for(int i = 0; i < sub_len; i++)
+				PHYSFSX_printf(netlog_fp, " %02x", buf[bytes_processed+i]);
+			PHYSFSX_printf(netlog_fp, "\n");
 		}
 
 		multi_process_data(&buf[bytes_processed], sub_len);

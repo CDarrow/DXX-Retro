@@ -102,6 +102,16 @@ void con_printf(int priority, const char *fmt, ...)
 #endif
 			PHYSFSX_printf(gamelog_fp,"%s",buffer);
 		}
+
+		extern PHYSFS_file *netlog_fp;
+		if (netlog_fp)
+		{
+			struct tm *lt;
+			time_t t;
+			t=time(NULL);
+			lt=localtime(&t);
+			PHYSFSX_printf(netlog_fp,"%02i:%02i:%02i %s",lt->tm_hour,lt->tm_min,lt->tm_sec,buffer);
+		}
 	}
 }
 
