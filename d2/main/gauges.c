@@ -1596,12 +1596,13 @@ void cockpit_decode_alpha(grs_bitmap *bm)
 		sbits = &bm->bm_data[4 + (bm->bm_h * data_offset)];
 		dbits = cockpitbuf;
 
+		unsigned char *ws = bm->bm_data + 4;
 		for (i=0; i < bm->bm_h; i++ )    {
 			gr_rle_decode(sbits,dbits);
 			if ( bm->bm_flags & BM_FLAG_RLE_BIG )
-				sbits += (int)INTEL_SHORT(*((short *)&(bm->bm_data[4+(i*data_offset)])));
+				sbits += ws[i * 2] + ws[i * 2 + 1] * 256;
 			else
-				sbits += (int)bm->bm_data[4+i];
+				sbits += (int)ws[i];
 			dbits += bm->bm_w;
 		}
 	}
