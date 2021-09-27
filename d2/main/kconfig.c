@@ -1535,11 +1535,12 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	else
 		Controls.vertical_thrust_time -= (Controls.joy_axis[kc_joystick[19].value]*PlayerCfg.JoystickSens[3]*undercalibrate_scale(PlayerCfg.JoystickUndercalibrate[3]))/8;
 	// From mouse...
-	if ( kc_mouse[19].value != 255 )
+	if ( kc_mouse[19].value != 255 ) {
 		if ( !kc_mouse[20].value )		// If not inverted...
 			Controls.vertical_thrust_time += (Controls.mouse_axis[kc_mouse[19].value]*PlayerCfg.MouseSens[3])/8;
 		else
 			Controls.vertical_thrust_time -= (Controls.mouse_axis[kc_mouse[19].value]*PlayerCfg.MouseSens[3])/8;
+	}
 
 	//---------- Read heading_time -----------
 	if (!Controls.slide_on_state && !Controls.bank_on_state)
@@ -1631,11 +1632,12 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	else
 		Controls.sideways_thrust_time -= (Controls.joy_axis[kc_joystick[17].value]*PlayerCfg.JoystickSens[2]*undercalibrate_scale(PlayerCfg.JoystickUndercalibrate[2]))/8;
 	// From mouse...
-	if ( kc_mouse[17].value != 255 )
+	if ( kc_mouse[17].value != 255 ) {
 		if ( !kc_mouse[18].value )		// If not inverted...
 			Controls.sideways_thrust_time += (Controls.mouse_axis[kc_mouse[17].value]*PlayerCfg.MouseSens[2])/8;
 		else
 			Controls.sideways_thrust_time -= (Controls.mouse_axis[kc_mouse[17].value]*PlayerCfg.MouseSens[2])/8;
+	}
 
 	//----------- Read bank_time -----------------
 	if ( Controls.bank_on_state )
@@ -1710,11 +1712,12 @@ void kconfig_read_controls(d_event *event, int automap_flag)
 	else
 		Controls.forward_thrust_time += (Controls.joy_axis[kc_joystick[23].value]*PlayerCfg.JoystickSens[5]*undercalibrate_scale(PlayerCfg.JoystickUndercalibrate[5]))/8;
 	// From mouse...
-	if ( kc_mouse[23].value != 255 )
+	if ( kc_mouse[23].value != 255 ) {
 		if ( !kc_mouse[24].value )		// If not inverted...
 			Controls.forward_thrust_time -= (Controls.mouse_axis[kc_mouse[23].value]*PlayerCfg.MouseSens[5])/8;
 		else
 			Controls.forward_thrust_time += (Controls.mouse_axis[kc_mouse[23].value]*PlayerCfg.MouseSens[5])/8;
+	}
 
 	//----------- Read cruise-control-type of throttle.
 	// For LoNi -- have cruise go to 100% instantly.  Will add option if anyone cares about making it slow.
