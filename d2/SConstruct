@@ -154,6 +154,7 @@ class DXXCommon:
 		self.env.Append(CCFLAGS = ['-Wall', '-funsigned-char', '-Werror=implicit-int', '-Werror=implicit-function-declaration', '-pthread'])
 		self.env.Append(CFLAGS = ['-std=gnu99'])
 		self.env.Append(CPPDEFINES = ['NETWORK'])
+		self.env.Append(CPPDEFINES = ['WORDS_NEED_ALIGNMENT']) # for testing enable this always
 		# Get traditional compiler environment variables
 		for cc in ['CC', 'CXX']:
 			if os.environ.has_key(cc):

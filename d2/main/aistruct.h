@@ -25,6 +25,7 @@ COPYRIGHT 1993-1999 PARALLAX SOFTWARE CORPORATION.  ALL RIGHTS RESERVED.
 
 #include "inferno.h"
 #include "polyobj.h"
+#include "packtype.h"
 
 #define GREEN_GUY   1
 
@@ -152,14 +153,14 @@ typedef struct ai_static {
 typedef struct ai_static_rw {
 	ubyte   behavior;               //
 	sbyte   flags[MAX_AI_FLAGS];    // various flags, meaning defined by constants
-	short   hide_segment;           // Segment to go to for hiding.
-	short   hide_index;             // Index in Path_seg_points
-	short   path_length;            // Length of hide path.
+	pshort   hide_segment;           // Segment to go to for hiding.
+	pshort   hide_index;             // Index in Path_seg_points
+	pshort   path_length;            // Length of hide path.
 	sbyte   cur_path_index;         // Current index in path.
 	sbyte   dying_sound_playing;    // !0 if this robot is playing its dying sound.
-	short   danger_laser_num;
-	int     danger_laser_signature;
-	fix     dying_start_time;       // Time at which this robot started dying.
+	pshort   danger_laser_num;
+	pint     danger_laser_signature;
+	pfix     dying_start_time;       // Time at which this robot started dying.
 } __pack__ ai_static_rw;
 
 // Rather temporal AI stuff.

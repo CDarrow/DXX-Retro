@@ -239,16 +239,16 @@ void my_extract_shortpos(object *objp, shortpos *spp)
 	objp->orient.uvec.z = *sp++ << MATRIX_PRECISION;
 	objp->orient.fvec.z = *sp++ << MATRIX_PRECISION;
 
-	segnum = spp->segment;
+	segnum = (short)GET_INTEL_SHORT(&spp->segment);
 	objp->segnum = segnum;
 
-	objp->pos.x = (spp->xo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].x;
-	objp->pos.y = (spp->yo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].y;
-	objp->pos.z = (spp->zo << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].z;
+	objp->pos.x = ((short)GET_INTEL_SHORT(&spp->xo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].x;
+	objp->pos.y = ((short)GET_INTEL_SHORT(&spp->yo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].y;
+	objp->pos.z = ((short)GET_INTEL_SHORT(&spp->zo) << RELPOS_PRECISION) + Vertices[Segments[segnum].verts[0]].z;
 
-	objp->mtype.phys_info.velocity.x = (spp->velx << VEL_PRECISION);
-	objp->mtype.phys_info.velocity.y = (spp->vely << VEL_PRECISION);
-	objp->mtype.phys_info.velocity.z = (spp->velz << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.x = ((short)GET_INTEL_SHORT(&spp->velx) << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.y = ((short)GET_INTEL_SHORT(&spp->vely) << VEL_PRECISION);
+	objp->mtype.phys_info.velocity.z = ((short)GET_INTEL_SHORT(&spp->velz) << VEL_PRECISION);
 }
 
 int newdemo_read( void *buffer, int elsize, int nelem )
@@ -307,6 +307,11 @@ static void nd_write_short(short s)
 	newdemo_write(&s, 2, 1);
 }
 
+static void nd_write_pshort(pshort *s)
+{
+	newdemo_write(s, 2, 1);
+}
+
 static void nd_write_int(int i)
 {
 	newdemo_write(&i, 4, 1);
@@ -363,13 +368,13 @@ void nd_write_shortpos(object *obj)
 		}
 	}
 
-	nd_write_short(sp.xo);
-	nd_write_short(sp.yo);
-	nd_write_short(sp.zo);
-	nd_write_short(sp.segment);
-	nd_write_short(sp.velx);
-	nd_write_short(sp.vely);
-	nd_write_short(sp.velz);
+	nd_write_pshort(&sp.xo);
+	nd_write_pshort(&sp.yo);
+	nd_write_pshort(&sp.zo);
+	nd_write_pshort(&sp.segment);
+	nd_write_pshort(&sp.velx);
+	nd_write_pshort(&sp.vely);
+	nd_write_pshort(&sp.velz);
 }
 
 static void nd_read_byte(sbyte *b)
@@ -382,6 +387,11 @@ static void nd_read_short(short *s)
 	newdemo_read(s, 2, 1);
 	if (swap_endian)
 		*s = SWAPSHORT(*s);
+}
+
+static void nd_read_pshort(pshort *s)
+{
+	newdemo_read(s, 2, 1);
 }
 
 static void nd_read_int(int *i)
@@ -441,13 +451,13 @@ static void nd_read_shortpos(object *obj)
 			nd_read_byte(&(sp.bytemat[i]));
 	}
 
-	nd_read_short(&(sp.xo));
-	nd_read_short(&(sp.yo));
-	nd_read_short(&(sp.zo));
-	nd_read_short(&(sp.segment));
-	nd_read_short(&(sp.velx));
-	nd_read_short(&(sp.vely));
-	nd_read_short(&(sp.velz));
+	nd_read_pshort(&(sp.xo));
+	nd_read_pshort(&(sp.yo));
+	nd_read_pshort(&(sp.zo));
+	nd_read_pshort(&(sp.segment));
+	nd_read_pshort(&(sp.velx));
+	nd_read_pshort(&(sp.vely));
+	nd_read_pshort(&(sp.velz));
 
 	my_extract_shortpos(obj, &sp);
 	if ((obj->id == VCLIP_MORPHING_ROBOT) && (render_type == RT_FIREBALL) && (obj->control_type == CT_EXPLOSION))

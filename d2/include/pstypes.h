@@ -80,6 +80,9 @@ defined(__LITTLE_ENDIAN__)	// from physfs_internal.h
 # define WORDS_BIGENDIAN 1
 #endif
 
+#if 1
+#define __pack__
+#else
 #ifdef __GNUC__
 # define __pack__ __attribute__((packed))
 #elif defined(_MSC_VER)
@@ -91,6 +94,7 @@ defined(__LITTLE_ENDIAN__)	// from physfs_internal.h
 # define __pack__
 #else
 # error "This program will not work without packed structures"
+#endif
 #endif
 
 #ifdef _MSC_VER

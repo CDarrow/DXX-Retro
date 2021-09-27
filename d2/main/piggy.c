@@ -131,6 +131,7 @@ typedef struct DiskBitmapHeader {
 	int offset;
 } __pack__ DiskBitmapHeader;
 
+#define DISKBITMAPHEADER_SIZE 18 // no wh_extra
 #define DISKBITMAPHEADER_D1_SIZE 17 // no wh_extra
 
 typedef struct DiskSoundHeader {
@@ -139,6 +140,8 @@ typedef struct DiskSoundHeader {
 	int data_length;
 	int offset;
 } __pack__ DiskSoundHeader;
+
+#define DISKSOUNDHEADER_SIZE 20 // no wh_extra
 
 void free_bitmap_replacements();
 void free_d1_tmap_nums();
@@ -438,7 +441,7 @@ void piggy_init_pigfile(char *filename)
 
 	N_bitmaps = PHYSFSX_readInt(Piggy_fp);
 
-	header_size = N_bitmaps * sizeof(DiskBitmapHeader);
+	header_size = N_bitmaps * DISKBITMAPHEADER_SIZE;
 
 	data_start = header_size + PHYSFS_tell(Piggy_fp);
 #ifdef EDITOR
@@ -549,7 +552,7 @@ void piggy_new_pigfile(char *pigname)
 
 		N_bitmaps = PHYSFSX_readInt(Piggy_fp);
 
-		header_size = N_bitmaps * sizeof(DiskBitmapHeader);
+		header_size = N_bitmaps * DISKBITMAPHEADER_SIZE;
 
 		data_start = header_size + PHYSFS_tell(Piggy_fp);
 
@@ -844,7 +847,7 @@ int read_hamfile()
 
 		sound_start = PHYSFS_tell(ham_fp);
 
-		header_size = N_sounds * sizeof(DiskSoundHeader);
+		header_size = N_sounds * DISKSOUNDHEADER_SIZE;
 
 		//Read sounds
 
@@ -900,7 +903,7 @@ int read_sndfile()
 	N_sounds = PHYSFSX_readInt(snd_fp);
 
 	sound_start = PHYSFS_tell(snd_fp);
-	header_size = N_sounds*sizeof(DiskSoundHeader);
+	header_size = N_sounds*DISKSOUNDHEADER_SIZE;
 
 	//Read sounds
 
@@ -1109,7 +1112,8 @@ void piggy_bitmap_page_in( bitmap_index bitmap )
 				piggy_critical_error();
 				goto ReDoIt;
 			}
-			*((int *) (Piggy_bitmap_cache_data + Piggy_bitmap_cache_next)) = INTEL_INT(zsize);
+			int isize = INTEL_INT(zsize);
+			memcpy(Piggy_bitmap_cache_data + Piggy_bitmap_cache_next, &isize, 4);
 			gr_set_bitmap_data(bmp, &Piggy_bitmap_cache_data[Piggy_bitmap_cache_next]);
 
 			//14:57:42 Player 5 has alt textures 103, 104
@@ -1268,7 +1272,7 @@ void piggy_write_pigfile(char *filename)
 	Num_bitmap_files++;
 
 	bitmap_data_start = PHYSFS_tell(pig_fp);
-	bitmap_data_start += (Num_bitmap_files - 1) * sizeof(DiskBitmapHeader);
+	bitmap_data_start += (Num_bitmap_files - 1) * DISKBITMAPHEADER_SIZE;
 	data_offset = bitmap_data_start;
 
 	change_filename_extension(tname,filename,"lst");
@@ -1340,7 +1344,8 @@ void piggy_write_pigfile(char *filename)
 			bmh.flags &= ~BM_FLAG_PAGED_OUT;
 		}
 		bmh.avg_color=GameBitmaps[i].avg_color;
-		PHYSFS_write(pig_fp, &bmh, sizeof(DiskBitmapHeader), 1);	// Mark as a bitmap
+		//PHYSFS_write(pig_fp, &bmh, sizeof(DiskBitmapHeader), 1);	// Mark as a bitmap
+		#error "write bmh in parts"
 	}
 
 	PHYSFS_close(pig_fp);
@@ -1418,7 +1423,7 @@ void piggy_dump_all()
 		PHYSFS_write( ham_fp, &Num_sound_files, sizeof(int), 1 );
 	
 		sound_data_start = PHYSFS_tell(ham_fp);
-		sound_data_start += Num_sound_files*sizeof(DiskSoundHeader);
+		sound_data_start += Num_sound_files*DISKSOUNDHEADER_SIZE;
 		data_offset = sound_data_start;
 	
 		for (i=0; i < Num_sound_files; i++ )    {
@@ -1436,7 +1441,8 @@ void piggy_dump_all()
 			PHYSFS_write( ham_fp, snd->data, sizeof(ubyte), snd->length );
 			data_offset += snd->length;
 			PHYSFSX_fseek( ham_fp, org_offset, SEEK_SET );
-			PHYSFS_write( ham_fp, &sndh, sizeof(DiskSoundHeader), 1 );                    // Mark as a bitmap
+			//PHYSFS_write( ham_fp, &sndh, sizeof(DiskSoundHeader), 1 );                    // Mark as a bitmap
+			#error "write sndh in parts"
 	
 			PHYSFSX_printf( fp1, "SND: %s, size %d bytes\n", AllSounds[i].name, snd->length );
 			PHYSFSX_printf( fp2, "%s.raw\n", AllSounds[i].name );
@@ -1595,7 +1601,7 @@ void load_bitmap_replacements(char *level_name)
 		for (i = 0; i < n_bitmaps; i++)
 			indices[i] = PHYSFSX_readShort(ifile);
 
-		bitmap_data_size = PHYSFS_fileLength(ifile) - PHYSFS_tell(ifile) - sizeof(DiskBitmapHeader) * n_bitmaps;
+		bitmap_data_size = PHYSFS_fileLength(ifile) - PHYSFS_tell(ifile) - DISKBITMAPHEADER_SIZE * n_bitmaps;
 		MALLOC( Bitmap_replacement_data, ubyte, bitmap_data_size );
 
 		for (i=0;i<n_bitmaps;i++) {
@@ -1927,7 +1933,7 @@ void load_d1_bitmap_replacements()
 	{
 		int N_sounds = PHYSFSX_readInt(d1_Piggy_fp);
 		int header_size = N_bitmaps * DISKBITMAPHEADER_D1_SIZE
-			+ N_sounds * sizeof(DiskSoundHeader);
+			+ N_sounds * DISKSOUNDHEADER_SIZE;
 		bitmap_header_start = pig_data_start + 2 * sizeof(int);
 		bitmap_data_start = bitmap_header_start + header_size;
 	}
@@ -2035,7 +2041,7 @@ bitmap_index read_extra_bitmap_d1_pig(char *name)
 		{
 			int N_sounds = PHYSFSX_readInt(d1_Piggy_fp);
 			int header_size = N_bitmaps * DISKBITMAPHEADER_D1_SIZE
-				+ N_sounds * sizeof(DiskSoundHeader);
+				+ N_sounds * DISKSOUNDHEADER_SIZE;
 			bitmap_header_start = pig_data_start + 2 * sizeof(int);
 			bitmap_data_start = bitmap_header_start + header_size;
 		}

@@ -5609,7 +5609,8 @@ void net_udp_send_pdata()
 		shortpos spp;
 		memset(&spp, 0, sizeof(shortpos));
 		create_shortpos(&spp, Objects+Players[Player_num].objnum, 0);
-		memcpy(buf + len, &spp.bytemat, 9);							len += 9;
+		memcpy(buf + len, &spp.bytemat, 9 + 14);							len += 9 + 14;
+		#if 0
 		PUT_INTEL_SHORT(buf+len, spp.xo);							len += 2;
 		PUT_INTEL_SHORT(buf+len, spp.yo);							len += 2;
 		PUT_INTEL_SHORT(buf+len, spp.zo);							len += 2;
@@ -5617,6 +5618,7 @@ void net_udp_send_pdata()
 		PUT_INTEL_SHORT(buf+len, spp.velx);							len += 2;
 		PUT_INTEL_SHORT(buf+len, spp.vely);							len += 2;
 		PUT_INTEL_SHORT(buf+len, spp.velz);							len += 2; // 23 + 3 = 26
+		#endif
 		buf[len] = current_pdata; len++;
 	}
 	else
@@ -5799,7 +5801,8 @@ void net_udp_process_pdata ( ubyte *data, int data_len, struct _sockaddr sender_
 	}
 	else if (Netgame.ShortPackets)
 	{
-		memcpy(&pd.ptype.spp.bytemat, &(data[len]), 9);						len += 9;
+		memcpy(&pd.ptype.spp.bytemat, &(data[len]), 9 + 14);						len += 9 + 14;
+		#if 0
 		pd.ptype.spp.xo = GET_INTEL_SHORT(&data[len]);						len += 2;
 		pd.ptype.spp.yo = GET_INTEL_SHORT(&data[len]);						len += 2;
 		pd.ptype.spp.zo = GET_INTEL_SHORT(&data[len]);						len += 2;
@@ -5807,6 +5810,7 @@ void net_udp_process_pdata ( ubyte *data, int data_len, struct _sockaddr sender_
 		pd.ptype.spp.velx = GET_INTEL_SHORT(&data[len]);					len += 2;
 		pd.ptype.spp.vely = GET_INTEL_SHORT(&data[len]);					len += 2;
 		pd.ptype.spp.velz = GET_INTEL_SHORT(&data[len]);					len += 2;
+		#endif
 		packet_num = data[len]; len++; 
 	}
 	else
