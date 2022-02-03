@@ -356,7 +356,7 @@ struct ppolyobj_info {
 	pint     subobj_flags;
 	pint     tmap_override;
 	pint     alt_textures;
-} ppolyobj_info;
+};
 
 // Same as above but structure Savegames/Multiplayer objects expect
 typedef struct object_rw {
