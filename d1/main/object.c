@@ -200,6 +200,7 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 		vm_vec_scale_add2(&pos,&offs_vec,F1_0);
 	}
 
+	#ifdef OGL
 	if( (Game_mode & GM_MULTI) && 
 		Netgame.DarkSmartBlobs &&
 		obj->type == OBJ_WEAPON && 
@@ -208,7 +209,9 @@ void draw_object_blob(object *obj,bitmap_index bmi)
 
 		g3_draw_bitmap_colorwarp(&pos,fixmuldiv(obj->size,bm->bm_w,bm->bm_h),obj->size,bm, 0.0, 0.4, 0.0);
 
-	} else {
+	} else
+	#endif
+	{
 		if (bm->bm_w > bm->bm_h)
 			g3_draw_bitmap(&pos,obj->size,fixmuldiv(obj->size,bm->bm_h,bm->bm_w),bm);
 		
