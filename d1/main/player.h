@@ -116,6 +116,7 @@ typedef struct player {
 	sbyte   hours_total;            // Hours played (since time_total can only go up to 9 hours)
 } __pack__ player;
 
+#pragma pack(push, 1)
 // Same as above but structure how Savegames expect
 typedef struct player_rw {
 	// Who am I data
@@ -167,6 +168,7 @@ typedef struct player_rw {
 	sbyte   hours_level;            // Hours played (since time_total can only go up to 9 hours)
 	sbyte   hours_total;            // Hours played (since time_total can only go up to 9 hours)
 } __pack__ player_rw;
+#pragma pack(pop)
 
 #define PLAYER_RW_SIZE 116
 
