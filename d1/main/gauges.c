@@ -2597,7 +2597,7 @@ void observer_show_kill_list()
 				opp_ev = last_event[player_list[1 - i]];
 				last_ev = ev;
 				last_opp_ev = opp_ev;
-				while (true) {
+				while (1) {
 					if (ev->score != last_ev->score) {
 						last_ev = ev;
 						if (opp_ev->score != last_opp_ev->score)
