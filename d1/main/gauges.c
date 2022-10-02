@@ -2814,7 +2814,7 @@ void observer_show_kill_list()
 				gr_line(x * F1_0, gridminy * F1_0, x * F1_0, gridmaxy * F1_0);
 			}
 			
-			for (i = n_players; i >= 0; i--) {
+			for (i = n_players - 1; i >= 0; i--) {
 				player_num = player_list[i];
 
 				if ((ev = first_event[player_num]) != NULL) {
