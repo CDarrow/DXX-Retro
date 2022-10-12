@@ -1,0 +1,1 @@
+hdiutil create D1X-Retro-tmp.dmg -ov -volname 'D1X-Retro' -fs HFS+ -srcfolder app;rm ~/Downloads/D1X-Retro.dmg;hdiutil convert D1X-Retro-tmp.dmg -format UDZO -o ~/Downloads/D1X-Retro.dmg

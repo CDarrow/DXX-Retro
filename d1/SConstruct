@@ -99,10 +99,10 @@ class DXXCommon:
 			env['VERSION_NUM'] = VERSION
 			env['VERSION_NAME'] = program.PROGRAM_NAME + ' v' + VERSION
 			env.Append(CPPDEFINES = ['HAVE_STRUCT_TIMESPEC', 'HAVE_STRUCT_TIMEVAL', '__unix__'])
-			env.Append(CPPPATH = [os.path.join(program.srcdir, '../physfs'), os.path.join(os.getenv("HOME"), 'Library/Frameworks/SDL.framework/Headers'), '/Library/Frameworks/SDL.framework/Headers', '/opt/local/include', '/opt/local/include/SDL'])
-			env.Append(FRAMEWORKS = ['ApplicationServices', 'Cocoa', 'SDL'])
-			env.Append(FRAMEWORKPATH = ['/opt/local/Library/Frameworks', os.path.join(os.getenv("HOME"), 'Library/Frameworks'), '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks'])
-			self.libs = ['']
+			env.Append(CPPPATH = [os.path.join(program.srcdir, '../physfs'), os.path.join(os.getenv("HOME"), 'Library/Frameworks/SDL.framework/Headers'), '/Library/Frameworks/SDL.framework/Headers', '/opt/local/include', '/opt/local/include/SDL', '/usr/local/include/SDL'])
+			env.Append(FRAMEWORKS = ['ApplicationServices', 'Cocoa']) #, 'SDL'])
+			env.Append(FRAMEWORKPATH = ['/opt/local/Library/Frameworks', os.path.join(os.getenv("HOME"), 'Library/Frameworks')]) #, '/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks'])
+			self.libs = ['SDL', 'SDLmain']
 			env['LIBPATH'] = '../physfs/build/Debug'
 	# Settings to apply to Linux builds
 	class LinuxPlatformSettings(_PlatformSettings):
@@ -346,7 +346,7 @@ class DXXProgram(DXXCommon):
 		# SDL_mixer support?
 		if (self.user_settings.sdlmixer == 1):
 			self.common_sources += self.arch_sdlmixer
-			if (sys.platform != 'darwin'):
+			if (True or sys.platform != 'darwin'):
 				self.platform_settings.libs += ['SDL_mixer']
 			else:
 				env.Append(FRAMEWORKS = ['SDL_mixer'])
@@ -367,7 +367,7 @@ class DXXProgram(DXXCommon):
 
 	def _register_program(self,dxxstr,program_specific_objects=[]):
 		env = self.env
-		exe_target = os.path.join(self.srcdir, self.target)
+		exe_target = os.path.join(self.user_settings.builddir, self.target)
 		objects = [self.env.StaticObject(target='%s%s%s' % (self.user_settings.builddir, os.path.splitext(s)[0], self.env["OBJSUFFIX"]), source=s) for s in self.common_sources]
 		objects.extend(self.platform_settings.platform_objects)
 		objects.extend(program_specific_objects)
@@ -376,7 +376,7 @@ class DXXProgram(DXXCommon):
 			versid_cppdefines.append(('DESCENT_VERSION_EXTRA', '\\"%s\\"' % self.user_settings.extra_version))
 		objects.append(self.env.StaticObject(target='%s%s%s' % (self.user_settings.builddir, 'main/vers_id', self.env["OBJSUFFIX"]), source='main/vers_id.c', CPPDEFINES=versid_cppdefines))
 		# finally building program...
-		env.Program(target='%s%s' % (self.user_settings.builddir, str(exe_target)), source = objects, LIBS = self.platform_settings.libs, LINKFLAGS = str(self.platform_settings.lflags))
+		env.Program(target=str(exe_target), source = objects, LIBS = self.platform_settings.libs, LINKFLAGS = str(self.platform_settings.lflags))
 		if (sys.platform != 'darwin'):
 			env.Install(self.user_settings.BIN_DIR, str(exe_target))
 			env.Alias('install', self.user_settings.BIN_DIR)
@@ -388,12 +388,12 @@ class DXXProgram(DXXCommon):
 					'free.%s-rebirth' % dxxstr, '%sgl-Info.plist' % dxxstr,
 					typecode='APPL', creator='DCNT',
 					icon_file='arch/cocoa/%s-rebirth.icns' % dxxstr,
-					subst_dict={'%sgl' % dxxstr : exe_target},	# This is required; manually update version for Xcode compatibility
+					subst_dict={'%sgl' % dxxstr : self.target},	# This is required; manually update version for Xcode compatibility
 					resources=[['English.lproj/InfoPlist.strings', 'English.lproj/InfoPlist.strings']])
 
 class D1XProgram(DXXProgram):
-	PROGRAM_NAME = 'D1X-Rebirth'
-	target = 'd1x-rebirth'
+	PROGRAM_NAME = 'D1X-Retro'
+	target = 'd1x-retro'
 	srcdir = ''
 	ARGUMENTS = argumentIndirection('d1x')
 	def prepare_environment(self):

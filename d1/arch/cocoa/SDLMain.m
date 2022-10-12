@@ -5,6 +5,8 @@
     Feel free to customize this file to suit your needs
 */
 
+#include <Cocoa/Cocoa.h>
+#if 0
 #include "SDL.h"
 #include "SDLMain.h"
 #include <sys/param.h> /* for MAXPATHLEN */
@@ -379,3 +381,4 @@ int main (int argc, char **argv)
     return 0;
 }
 
+#endif
