@@ -491,6 +491,7 @@ static int audio_data_handler(unsigned char major, unsigned char minor, unsigned
 				mve_audio_buflens[mve_audio_buftail] = cvt.len_cvt;
 				mve_audio_buffers[mve_audio_buftail] = (short *)mve_alloc(cvt.len_cvt);
 				memcpy(mve_audio_buffers[mve_audio_buftail], cvt.buf, cvt.len_cvt);
+				free(cvt.buf);
 			}
 #endif
 
