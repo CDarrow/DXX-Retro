@@ -22,6 +22,7 @@
 
 #include <stdio.h>  /* used for SEEK_SET, SEEK_CUR, SEEK_END ... */
 #include "physfsrwops.h"
+#include "physfsx.h"
 
 static int physfsrwops_seek(SDL_RWops *rw, int offset, int whence)
 {
@@ -173,7 +174,7 @@ SDL_RWops *PHYSFSRWOPS_makeRWops(PHYSFS_file *handle)
 
 SDL_RWops *PHYSFSRWOPS_openRead(const char *fname)
 {
-    return(create_rwops(PHYSFS_openRead(fname)));
+    return(create_rwops(PHYSFSX_openRead(fname)));
 } /* PHYSFSRWOPS_openRead */
 
 
