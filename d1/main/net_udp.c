@@ -4300,6 +4300,8 @@ void net_udp_read_sync_packet( ubyte * data, int data_len, struct _sockaddr send
 	memcpy(temp_callsign, Players[Player_num].callsign, CALLSIGN_LEN+1);
 	
 	Player_num = -1;
+	if (Game_mode & GM_OBSERVER)
+		Player_num = OBSERVER_PLAYER_ID; // Kluge to prevent crashes
 
 	for (i=0; i<MAX_PLAYERS; i++ )
 	{
@@ -4386,8 +4388,6 @@ void net_udp_read_sync_packet( ubyte * data, int data_len, struct _sockaddr send
 		}
 
 		Objects[Players[Player_num].objnum].type = OBJ_PLAYER;
-	} else {
-		Player_num = OBSERVER_PLAYER_ID; // Kluge to prevent crashes
 	}
 
 	Network_status = NETSTAT_PLAYING;
