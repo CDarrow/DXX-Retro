@@ -332,5 +332,6 @@ extern PHYSFS_file *PHYSFSX_openReadBuffered(const char *filename);
 extern PHYSFS_file *PHYSFSX_openWriteBuffered(const char *filename);
 extern void PHYSFSX_addArchiveContent();
 extern void PHYSFSX_removeArchiveContent();
+extern PHYSFS_file *PHYSFSX_openRead(const char *filename);
 
 #endif /* PHYSFSX_H */

@@ -559,3 +559,20 @@ void PHYSFSX_removeArchiveContent()
 	PHYSFS_freeList(list);
 	list = NULL;
 }
+
+//Open a file for reading
+PHYSFS_file *PHYSFSX_openRead(const char *filename)
+{
+	char filename2[PATH_MAX];
+
+	if (filename[0] == '\x01')
+	{
+		//FIXME: don't look in dir, only in hogfile
+		filename++;
+	}
+
+	snprintf(filename2, sizeof(filename2), "%s", filename);
+	PHYSFSEXT_locateCorrectCase(filename2);
+
+	return PHYSFS_openRead(filename2);
+}
