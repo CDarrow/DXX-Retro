@@ -397,8 +397,8 @@ class DXXProgram(DXXCommon):
 					resources=[['English.lproj/InfoPlist.strings', 'English.lproj/InfoPlist.strings']])
 
 class D2XProgram(DXXProgram):
-	PROGRAM_NAME = 'D2X-Rebirth'
-	target = 'd2x-rebirth'
+	PROGRAM_NAME = 'D2X-Retro'
+	target = 'd2x-retro'
 	srcdir = ''
 	ARGUMENTS = argumentIndirection('d2x')
 	def prepare_environment(self):
@@ -648,7 +648,7 @@ Help(program.PROGRAM_NAME + ', SConstruct file help:' +
 	
 	Extra options (add them to command line, like 'scons extraoption=value'):
 	
-	'sharepath=[DIR]'     (non-Mac OS *NIX only) use [DIR] for shared game data. [default: /usr/local/share/games/d2x-rebirth]
+	'sharepath=[DIR]'     (non-Mac OS *NIX only) use [DIR] for shared game data. [default: /usr/local/share/games/d2x-retro]
 	'opengl=[0/1]'        build with OpenGL support [default: 1]
 	'opengles=[0/1]'      build with OpenGL ES support [default: 0]
 	'opengles_lib=[NAME]' specify the name of the OpenGL ES library to link against
